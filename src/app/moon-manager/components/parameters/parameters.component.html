@@ -1,0 +1,149 @@
+<!-- Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com -->
+
+<div>
+  <div>
+    <button
+      mat-button
+      color="primary"
+      matTooltip="{{'Reset parameters to factory'|translate}}"
+      (click)="resetConfigAction($event)"
+    >
+      <i class="fas fa-power-off"></i> {{ 'Reset' | translate }}
+    </button>
+    <mat-form-field class="float-right">
+      <mat-select placeholder="{{langPlaceholder|translate}}" [value]="currentLanguage">
+        <mat-option *ngFor="let language of languages" (click)="setLanguage(language)" [value]="language">
+          {{ language | translate }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+</div>
+
+<mat-card
+  #cmdContainer
+  class="git-exp-cmd"
+  ngxClipboard
+  [cbContent]="cmdToCopy"
+  [container]="cmdContainer"
+  (cbOnSuccess)="onSuccedToCopyCmd($event)"
+  matTooltip="{{'mm.param.tuto.gitCmd.tooltip'|translate}}"
+>
+  <mat-card-header>
+    <div mat-card-avatar><i class="fas fa-4x fa-copy"></i></div>
+    <mat-card-title>{{ 'mm.param.tuto.gitCmd.title' | translate }}</mat-card-title>
+    <mat-card-subtitle
+      ><pre>{{ cmdToCopy }}</pre></mat-card-subtitle
+    >
+  </mat-card-header>
+  <mat-card-content> </mat-card-content>
+</mat-card>
+
+<!-- < p-panel class="story" header="Légende des indicateurs temporels :"> -->
+<mat-card class="story">
+  <mat-card-content>
+    <h1 class="param-title text-left">{{ 'Légende des indicateurs temporels :' | translate }}</h1>
+    <div fxLayout="row" fxLayoutGap="0.5%" fxLayoutAlign="center">
+      <div fxFlex="94%" class="text-center">
+        <img
+          class=""
+          src="{{ indicatorStoryUrl | translate }}"
+          alt="{{'Vert : j <= 1hr, Bleu : 1hr < j <= 5hr, Jaune : 5hr < j < 7hr, Rouge : j >= 7hr'|translate}}"
+        />
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="config-forms">
+  <mat-card-content>
+    <form *ngIf="formGroup" [formGroup]="formGroup" #paramsForm="ngForm">
+      <dynamic-material-form [group]="formGroup" [model]="formModel" [layout]="formLayout"> </dynamic-material-form>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<div class="bs">
+  <div class="text-right">
+    <button mat-button color="primary" matTooltip="{{'Save params'|translate}}" (click)="saveAction($event)">
+      <i class="fas fa-save"></i> {{ 'Save' | translate }}
+    </button>
+  </div>
+</div>
+
+<mat-card class="bs import-export">
+  <mat-card-content class="container-fluid">
+    <div class="param-title">{{ 'mm.param.importExport.title' | translate }}</div>
+    <div class="row">
+      <div class="col-12 col-md-6 text-md-left">
+        <!-- strong>{{ 'mm.featureInProgress.mediasImportExport' | translate }}</strong -->
+        <strong>{{ 'mm.param.exportMedias.slct.lbl' | translate }}</strong>
+        <mat-form-field class="">
+          <mat-select placeholder="{{'mm.param.exportMedias.slct.pldr'|translate}}" [value]="exportFmt">
+            <mat-option *ngFor="let format of exportFmts" [value]="format" (click)="setExportFmt(format)">
+              {{ exportTitles[format] | translate }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button
+          mat-button
+          color="primary"
+          matTooltip="{{'mm.param.exportMedias.tooltip'|translate}}"
+          (click)="processingExport($event, 'medias')"
+        >
+          <i class="fas fa-file"></i> {{ 'mm.param.exportMedias.btn' | translate }}
+        </button>
+        <dropzone
+          *ngIf="dropzoneMediasConfig"
+          [config]="dropzoneMediasConfig"
+          [message]="'mm.param.importMedias.dzone.msg' | translate"
+          (error)="onUploadError($event, 'medias')"
+        ></dropzone>
+        <mat-progress-bar mode="determinate" [value]="mediasProgress"></mat-progress-bar>
+      </div>
+      <div class="col-12 col-md-6 text-md-right">
+        <strong>{{ 'mm.param.exportTimings.slct.lbl' | translate }}</strong>
+        <mat-form-field class="">
+          <mat-select placeholder="{{'mm.param.exportTimings.slct.pldr'|translate}}" [value]="exportFmt">
+            <mat-option *ngFor="let format of exportFmts" [value]="format" (click)="setExportFmt(format)">
+              {{ 'mm.param.export.fmt.' + format | translate }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button
+          mat-button
+          color="primary"
+          matTooltip="{{'mm.param.exportTimings.tooltip'|translate}}"
+          (click)="processingExport($event, 'timings')"
+        >
+          <i class="fas fa-file"></i> {{ 'mm.param.exportTimings.btn' | translate }}
+        </button>
+        <dropzone
+          *ngIf="dropzoneTimingsConfig"
+          [config]="dropzoneTimingsConfig"
+          [message]="'mm.param.importTimings.dzone.msg' | translate"
+          (error)="onUploadError($event, 'timings')"
+        ></dropzone>
+        <mat-progress-bar mode="determinate" [value]="timingsProgress"></mat-progress-bar>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<!--
+  <mat-expansion-panel>
+    <mat-expansion-panel-header>
+      <mat-panel-title> Debug </mat-panel-title>
+      <mat-panel-description> </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <pre>{{ paramsForm.value | json }}</pre>
+  </mat-expansion-panel>
+-->
+
+<mat-card>
+  <a href="https://github.com/Monwoo/MoonManager">
+    {{ 'Project under M.I.T. Licence. Build by Monwoo.' | translate }}
+    <img src="https://www.monwoo.com/LogoMonwoo-32.png" alt="" />
+  </a>
+</mat-card>

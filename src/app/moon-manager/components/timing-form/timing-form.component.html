@@ -1,0 +1,30 @@
+<!-- Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com -->
+<p-panel
+  [header]="'[ ' + t.Date + ' ' + t.Time + ' ' + t.Author + ' ] ' + t.EventSource + ' - ' + t.SkillsId"
+  [toggleable]="true"
+  [collapsed]="false"
+>
+  <!--
+    <p-header>
+        <div class="ui-helper-clearfix">
+            <span class="ui-panel-title" >[{{ t.Date }} {{ t.Time }} {{ t.Author }}]</span>
+            <p-splitButton styleClass="align-header"
+            [label]="t.SkillsId" icon="pi pi-plus"  [model]="t">
+            </p-splitButton>
+            <! --
+            <button mat-button color="secondary" matTooltip="Expand">
+                <i class="fas fa-check"></i> {{(t.Title|slice:0:42)+'..'}}
+              </button>
+            -- >
+
+
+
+          </div>
+    </p-header>
+  -->
+  {{ t.Title }}
+  <div *ngIf="'capture' === t.EventSource">
+    <img class="primary-brand" [src]="t.MediaUrl | urlTransformer | async" alt="Timing preview" />
+  </div>
+  <div *ngIf="'git-log' === t.EventSource">{{ t.MediaUrl }} : {{ t.Comment }}</div>
+</p-panel>

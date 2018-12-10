@@ -1,0 +1,22 @@
+<!-- Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com -->
+
+<!-- moon-manager-client-files-loader class="no-print" (onTimingsFetch)="didFetchTiming($event)" -->
+<moon-manager-client-files-loader class="no-print"> </moon-manager-client-files-loader>
+
+<!--
+  TODO : make it work .TS side if wanna use i18n...
+  <h1 i18n="site header|An introduction header for this sample@@introductionHeader">Hello i18n!</h1>
+  <strong>{{ bodyTitle }}</strong>
+-->
+
+<moon-manager-timing-pivot [dataSrc]="filteredDatasAsync.asObservable()"></moon-manager-timing-pivot>
+<!-- TODO : did fix itemSize with empiric value, need autosize for flexibles items -->
+<!-- TODO : *ngIf="(timings.get()|async)?.length" give error : can't get lenght of null value... -->
+<cdk-virtual-scroll-viewport *ngIf="hasTimings" class="list-container list-group no-print" [itemSize]="94">
+  <div
+    *cdkVirtualFor="let t of (filteredDatasAsync.asObservable() | async)"
+    [ngClass]="'p-col-12 animated lightSpeedIn timing-idx-' + t.id"
+  >
+    <moon-manager-timing-form [t]="t"></moon-manager-timing-form>
+  </div>
+</cdk-virtual-scroll-viewport>

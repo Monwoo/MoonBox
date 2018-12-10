@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <!--
+    TODO : use https://www.npmjs.com/package/html-webpack-plugin
+    or equivalent for template system
+    + find generator tool for html + robots + sitemap for standalone html server
+  -->
+  <head>
+    <meta charset="utf-8" />
+    <!-- SEO : -->
+    <meta name="keywords" content="Monwoo, MoonManager, time sheet, project management, compte rendu d'activité" />
+    <meta name="description" content="[Fr] Suivi des temps [En] Follow workloads" />
+    <meta http-equiv="content-language" content="fr" />
+    <meta name="twitter:title" content="Monwoo Moon Manager" />
+    <meta name="twitter:description" content="[Fr] Suivi des temps [En] Follow workloads" />
+    <meta name="twitter:image" content="assets/logos/MoonManager-512.png?v0.0.0" />
+    <meta property="og:title" content="Monwoo Moon Manager" />
+    <meta property="og:description" content="[Fr] Suivi des temps [En] Follow workloads" />
+    <meta property="og:image" content="assets/logos/MoonManager-512.png?v0.0.0" />
+    <meta property="og:locale" content="fr" />
+
+    <title>MoonManager (Private data)</title>
+    <!-- Technical : -->
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#119a4c" />
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#119a4c" />
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="#119a4c" />
+
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" type="image/x-icon" href="assets/logos/MoonManager-favicomatic_com/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+  </head>
+  <body>
+    <style>
+      .loading-loader {
+        position: fixed;
+        left: 0px;
+        top: 0px;
+        width: 100%;
+        height: 168px;
+        padding: 0px;
+        pointer-events: none;
+        text-align: left;
+        line-height: 100%;
+        z-index: 9999;
+      }
+      .loading-loader img {
+        border-radius: 15px;
+        opacity: 0.21;
+        margin: auto 0;
+      }
+    </style>
+    <div class="loading-loader">
+      <img src="assets/simple-pre-loader/images/loader-128x/Preloader_3.gif" alt="Loading..." />
+    </div>
+    <div class="compatibility-review">
+      <style>
+        img {
+          max-width: 94%;
+        }
+
+        .failback-view {
+          opacity: 0;
+          -webkit-transition: opacity 2s; /* Safari */
+          transition: opacity 5s;
+        }
+      </style>
+      <div class="failback-view">
+        <h4>
+          <img src="assets/logos/MoonManager-32.png" alt="" /> Moon Manager provided by
+          <a href="https://www.monwoo.com"> <img src="https://www.monwoo.com/LogoMonwoo-32.png" alt="" /> © Monwoo </a>
+          under <a href="https://github.com/Monwoo/MoonManager">M.I.T. Licence</a>.
+        </h4>
+        <p>
+          Tested under <a href="https://www.google.com/chrome/">Chrome WebBrowser (vesion 71)</a> with Javascript. May
+          have issue to work under other browsers.
+        </p>
+        <p>
+          Testé sous <a href="https://www.google.com/chrome/">Chrome WebBrowser (vesion 71)</a> avec Javascript. Peut
+          présenter des disfonctionnements sous d'autres navigateurs.
+        </p>
+        <p>Moon Manager est un outil accessible hors connexion vous permettant de suivre et synthétiser vos temps.</p>
+        <p>Moon Manager is an offline tool allowing you to follow and synthesize your times.</p>
+        <img
+          src="assets/TimingsIndicatorStory.png"
+          alt="Vert : j <= 1hr, Bleu : 1hr < j <= 5hr, Jaune : 5hr < j < 7hr, Rouge : j >= 7hr"
+        />
+        <img
+          src="assets/TimingsIndicatorStory-en.png"
+          alt="Green : j <= 1hr, Blue : 1hr < j <= 5hr, Yellow : 5hr < j < 7hr, Red : j >= 7hr"
+        />
+        <p>Pour toutes questions, vous aurez peut être une réponse si vous l'envoyez sur service@monwoo.com.</p>
+        <p>For any question, your may get some answers if you send them to service@monwoo.com.</p>
+      </div>
+    </div>
+    <style>
+      .failback-view {
+        opacity: 1;
+        animation: showfailback 5s; /*infinite;*/
+      }
+      @keyframes showfailback {
+        0% {
+          opacity: 0;
+        }
+        42% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+    </style>
+
+    <!--[if lt IE 10]>
+      <p>
+        You are using an <strong>outdated</strong> browser. Please
+        <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.
+        <p> For any question, your may get some answers if you send them to service@monwoo.com </p>
+        <p> Moon Manager is a workload indicator tool provided by
+          <a href="https://www.monwoo.com">© Monwoo</a>
+          under
+          <a href="https://github.com/Monwoo/MoonManager">M.I.T. Licence</a>.
+        </p>
+        <p>It seem to work under last 
+          <a href="https://www.google.com/chrome/">Chrome</a>.
+        </p>
+        <p>
+          Enjoy :)
+        </p>
+      </p>
+    <![endif]-->
+    <noscript>
+      <p>This page requires JavaScript to work properly. Please enable JavaScript in your browser.</p>
+      <p>For any question, your may get some answers if you send them to service@monwoo.com.</p>
+      <p>
+        <img src="assets/logos/MoonManager-32.png" alt="" /> Moon Manager is a workload indicator tool provided by
+        <a href="https://www.monwoo.com"> <img src="https://www.monwoo.com/LogoMonwoo-32.png" alt="" /> © Monwoo </a>
+        under <a href="https://github.com/Monwoo/MoonManager">M.I.T. Licence</a>.
+      </p>
+      <p>It seem to work under last <a href="https://www.google.com/chrome/">Chrome</a>.</p>
+      <p>Enjoy :)</p>
+    </noscript>
+    <app-root></app-root>
+  </body>
+</html>

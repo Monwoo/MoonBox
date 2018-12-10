@@ -1,0 +1,8 @@
+{
+  "crawl": false,
+  "customTests": [],
+  "dest": "/PATH/TO/modernizr-output.js",
+  "tests": ["canvas", "canvastext"],
+  "options": ["setClasses"],
+  "uglify": true
+}

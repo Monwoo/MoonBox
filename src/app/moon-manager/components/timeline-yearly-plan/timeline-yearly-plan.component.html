@@ -1,0 +1,65 @@
+<!-- Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com -->
+<p>
+  <strong class="indicator-c-green">{{ 'En vert' | translate }} </strong>
+  {{ 'les jours inférieur ou égual à 1 heure' | translate }}
+</p>
+<p>
+  <strong class="indicator-c-blue">{{ 'En bleu' | translate }} </strong>
+  {{ 'les jours inférieur ou égual à 5 heures' | translate }}
+</p>
+<p>
+  <strong class="indicator-c-yellow">{{ 'En jaune' | translate }} </strong>
+  {{ 'les jours entre 5 et 7 heures' | translate }}
+</p>
+<p>
+  <strong class="indicator-c-red">{{ 'En rouge' | translate }} </strong>
+  {{ 'les jours de plus de 7 heures' | translate }}
+</p>
+
+<div class="bs">
+  <div class="timeline-yearly-plan row">
+    <ng-container *ngFor="let idx of sortedMonthsKeys; let i = index">
+      <div class="col-screen col-md-4 col-pr-4">
+        <div class="month-plan" *ngLet="sortedMonths.get(idx) as value">
+          <!-- TODO : add billableDaySum ? => depends of TJM applied => all 5hr/day for now -->
+          <strong>
+            {{ value | titlecase }} => {{ workloadByMonth.get(value) / 5 | number: '1.2-2' }} {{ 'jours' | translate }}
+          </strong>
+          <mwl-calendar-month-view
+            [locale]="locale"
+            [viewDate]="idx"
+            [events]="eventsByMonths.get(value)"
+            [activeDayIsOpen]="false"
+            [weekStartsOn]="1"
+            [weekendDays]="[0, 1, 6]"
+            (beforeViewRender)="beforeMonthViewRender($event)"
+          >
+          </mwl-calendar-month-view>
+        </div>
+      </div>
+      <!-- TODO : avoid calendar getting half cutted in print mode -->
+      <!-- <div class="allow-print-break col-12" *ngIf="i && (i + 1) % 3 === 0"><br /></div> -->
+    </ng-container>
+  </div>
+</div>
+
+<!--
+  mat-grid-list class="timeline-yearly-plan" cols="3">
+    <mat-grid-tile class="" *ngFor="let idx of sortedMonthsKeys">
+      <mat-card>
+        <ng-container *ngLet="sortedMonths.get(idx) as value">
+          <strong>{{ value }} => {{ workloadByMonth.get(value) / 5 | number: '1.2-2' }} jours </strong>
+          <mwl-calendar-month-view
+            [viewDate]="idx"
+            [events]="eventsByMonths.get(value)"
+            [activeDayIsOpen]="false"
+            [weekStartsOn]="1"
+            [weekendDays]="[0, 1, 6]"
+            (beforeViewRender)="beforeMonthViewRender($event)"
+          >
+          </mwl-calendar-month-view>
+        </ng-container>
+      </mat-card>
+    </mat-grid-tile>
+  </mat-grid-list
+-->

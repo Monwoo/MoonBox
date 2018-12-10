@@ -1,0 +1,23 @@
+<!-- Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com -->
+<dropzone
+  *ngIf="dropzoneConfig"
+  [config]="dropzoneConfig"
+  [message]="trans.dropZonePlaceholder | translate"
+  (error)="onImageUploadError($event)"
+  (success)="onImageUploadSuccess($event)"
+  (thumbnail)="onImageThumbnail($event)"
+  (addedfile)="onAddedFile($event)"
+  (onFileDrop)="onFileDrop($event)"
+  (processing)="onProcessingFile($event)"
+></dropzone>
+<span class="files-count" *ngIf="processingCount"
+  >{{ processingCount }}/{{ processLength }} [{{ (timings.timingState | async).datas.length }}]</span
+>
+<mat-progress-bar mode="determinate" [value]="filesLoadPercent"></mat-progress-bar>
+<!-- TODO : need stop btn to be able to stop huge loads -->
+<!-- TODO : need progress barre to know when loading has end -->
+
+<!--
+  div class="drop-details" #dropDetails>
+  </div
+-->

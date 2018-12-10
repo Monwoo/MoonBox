@@ -1,0 +1,11 @@
+// Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
+
+::ng-deep .dropzone .dz-preview {
+  display: none !important;
+}
+
+cdk-virtual-scroll-viewport {
+  min-height: 480px;
+  margin: 0px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+}

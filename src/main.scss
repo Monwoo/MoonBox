@@ -1,0 +1,174 @@
+/*
+ * Entry point of global application style.
+ * Component-specific style should not go here and be included directly as part of the components.
+ */
+
+// Theme variables, must be included before the libraries to allow overriding defaults
+@import "theme/theme-variables";
+
+// 3rd party libraries
+.bs {
+  @import "~bootstrap/scss/bootstrap";
+}
+@import "~@fortawesome/fontawesome-free-webfonts/scss/fontawesome.scss";
+@import "~@fortawesome/fontawesome-free-webfonts/scss/fa-brands.scss";
+@import "~@fortawesome/fontawesome-free-webfonts/scss/fa-regular.scss";
+@import "~@fortawesome/fontawesome-free-webfonts/scss/fa-solid.scss";
+
+// Theme customization
+@import "theme/theme";
+
+@import url("https://fonts.googleapis.com/css?family=Montserrat:400,700");
+@import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+@import "~@angular/material/prebuilt-themes/deeppurple-amber.css";
+
+.mat-button.mat-primary,
+.mat-icon-button.mat-primary,
+.mat-stroked-button.mat-primary {
+  color: #33096b;
+}
+
+// TODO : refactoring of below code :
+body,
+html {
+  height: 100%;
+  margin: 0 auto;
+}
+
+body {
+  font-family: "Montserrat";
+  font-size: 18px;
+}
+
+a {
+  text-decoration: none;
+}
+
+// .container {
+//   width: 80%;
+//   margin: 0 auto;
+//   padding: 1.3em;
+//   display: grid;
+//   grid-template-columns: 30% auto;
+// }
+
+// section {
+//   // width: 80%;
+//   margin: 0 auto;
+//   padding: 2em;
+// }
+
+.no-display {
+  display: none;
+}
+
+@media print {
+  .no-print,
+  .no-print * {
+    display: none !important;
+  }
+
+  // https://stackoverflow.com/questions/28757370/scale-html-table-before-printing-using-css
+  // https://css-tricks.com/almanac/properties/z/zoom/
+  body {
+    // transform: scale(1.57);
+    zoom: 0.57;
+  }
+  table,
+  img {
+    page-break-inside: avoid;
+  }
+
+  .mat-card {
+    box-shadow: none !important;
+  }
+}
+@import "~bootstrap/scss/_mixins";
+// TODO : col-pr seem to be ok on media print debug rendering, but fail
+// on realy pdf export : using value from col- instead of col-pr-....
+// https://gist.github.com/TheSharpieOne/27f338c93d5de166ed1e35f5fc753228
+@mixin make-print-grid-columns($columns: $grid-columns, $gutter: $grid-gutter-width, $name: "pr") {
+  @media print {
+    // Common properties
+    %grid-column-print {
+      position: relative;
+      // width: 100%;
+      min-height: 1px; // Prevent columns from collapsing when empty
+      padding-right: ($gutter / 2);
+      padding-left: ($gutter / 2);
+    }
+
+    // Allow columns to stretch full width below their breakpoints
+    @for $i from 1 through $columns {
+      .col-#{$name}-#{$i} {
+        @extend %grid-column-print;
+      }
+    }
+    .col-#{$name} {
+      @extend %grid-column-print;
+    }
+
+    // Provide basic `.col-{bp}` classes for equal-width flexbox columns
+    .col-#{$name} {
+      flex-basis: 0;
+      flex-grow: 1;
+      max-width: 100%;
+    }
+    .col-#{$name}-auto {
+      flex: 0 0 auto;
+      width: auto;
+    }
+
+    @for $i from 1 through $columns {
+      .col-#{$name}-#{$i} {
+        @include make-col($i, $columns);
+      }
+    }
+
+    .order-#{$name}-first {
+      order: -1;
+    }
+
+    @for $i from 1 through $columns {
+      .order-#{$name}-#{$i} {
+        order: $i;
+      }
+    }
+
+    // `$columns - 1` because offsetting by the width of an entire row isn't possible
+    @for $i from 0 through ($columns - 1) {
+      .offset-#{$name}-#{$i} {
+        @include make-col-offset($i, $columns);
+      }
+    }
+  }
+}
+@include make-print-grid-columns($grid-columns, $grid-gutter-width, "pr");
+
+// TODO : harmonized grid system : use Bootstrap or other ? need css expands etc...
+.w-100 {
+  width: 100%;
+
+  // TODO : should be able to put .w-100 class on mat field, need study :
+  // https://github.com/udos86/ng-dynamic-forms/blob/bfea1d8b/packages/core/src/model/misc/dynamic-form-control-layout.model.ts#L8
+  // Quick hack for now :
+  .mat-form-field {
+    width: 100%;
+  }
+}
+
+.float-right {
+  float: right;
+}
+
+// App succed to load, so no js error, css get injected.
+// No need to show compatibility view anymore
+// .compatibility-review {
+//   display: none;
+// }
+
+// .loading-loader {
+// }
+.off {
+  display: none;
+}

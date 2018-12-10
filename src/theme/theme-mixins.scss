@@ -1,0 +1,51 @@
+// Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
+
+// https://gist.github.com/pascalduez/10011785
+@function capitalize($string) {
+  @return to-upper-case(str-slice($string, 1, 1)) + str-slice($string, 2);
+}
+
+// inspired from :
+// https://www.webcreatorbox.com/en/tutorials/sass-mixin-en
+@mixin css3($property, $value) {
+  @each $prefix in -webkit-, -moz-, -ms-, -o-, "" {
+    #{$prefix}#{$property}: $value;
+  }
+}
+
+@mixin setupColor($name, $color, $prefix) {
+  // @each $specificPrefix in -webkit-, -moz-, -ms-, -o-, '' {
+  //   #{$specificPrefix}#{$property}: $value;
+  // }
+  // TODO : $#{$prefix}#{capitalize($name)}: $color;
+
+  .#{$prefix}-c-#{$name} {
+    color: $color;
+  }
+  // https://internet-inspired.com/wrote/colour-magic-with-sass/
+  // https://gist.github.com/kreo/c77e1ef2c5f49631d8df
+  // https://gist.github.com/samuel-holt/82ef9305fa4779ed4f08
+  // https://medium.com/@MateMarschalko/dynamic-colour-palettes-with-sass-and-hsl-805b8bbef758
+  .#{$prefix}-c-#{$name}-complementary {
+    color: adjust_hue($color, 180);
+  }
+  .#{$prefix}-c-#{$name}-secondary {
+    color: adjust_hue($color, 120);
+  }
+  .#{$prefix}-c-#{$name}-tiertiary {
+    color: adjust_hue($color, -120);
+  }
+
+  .#{$prefix}-bg-#{$name} {
+    background: $color;
+  }
+  .#{$prefix}-bg-#{$name}-complementary {
+    color: adjust_hue($color, 180);
+  }
+  .#{$prefix}-bg-#{$name}-secondary {
+    color: adjust_hue($color, 120);
+  }
+  .#{$prefix}-bg-#{$name}-tiertiary {
+    color: adjust_hue($color, -120);
+  }
+}
