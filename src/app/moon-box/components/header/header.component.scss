@@ -1,0 +1,73 @@
+// Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
+@import "src/theme/theme-variables";
+
+header {
+  padding: 7px;
+  background: $lightBlue;
+  background-image: linear-gradient(to right top, #a2abdb, #76a9d7, #44a6c8, #0ba1ae, #119a8c);
+
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+  margin-bottom: 4px;
+  a {
+    color: white;
+    text-decoration: none;
+
+    :hover {
+      text-decoration: none;
+      color: lightgrey;
+    }
+  }
+
+  .logo {
+    // font-weight: bold;
+    font-family: monospace;
+
+    .primary-brand {
+      /*
+      // TODO use theme primary bg color...
+      background: white;
+      // TODO : use lib, css pollyfill equivalent...
+      // https://www.cssmatic.com/border-radius
+      border-radius: 10px 10px 10px 10px;
+      -moz-border-radius: 10px 10px 10px 10px;
+      -webkit-border-radius: 10px 10px 10px 10px;
+      border: 0px solid #000000;
+      -webkit-box-shadow: 4px 4px 5px 0px rgba(0, 0, 0, 0.75);
+      -moz-box-shadow: 4px 4px 5px 0px rgba(0, 0, 0, 0.75);
+      box-shadow: 4px 4px 5px 0px rgba(0, 0, 0, 0.75);
+      */
+    }
+  }
+
+  .fill-space {
+    // https://material.angular.io/components/toolbar/overview
+    /* This fills the remaining space, by using flexbox. 
+    Every toolbar row uses a flexbox row layout. */
+    flex: 1 1 auto;
+  }
+
+  nav {
+    float: right;
+    line-height: 64px;
+
+    ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+
+      li {
+        float: left;
+
+        a {
+          padding: 1.5em;
+          text-transform: uppercase;
+          font-size: 0.8em;
+
+          &:hover {
+            background: #8e2bff;
+          }
+        }
+      }
+    }
+  }
+}

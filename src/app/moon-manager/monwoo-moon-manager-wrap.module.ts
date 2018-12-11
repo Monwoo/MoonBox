@@ -46,10 +46,13 @@ import { SimpleNotificationsModule } from 'angular2-notifications';
   ],
   exports: [
     MoonManagerComponent,
+    RouterModule,
     MatButtonModule,
     MatTooltipModule,
     MatCardModule,
-    FlexLayoutModule
+    FlexLayoutModule,
+    TranslateModule,
+    SimpleNotificationsModule
     // PanelModule,
     // TreeTableModule,
     // SplitButtonModule,

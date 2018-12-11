@@ -17,6 +17,8 @@
     "baseUrl": "src",
     "paths": {
       "@app/*": ["app/*"],
+      "@moon-box/*": ["app/moon-box/*"],
+      "@moon-manager/*": ["app/moon-manager/*"],
       "@env/*": ["environments/*"]
     }
   }

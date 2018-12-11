@@ -9,7 +9,8 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { environment } from '@env/environment';
 import { CoreModule, I18nService } from '@app/core';
 import { SharedModule } from '@app/shared';
-import { MoonManagerModule } from './moon-manager/moon-manager.module';
+import { MoonManagerModule } from '@moon-manager/moon-manager.module';
+import { MoonBoxModule } from '@moon-box/moon-box.module';
 import { HomeModule } from './home/home.module';
 import { ShellModule } from './shell/shell.module';
 import { AboutModule } from './about/about.module';
@@ -18,8 +19,8 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 // import { I18n, MISSING_TRANSLATION_STRATEGY } from '@ngx-translate/i18n-polyfill';
 import { HttpModule, Http } from '@angular/http';
-import { TranslateLoader } from '@ngx-translate/core';
-import { I18n } from '@ngx-translate/i18n-polyfill';
+// import { TranslateLoader } from '@ngx-translate/core';
+// import { I18n } from '@ngx-translate/i18n-polyfill';
 // import { webp } from 'webp-hero/dist/webp-hero';
 @NgModule({
   imports: [
@@ -43,6 +44,7 @@ import { I18n } from '@ngx-translate/i18n-polyfill';
     CoreModule,
     SharedModule,
     ShellModule,
+    MoonBoxModule,
     MoonManagerModule,
     HomeModule,
     AboutModule,

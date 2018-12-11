@@ -1,0 +1,25 @@
+// Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
+
+footer {
+  border-top: solid 1px lightgrey;
+  padding: 15px;
+
+  .copyright {
+    // TODO : add bootstrap mixins
+    // @extend .d-flex;
+    display: flex;
+    a {
+      // @extend .align-middle;
+      vertical-align: middle;
+      margin: auto;
+      padding: 5px;
+      color: #33096b;
+    }
+  }
+
+  .notice {
+    color: grey;
+    font-size: 7pt;
+    padding: 10px;
+  }
+}
