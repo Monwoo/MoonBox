@@ -2,7 +2,7 @@
 
 ![alt logo MoonBox](https://raw.githubusercontent.com/monwoo/MoonBox/master/src/assets/logos/MoonBox-128.png) ![alt logo MoonBox Secondary](https://raw.githubusercontent.com/monwoo/MoonBox/master/src/assets/logos/MoonBox-64-secondary.png)
 
-**Easy project management software for human workloads best fits**
+**Centralize your mailboxes, notifications, etc...**
 
 ![alt logo Monwoo](https://www.monwoo.com/LogoMonwoo-64.png)
 Timely funded and founded by Monwoo 2018.
