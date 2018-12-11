@@ -7,11 +7,24 @@ import { Component, OnInit } from '@angular/core';
 // import ImapClient from 'emailjs-imap-client/src/client.js';
 // No types availables yet, using webpack require ways :
 
+// import * from "emailjs-imap-client";
+// import * from "emailjs-imap-handler";
+// import * from "emailjs-tcp-socket";
+// import * from "emailjs-smtp-client";
+// import * from "emailjs-stringencoding";
+
 // declare const ImapClient: any;
 declare const require: any; // To avoid typeScript error about require that don't exist since it's webpack level
+// require("imports-loader?define=>false!emailjs-imap-handler");
+// require("imports-loader?define=>false!emailjs-tcp-socket");
+// require("imports-loader?define=>false!emailjs-smtp-client");
+// require("imports-loader?define=>false!emailjs-stringencoding");
+// const ImapClient: any = require('imports-loader?net=>null,tls=>null!emailjs-imap-client');
 // const ImapClient:any = require('emailjs-imap-client/dist/client.js');
 // const ImapClient: any = require('imports-loader?define=>false!emailjs-imap-client');
-const ImapClient: any = require('imports-loader?define=>false!emailjs-imap-client/src/client.js');
+const IMAPLib: any = require('emailjs-imap-client');
+const ImapClient = IMAPLib.default;
+// import * as ImapClient from 'emailjs-imap-client';
 
 @Component({
   selector: 'app-box-reader',

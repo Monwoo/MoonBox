@@ -26,8 +26,20 @@
 - https://github.com/vuejs/vue-loader
 - https://github.com/TheLarkInn/angular2-template-loader
 
+- https://www.npmjs.com/package/wdio
+- https://ramdajs.com/
+- https://medium.com/@emandm/import-mocking-with-typescript-3224804bb614
+- https://github.com/webpack-contrib/css-loader/issues/447
+- https://stackoverflow.com/questions/40226406/webpack-built-typescript-files-modules-are-empty-objects
+- https://github.com/TypeStrong/ts-node#mocha
+- https://medium.com/@emandm/import-mocking-with-typescript-3224804bb614
+
+- https://github.com/emailjs/emailjs-tcp-socket/issues/17
+- https://github.com/emailjs/emailjs-tcp-socket/blob/master/README.md
+- https://groups.google.com/forum/#!topic/emailjs/x9xGu2xHrbE
+
 ```bash
 # Added packages :
-yarn add emailjs-imap-client imports-loader
+yarn add emailjs-imap-client imports-loader net tls
 
 ```

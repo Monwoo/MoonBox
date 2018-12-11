@@ -19,14 +19,7 @@
       "@app/*": ["app/*"],
       "@moon-box/*": ["app/moon-box/*"],
       "@moon-manager/*": ["app/moon-manager/*"],
-      "@env/*": ["environments/*"],
-      "*": [
-        "../node_modules/emailjs-imap-client/src/",
-        "../node_modules/emailjs-imap-handler/src/",
-        "../node_modules/emailjs-tcp-socket/src/",
-        "../node_modules/emailjs-smtp-client/src/",
-        "../node_modules/emailjs-stringencoding/src/"
-      ]
+      "@env/*": ["environments/*"]
     }
   }
 }
