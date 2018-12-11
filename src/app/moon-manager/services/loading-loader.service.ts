@@ -16,9 +16,9 @@ export class LoadingLoaderService {
   ) {
     this.renderer = rendererFactory.createRenderer(null, null);
     this._ll = document.querySelector('.loading-loader');
-    this.isShown = !document.querySelector('.loading-loader.off');
     const compatibilityView = document.querySelector('.compatibility-review');
     this.renderer.addClass(compatibilityView, 'off');
+    this.isShown = !document.querySelector('.loading-loader.off');
 
     // this.renderer.listen(ll, 'click', console.log);
   }
