@@ -1,15 +1,15 @@
 {
-  "name": "Moon Manager",
-  "short_name": "M. Manager",
+  "name": "Moon Box",
+  "short_name": "MoonBox",
   "theme_color": "#119a4c",
   "background_color": "#FFFFFF",
-  "scope": "/MoonManager/Demo/?source=pwa&prodCache=9",
-  "start_url": "/MoonManager/Demo/",
+  "scope": "/MoonBox/Demo/?source=pwa&prodCache=9",
+  "start_url": "/MoonBox/Demo/",
   "display": "standalone",
   "permissions": ["unlimitedStorage"],
   "icons": [
     {
-      "src": "assets/logos/MoonManager-512.png?v=5",
+      "src": "assets/logos/MoonBox-512.png?v=5",
       "sizes": "512x512",
       "type": "image/png"
     }

@@ -7,7 +7,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { environment } from '@env/environment';
-import { CoreModule, createTranslateLoader, createWebpackTranslateLoader, I18nService } from '@app/core';
+import { CoreModule, I18nService } from '@app/core';
 import { SharedModule } from '@app/shared';
 import { MoonManagerModule } from './moon-manager/moon-manager.module';
 import { HomeModule } from './home/home.module';
@@ -54,18 +54,18 @@ import { I18n } from '@ngx-translate/i18n-polyfill';
     // TODO : refactor to shared module or Core module ?
     // https://github.com/ngx-translate/i18n-polyfill/issues/4
     // format of translations that you use
-    { provide: TRANSLATIONS_FORMAT, useValue: 'xlf' },
+    // { provide: TRANSLATIONS_FORMAT, useValue: 'xlf' },
     // // the translations that you need to load on your own
     // {provide: TRANSLATIONS, useValue: XLIFF},
     // // locale id that you're using (default en-US)
     // {provide: LOCALE_ID, useValue: "fr"},
     // // optional, defines how error will be handled
     // {provide: MISSING_TRANSLATION_STRATEGY, useValue: MissingTranslationStrategy.Error},
-    {
-      provide: TRANSLATIONS,
-      useFactory: createWebpackTranslateLoader,
-      deps: [I18nService]
-    },
+    // {
+    //   provide: TRANSLATIONS,
+    //   useFactory: createWebpackTranslateLoader,
+    //   deps: [I18nService]
+    // },
     // {
     //   provide: TRANSLATIONS,
     //   useFactory: createTranslateLoader,
@@ -76,7 +76,7 @@ import { I18n } from '@ngx-translate/i18n-polyfill';
     //   useFactory: createTranslateLoader,
     //   deps: [Http]
     // },
-    I18n
+    // I18n
   ],
   bootstrap: [AppComponent]
 })

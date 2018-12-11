@@ -41,9 +41,7 @@
               "./node_modules/hammerjs/hammer.min.js",
               "./node_modules/moment/moment.js",
               "node_modules/yamljs/dist/yaml.min.js",
-              "./node_modules/chart.js/dist/Chart.js",
-              "src/platform/polyfills/weppy-master/weppy.js",
-              "node_modules/ccapture.js/build/CCapture.all.min.js"
+              "./node_modules/chart.js/dist/Chart.js"
             ]
           },
           "configurations": {

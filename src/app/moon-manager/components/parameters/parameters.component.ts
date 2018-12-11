@@ -24,8 +24,6 @@ import {
   DynamicFormGroupModel
 } from '@ng-dynamic-forms/core';
 import { I18nService } from '@app/core';
-import { I18n } from '@ngx-translate/i18n-polyfill';
-import { BehaviorSubject } from 'rxjs';
 import { LangChangeEvent } from '@ngx-translate/core';
 import * as moment from 'moment';
 import { Papa } from 'ngx-papaparse';
@@ -115,7 +113,6 @@ export class ParametersComponent implements OnInit, OnChanges, AfterViewInit {
     private notif: NotificationsService,
     private formService: DynamicFormService,
     private papaParse: Papa,
-    public i18n: I18n,
     private clipboard: ClipboardService
   ) {
     // // Request Quota (only for File System API)

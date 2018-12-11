@@ -1,15 +1,17 @@
 <!-- form (submit)="reCompute()" -->
 <div>
-  <mat-card>
-    <button class="no-print" mat-button (click)="downloadTimingsVideo()">{{ 'Exporter la Vidéo' | translate }}</button>
-    <div class="video-wrapper">
-      <mat-progress-bar class="no-print" mode="determinate" [value]="videoLoadPercent"></mat-progress-bar>
+  <!--
+    <mat-card>
+      <button class="no-print" mat-button (click)="downloadTimingsVideo()">{{ 'Exporter la Vidéo' | translate }}</button>
+      <div class="video-wrapper">
+        <mat-progress-bar class="no-print" mode="determinate" [value]="videoLoadPercent"></mat-progress-bar>
 
-      <div [class]="'video-renderer no-print' + (videoLoadPercent > 0 ? '' : ' no-display')">
-        <canvas #videoCanvas class="video-canvas"></canvas>
+        <div [class]="'video-renderer no-print' + (videoLoadPercent > 0 ? '' : ' no-display')">
+          <canvas #videoCanvas class="video-canvas"></canvas>
+        </div>
       </div>
-    </div>
-  </mat-card>
+    </mat-card>
+  -->
 
   <mat-card>
     <p>

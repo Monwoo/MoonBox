@@ -42,8 +42,8 @@ export function createTranslateLoader(http: HttpClient) {
 declare const require: any; // To avoid typeScript error about require that don't exist since it's webpack level
 const i18nLanguages = {
   // TODO : auto gen from environnement config
-  'fr-FR': require(`raw-loader!../../assets/translations/messages.fr-FR.xlf`),
-  'en-US': require(`raw-loader!../../assets/translations/messages.en-US.xlf`)
+  // 'fr-FR': require(`raw-loader!../../assets/translations/messages.fr-FR.xlf`),
+  // 'en-US': require(`raw-loader!../../assets/translations/messages.en-US.xlf`)
 };
 
 export function createWebpackTranslateLoader(i18nService: I18nService) {

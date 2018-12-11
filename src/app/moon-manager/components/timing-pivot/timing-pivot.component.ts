@@ -15,12 +15,15 @@ import { LocalStorage } from '@ngx-pwa/local-storage';
 
 import { Timing } from '../../api/data-model/timing';
 import { MediasBufferService } from '../../services/medias-buffer.service';
-import { I18n } from '@ngx-translate/i18n-polyfill';
 import { configDefaults } from './config-form.model';
 import { I18nService } from '@app/core';
 import { LoadingLoaderService } from '../../services/loading-loader.service';
 
-declare var CCapture: any;
+// needed in angular.json :
+// .... "scripts": [ ....
+// "src/platform/polyfills/weppy-master/weppy.js",
+// "node_modules/ccapture.js/build/CCapture.all.min.js",
+// declare var CCapture: any;
 
 @Component({
   selector: 'moon-manager-timing-pivot',
@@ -33,9 +36,9 @@ export class TimingPivotComponent implements OnInit {
 
   @Output() isFocused: EventEmitter<boolean> = new EventEmitter<boolean>();
 
-  @ViewChild('videoCanvas') videoCanvas: ElementRef<HTMLCanvasElement>;
-  public videoCtx: CanvasRenderingContext2D = null;
-  public videoLoadPercent: number = 0;
+  // @ViewChild('videoCanvas') videoCanvas: ElementRef<HTMLCanvasElement>;
+  // public videoCtx: CanvasRenderingContext2D = null;
+  // public videoLoadPercent: number = 0;
 
   public filteredDatas: Timing[] = [];
   public filteredDatasAsync: BehaviorSubject<Timing[]> = new BehaviorSubject<Timing[]>([]);
@@ -177,8 +180,7 @@ export class TimingPivotComponent implements OnInit {
     private storage: LocalStorage,
     private selfRef: ElementRef,
     private http: HttpClient,
-    public i18nService: I18nService,
-    public i18n: I18n // TODO : singleton or other default injection ? hard to put it in every components...
+    public i18nService: I18nService
   ) {
     this._originalTimeout = window.setTimeout;
 
@@ -300,22 +302,22 @@ export class TimingPivotComponent implements OnInit {
     });
   }
 
-  ajustCanvasResolution() {
-    let canvas: HTMLCanvasElement = <HTMLCanvasElement>this.videoCanvas.nativeElement;
-    // canvas.width = canvas.clientWidth; // Resize computed canvas size to browser client size
-    // canvas.height = canvas.clientHeight;
-    if (this.config && this.config.lowRes) {
-      canvas.width = 400;
-      canvas.height = 320;
-    } else {
-      canvas.width = 700;
-      canvas.height = 400;
-    }
-  }
+  // ajustCanvasResolution() {
+  //   let canvas: HTMLCanvasElement = <HTMLCanvasElement>this.videoCanvas.nativeElement;
+  //   // canvas.width = canvas.clientWidth; // Resize computed canvas size to browser client size
+  //   // canvas.height = canvas.clientHeight;
+  //   if (this.config && this.config.lowRes) {
+  //     canvas.width = 400;
+  //     canvas.height = 320;
+  //   } else {
+  //     canvas.width = 700;
+  //     canvas.height = 400;
+  //   }
+  // }
 
   ngAfterViewInit() {
-    this.videoCtx = (<HTMLCanvasElement>this.videoCanvas.nativeElement).getContext('2d'); // TODO : BONUS add Unity to render in gameCtx => '3D'
-    this.ajustCanvasResolution();
+    // this.videoCtx = (<HTMLCanvasElement>this.videoCanvas.nativeElement).getContext('2d'); // TODO : BONUS add Unity to render in gameCtx => '3D'
+    // this.ajustCanvasResolution();
 
     this.dataSrc.subscribe((timings: Timing[]) => {
       timings.sort((t1, t2) => {
@@ -616,405 +618,8 @@ export class TimingPivotComponent implements OnInit {
     });
   }
 
-  exportsTimingsToVideoAsWebM() {
-    this.ll.showLoader();
-    // CF source code of :
-    // http://techslides.com/demos/image-video/create.html
-    let self: TimingPivotComponent = this;
-    let computeDelayMs = 1; // 42; // 1/24*1000 = 41.66
-    // => will add 1 frame at chosen FPS speed to capture...
-    let stackDelayFrame = 0; // will wait for compute : stackDelayFrame * computeDelayMs
-    let bulkDownloadSize = 2500; // TODO : split video if too long ??? bulk download is halfSolution...
-    let frames = this.filteredDatas // TODO : solve too much api call issue and remove slice limit
-      //.filter(t=>('capture' === t.EventSource && typeof(t.MediaUrl)!=='undefined'))
-      // .slice(0, 125).reverse() //.map((t:Timing) => (t.MediaUrl));
-      .slice()
-      .reverse(); //.map((t:Timing) => (t.MediaUrl));
-    let fps = 25;
-    // let video = new Whammy.Video(fps); => having issue with too fast img fetching...
-    // will try other framework waitting to see if Whammy gets improved....
-    var capturer = new CCapture({
-      framerate: 24, // stackDelayFrame will wait 1/24 sec for vid output
-      verbose: false,
-      format: 'webm',
-      // display: true,
-      quality: 99
-    });
-
-    let canvas: HTMLCanvasElement = <HTMLCanvasElement>this.videoCanvas.nativeElement;
-    let context: CanvasRenderingContext2D = this.videoCtx; // TODO from elts ref.
-
-    let clearScreen = () => {
-      // TODO
-      context.save(); // state pushed onto stack.
-      context.fillStyle = 'white';
-      context.fillRect(0, 0, canvas.width, canvas.height);
-      context.restore(); // state popped from stack, and set on 2D Context.
-    };
-
-    let finalizeFrame = (framePos: number, nbFrames: number) => {
-      //check if its ready
-      // self.videoLoadPercent = Math.floor((100 * framePos) / nbFrames);
-      self.videoLoadPercent = (100 * framePos) / nbFrames;
-      console.log('Pivot Finalise Frames :', framePos, nbFrames);
-      if (framePos == nbFrames) {
-        capturer.stop();
-        capturer.save();
-        this.ll.hideLoader();
-      }
-    };
-
-    let process = (frame: Timing, frameIndex: number) => {
-      let file = frame.MediaUrl;
-      if ('capture' !== frame.EventSource || typeof frame.MediaUrl !== 'string') {
-        // It's unknonw Frame : TODO : show to end user...
-        clearScreen();
-        context.font = self.config.lowRes ? '10px Comic Sans MS' : '10px Comic Sans MS';
-        context.fillStyle = self.config.videoFontColor;
-        context.textAlign = 'center';
-        context.fillText(self.config.videoCopyright, canvas.width / 2, 12);
-        context.font = self.config.lowRes ? '9px Arial' : '18px Arial';
-        context.textAlign = 'left';
-        context.fillText(frame.Comment, 0, 90);
-        context.font = self.config.lowRes ? '7px Arial' : '14px Arial';
-        context.fillText(
-          `${frame.Date} ${frame.Time} - ` + `${frame.SubProject} [${frame.Objectif}]`,
-          2,
-          canvas.height - 7
-        );
-
-        let dailyWorkload = self.workloadsByAuthorAndDay[frame.Author][frame.Date];
-        // Vert : j <= 1hr, Bleu : 1hr < j <= 5hr, Jaune : 5hr < j < 7hr, Rouge : j >= 7hr
-        let indicatorSummary =
-          dailyWorkload >= 7 ? 'red' : dailyWorkload > 5 ? 'yellow' : dailyWorkload > 1 ? 'blue' : 'green';
-        let indicatorImg = self.indicatorAssets[indicatorSummary].img;
-        context.drawImage(
-          indicatorImg,
-          canvas.width - 64,
-          64 - indicatorImg.height,
-          indicatorImg.width,
-          indicatorImg.height
-        );
-
-        capturer.capture(canvas);
-        stackDelayFrame = 7; // 69; // will wait 42 frame, since recording at 24FPS ~ 2 sec ?
-
-        finalizeFrame(frameIndex + 1, frames.length);
-        return; // Done for non-pictures medias
-      }
-
-      var img = new Image();
-
-      //load image and drop into canvas
-      img.onload = () => {
-        let drawInfos = () => {
-          let deltaHeight = self.config.lowRes ? 18 : 35;
-          let fillHeight = self.config.lowRes ? 10 : 20;
-          context.globalAlpha = 1;
-          context.font = self.config.lowRes ? '10px Comic Sans MS' : '20px Comic Sans MS';
-          context.fillStyle = self.config.videoFontColor; // Primary color
-          context.textAlign = 'center';
-          context.fillText(self.config.videoCopyright, canvas.width / 2, fillHeight);
-
-          context.globalAlpha = 0.75;
-          context.fillStyle = 'white';
-          context.fillRect(0, canvas.height - deltaHeight, canvas.width, fillHeight);
-          context.globalAlpha = 1;
-
-          context.fillStyle = self.config.videoFontColor; // Primary color
-          context.textAlign = 'left';
-          context.font = self.config.lowRes ? '8px Arial' : '16px Arial';
-          // context.strokeStyle = 'white'; // secondary color
-          // context.strokeText(
-          //   `${frame.Date} ${frame.Time} - `
-          //   + `${frame.SubProject} [${frame.Objectif}]`
-          //   , 2, canvas.height - 7);
-          context.fillText(
-            // White shadow to allow changing Bg
-            `${frame.Date} ${frame.Time} - ` + `${frame.SubProject} [${frame.Objectif}]`,
-            2,
-            canvas.height - fillHeight
-          );
-          // context.stroke();
-          // context.fill();
-
-          let dailyWorkload = self.workloadsByAuthorAndDay[frame.Author][frame.Date];
-          // Vert : j <= 1hr, Bleu : 1hr < j <= 5hr, Jaune : 5hr < j < 7hr, Rouge : j >= 7hr
-          let indicatorSummary =
-            dailyWorkload >= 7 ? 'red' : dailyWorkload > 5 ? 'yellow' : dailyWorkload > 1 ? 'blue' : 'green';
-          let indicatorImg = self.indicatorAssets[indicatorSummary].img;
-          context.drawImage(
-            indicatorImg,
-            canvas.width - 64,
-            64 - indicatorImg.height,
-            indicatorImg.width,
-            indicatorImg.height
-          );
-
-          capturer.capture(canvas);
-          //capturer.capture(canvas);
-          //capturer.capture(canvas);
-
-          // 25 fps = 1 sec of video...
-          // => timing issue ? need delay ? give wrong video output...
-          // => may have to do with timeOut overload ? one capture per changes only ?
-          // [...Array(25)].forEach((_, i) => {
-          //   // console.log(i);
-          //   context.fillText(
-          //     `${frame.Date} ${frame.Time} - `
-          //     + `${frame.SubProject} [${frame.Objectif}]`
-          //     , 2, canvas.height - 7);
-          //   capturer.capture(canvas);
-          // });
-        };
-
-        context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-        clearScreen(); // Will tick white bg...
-        // https://stackoverflow.com/questions/23104582/scaling-an-image-to-fit-on-canvas
-        var hRatio = canvas.width / img.width;
-        var vRatio = canvas.height / img.height;
-        var ratio = Math.min(hRatio, vRatio);
-        if (ratio > 1) {
-          ratio = 1; // removing scaling Up effect, keep lower pict size at original size
-        }
-        var centerShift_x = (canvas.width - img.width * ratio) / 2;
-        var centerShift_y = (canvas.height - img.height * ratio) / 2;
-
-        // //a custom fade in and out slideshow
-        // context.globalAlpha = 0.6;
-        // context.drawImage(
-        //   img,
-        //   0,
-        //   0,
-        //   img.width,
-        //   img.height,
-        //   centerShift_x,
-        //   centerShift_y,
-        //   img.width * ratio,
-        //   img.height * ratio
-        // );
-        // // video.add(context);
-        // drawInfos();
-        // // clearScreen();
-        // context.globalAlpha = 0.65;
-        // context.drawImage(
-        //   img,
-        //   0,
-        //   0,
-        //   img.width,
-        //   img.height,
-        //   centerShift_x,
-        //   centerShift_y,
-        //   img.width * ratio,
-        //   img.height * ratio
-        // );
-        // drawInfos();
-        // // clearScreen();
-        // context.globalAlpha = 0.7;
-        // context.drawImage(
-        //   img,
-        //   0,
-        //   0,
-        //   img.width,
-        //   img.height,
-        //   centerShift_x,
-        //   centerShift_y,
-        //   img.width * ratio,
-        //   img.height * ratio
-        // );
-        // drawInfos();
-        // // clearScreen();
-        // context.globalAlpha = 0.8;
-        // context.drawImage(
-        //   img,
-        //   0,
-        //   0,
-        //   img.width,
-        //   img.height,
-        //   centerShift_x,
-        //   centerShift_y,
-        //   img.width * ratio,
-        //   img.height * ratio
-        // );
-        // drawInfos();
-        // // clearScreen();
-        context.globalAlpha = 1;
-        context.drawImage(
-          img,
-          0,
-          0,
-          img.width,
-          img.height,
-          centerShift_x,
-          centerShift_y,
-          img.width * ratio,
-          img.height * ratio
-        );
-
-        //this should be a loop based on some user input
-        drawInfos();
-
-        // Pb : need timeout LOOP : will not take in account if no waits in
-        // betweens ??? => having full transparent img for now
-        // clearScreen();
-        // context.globalAlpha = 0.8;
-        // context.drawImage(img, 0, 0, canvas.width, canvas.height);
-        // drawInfos();
-        // clearScreen();
-        // context.globalAlpha = 0.6;
-        // context.drawImage(img, 0, 0, canvas.width, canvas.height);
-        // drawInfos();
-        // clearScreen();
-        // context.globalAlpha = 0.4;
-        // context.drawImage(img, 0, 0, canvas.width, canvas.height);
-        // drawInfos();
-
-        finalizeFrame(frameIndex + 1, frames.length);
-        stackDelayFrame = 12;
-      };
-      self.medias.getDataUrlMedia(frame.MediaUrl).then(url => {
-        img.src = url;
-      });
-
-      // TODO : from Api service ? :
-      // var reader = new FileReader();
-      // reader.onload = function(event:any) {
-      //     var dataUri = event.target.result;
-      //     var img = new Image();
-
-      //     //load image and drop into canvas
-      //     img.onload = function() {
-      //         let drawInfos = () => {
-      //           context.globalAlpha = 1;
-      //           context.font = "10px Arial";
-      //           context.font = "10px Comic Sans MS";
-      //           context.fillStyle = "rgb(60,0,108)"; // Primary color
-      //           context.textAlign = "center";
-      //           context.fillText("© Monwoo", canvas.width/2, 12);
-
-      //           context.fillStyle="white";
-      //           context.fillRect(0,canvas.height - 15,canvas.width,10);
-
-      //           context.fillStyle = "rgb(60,0,108)"; // Primary color
-      //           context.textAlign = "left";
-      //           context.font = "8px Arial";
-      //           // context.strokeStyle = 'white'; // secondary color
-      //           // context.strokeText(
-      //           //   `${frame.Date} ${frame.Time} - `
-      //           //   + `${frame.SubProject} [${frame.Objectif}]`
-      //           //   , 2, canvas.height - 7);
-      //           context.fillText( // White shadow to allow changing Bg
-      //             `${frame.Date} ${frame.Time} - `
-      //             + `${frame.SubProject} [${frame.Objectif}]`
-      //             , 2, canvas.height - 7);
-      //           // context.stroke();
-      //           // context.fill();
-
-      //           capturer.capture(canvas);
-      //           //capturer.capture(canvas);
-      //           //capturer.capture(canvas);
-
-      //             // 25 fps = 1 sec of video...
-      //             // => timing issue ? need delay ? give wrong video output...
-      //             // [...Array(25)].forEach((_, i) => {
-      //             //   // console.log(i);
-      //             //   context.fillText(
-      //             //     `${frame.Date} ${frame.Time} - `
-      //             //     + `${frame.SubProject} [${frame.Objectif}]`
-      //             //     , 2, canvas.height - 7);
-      //             //   capturer.capture(canvas);
-      //             // });
-      //         }
-
-      //         //a custom fade in and out slideshow
-      //         context.globalAlpha = 0.2;
-      //         context.drawImage(img, 0, 0, canvas.width, canvas.height);
-      //         // video.add(context);
-      //         drawInfos();
-      //         context.clearRect(0,0,context.canvas.width,context.canvas.height);
-      //         context.globalAlpha = 0.4;
-      //         context.drawImage(img, 0, 0, canvas.width, canvas.height);
-      //         drawInfos();
-      //         context.clearRect(0,0,context.canvas.width,context.canvas.height);
-      //         context.globalAlpha = 0.6;
-      //         context.drawImage(img, 0, 0, canvas.width, canvas.height);
-      //         drawInfos();
-      //         context.clearRect(0,0,context.canvas.width,context.canvas.height);
-      //         context.globalAlpha = 0.8;
-      //         context.drawImage(img, 0, 0, canvas.width, canvas.height);
-      //         drawInfos();
-      //         context.clearRect(0,0,context.canvas.width,context.canvas.height);
-      //         context.globalAlpha = 1;
-      //         context.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      //         //this should be a loop based on some user input
-      //         drawInfos();
-
-      //         context.clearRect(0,0,context.canvas.width,context.canvas.height);
-      //         context.globalAlpha = 0.8;
-      //         context.drawImage(img, 0, 0, canvas.width, canvas.height);
-      //         drawInfos();
-      //         context.clearRect(0,0,context.canvas.width,context.canvas.height);
-      //         context.globalAlpha = 0.6;
-      //         context.drawImage(img, 0, 0, canvas.width, canvas.height);
-      //         drawInfos();
-      //         context.clearRect(0,0,context.canvas.width,context.canvas.height);
-      //         context.globalAlpha = 0.4;
-      //         context.drawImage(img, 0, 0, canvas.width, canvas.height);
-      //         drawInfos();
-
-      //         finalizeFrame(frameIndex + 1, frames.length);
-      //         stackDelayFrame = 24;
-      //     };
-      //     img.src = dataUri;
-      // };
-
-      // reader.onerror = function(event:any) {
-      //     console.error("File could not be read! Code " + event.target.error.code);
-      // };
-
-      // let baseUrl = 'http://localhost:8000/api/fetch-media?url=';
-      // self.http.get(baseUrl + encodeURIComponent(file), { responseType: 'blob' })
-      // .subscribe((blob:Blob) => {
-      //   if (blob) {
-      //     reader.readAsDataURL(blob); // new File(blob, `frame-${frameIndex}.png`)
-      //   } else {
-      //     console.error('Fail to import frame : ', file);
-      //   }
-      // });
-    };
-
-    // frames.forEach((f, idx) => {
-    //   process(f, idx);
-    // });
-    let loopFrames = (idx: number) => {
-      let f = frames[idx];
-      if (stackDelayFrame > 0) {
-        // TODO : rebuild with promise system : some process is Async, waiting for download
-        // keep wating for the asked delayed frames
-        --stackDelayFrame;
-        capturer.capture(canvas);
-      } else {
-        // process and get to next frame
-        process(f, idx);
-        ++idx;
-      }
-      if (idx < frames.length) {
-        //console.log('Will delay next loop');
-        // TODO : solve too much call issue ? delay for now...
-        this.computeDelay(computeDelayMs, () => {
-          loopFrames(idx);
-        }); //.then(()=>{console.log('Delay OK')});
-      }
-    };
-
-    clearScreen();
-    capturer.start();
-    loopFrames(0);
-  }
-
   downloadTimingsVideo() {
-    this.exportsTimingsToVideoAsWebM();
+    // this.exportsTimingsToVideoAsWebM();
   }
 
   saveChanges(t: Timing, k: string, v: any) {

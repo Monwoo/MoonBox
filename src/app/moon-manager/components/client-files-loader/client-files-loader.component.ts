@@ -12,7 +12,7 @@ import { extract } from '@app/core';
 import { Timing } from '../../api/data-model/timing';
 import { MediasBufferService } from '../../services/medias-buffer.service';
 import { TimingsBufferService } from '../../services/timings-buffer.service';
-import { I18n } from '@ngx-translate/i18n-polyfill';
+// import { I18n } from '@ngx-translate/i18n-polyfill';
 import { configDefaults } from './config-form.model';
 import { I18nService } from '@app/core';
 import { LoadingLoaderService } from '../../services/loading-loader.service';
@@ -86,8 +86,7 @@ export class ClientFilesLoaderComponent implements OnInit {
     private medias: MediasBufferService,
     private timings: TimingsBufferService,
     private papaParse: Papa,
-    public i18nService: I18nService,
-    public i18n: I18n // TODO : singleton or other default injection ? hard to put it in every components...
+    public i18nService: I18nService
   ) {
     // Parameters may change from other views, will need to reload on each on show to keep config ok
 
