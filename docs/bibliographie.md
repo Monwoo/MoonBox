@@ -38,6 +38,10 @@
 - https://github.com/emailjs/emailjs-tcp-socket/blob/master/README.md
 - https://groups.google.com/forum/#!topic/emailjs/x9xGu2xHrbE
 
+- https://developer.chrome.com/apps/socket
+- https://developer.chrome.com/apps/sockets_tcp
+- https://developer.chrome.com/apps/manifest/sockets
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net tls
