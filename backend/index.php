@@ -8,12 +8,15 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\User\InMemoryUserProvider;
 use Symfony\Component\Security\Core\User\User;
+use Monwoo\Middleware\AddingCors;
 
 $config = [
   'debug' => true,
 ];
 
-$app = new Silex\Application(['debug' => $config['debug']]);
+$app = new Silex\Application([
+    'debug' => $config['debug'],
+]);
 
 $app['security.jwt'] = [
   'secret_key' => 'Very_secret_key',
@@ -58,7 +61,8 @@ $app['security.firewalls'] = array(
 $app->register(new Silex\Provider\SecurityServiceProvider());
 $app->register(new Silex\Provider\SecurityJWTServiceProvider());
 
-$app->post('/api/login', function(Request $request) use ($app){
+// $app->post('/api/login', function(Request $request) use ($app){
+$app->match('/api/login', function(Request $request) use ($app){
   $vars = json_decode($request->getContent(), true);
 
   try {
@@ -87,9 +91,9 @@ $app->post('/api/login', function(Request $request) use ($app){
   }
 
   return $app->json($response, ($response['success'] == true ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST));
-});
+})->bind('api_login')->method('OPTIONS|POST');
 
-$app->get('/api/protected_resource', function() use ($app){
+$app->get('/api/messages', function() use ($app){
   $jwt = 'no';
   $token = $app['security.token_storage']->getToken();
   if ($token instanceof Silex\Component\Security\Http\Token\JWTToken) {
@@ -116,6 +120,10 @@ $app->get('/api/protected_resource', function() use ($app){
       'granted_user' => $granted_user,
       'granted_super' => $granted_super,
   ]);
+});
+
+$app->after(function($request, $app) {
+    AddingCors::addCors($request, $app);
 });
 
 $app->run();

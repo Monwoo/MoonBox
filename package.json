@@ -43,6 +43,7 @@
     "@angular/platform-browser-dynamic": "^7.0.0",
     "@angular/router": "^7.0.0",
     "@angular/service-worker": "^7.0.0",
+    "@auth0/angular-jwt": "^2.1.0",
     "@fortawesome/fontawesome-free-webfonts": "^1.0.9",
     "@ng-bootstrap/ng-bootstrap": "^4.0.0",
     "@ng-dynamic-forms/core": "^7.0.1",

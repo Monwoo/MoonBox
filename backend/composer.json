@@ -10,6 +10,11 @@
       "email": "service@monwoo.com"
     }
   ],
+  "autoload": {
+    "psr-4": {
+      "Monwoo\\": "Monwoo/"
+    }
+  },
   "minimum-stability": "dev",
   "require": {
     "cnam/security-jwt-service-provider": "2.*",

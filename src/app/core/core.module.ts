@@ -20,6 +20,22 @@ import { HttpModule, Http } from '@angular/http';
 import { TranslateLoader } from '@ngx-translate/core';
 
 import { Logger } from '@app/core/logger.service';
+
+import { JwtModule, JWT_OPTIONS } from '@auth0/angular-jwt';
+// import { Storage } from '@ionic/storage';
+// import { TokenService } from './app.tokenservice';
+import { LocalStorage } from '@ngx-pwa/local-storage';
+
+// https://github.com/auth0/angular2-jwt
+// export function jwtOptionsFactory(storage) {
+export function jwtOptionsFactory(storage: LocalStorage) {
+  return {
+    tokenGetter: () => {
+      return storage.getItem<any>('access_token');
+    }
+  };
+}
+
 // TODO : refactor and bundle in MonwooLogger module ?
 // -> quick switch between review / debug mode
 // + better stack trace (colors + humanly meanfull + machin plugable...)
@@ -54,6 +70,16 @@ export function createWebpackTranslateLoader(i18nService: I18nService) {
   imports: [
     CommonModule,
     HttpClientModule,
+    JwtModule.forRoot({
+      jwtOptionsProvider: {
+        provide: JWT_OPTIONS,
+        useFactory: jwtOptionsFactory,
+        deps: [LocalStorage]
+        //deps: [TokenService]
+        // whitelistedDomains: ['example.com'],
+        // blacklistedRoutes: ['example.com/examplebadroute/'],
+      }
+    }),
     // TODO refactor : move to Shard module ?
     // https://angular.io/docs/ts/latest/guide/ngmodule.html#!#shared-modules
     // TranslateModule.forRoot({

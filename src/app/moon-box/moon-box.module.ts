@@ -7,9 +7,10 @@ import { MonwooMoonManagerWrapModule } from '@moon-manager/monwoo-moon-manager-w
 import { MonwooMoonBoxWrapModule } from '@moon-box/monwoo-moon-box-wrap.module';
 import { BoxReaderComponent } from './components/box-reader/box-reader.component';
 import { ParametersComponent } from './components/parameters/parameters.component';
+import { BoxesComponent } from './components/boxes/boxes.component';
 
 @NgModule({
-  declarations: [BoxReaderComponent, ParametersComponent],
+  declarations: [BoxReaderComponent, ParametersComponent, BoxesComponent],
   imports: [CommonModule, MoonBoxRoutingModule, MonwooMoonManagerWrapModule, MonwooMoonBoxWrapModule]
 })
 export class MoonBoxModule {}

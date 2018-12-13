@@ -8,8 +8,8 @@ import { MonwooMoonManagerWrapModule } from '@moon-manager/monwoo-moon-manager-w
 @NgModule({
   declarations: [MoonBoxComponent, HeaderComponent, FooterComponent],
   imports: [
-    MonwooMoonManagerWrapModule
     // CommonModule
+    MonwooMoonManagerWrapModule
   ],
   exports: [MoonBoxComponent, MonwooMoonManagerWrapModule]
 })

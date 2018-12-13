@@ -48,11 +48,20 @@
 - https://www.npmjs.com/package/net-browserify
 
 - https://silex.symfony.com/
+- https://github.com/auth0/angular2-jwt
+- https://github.com/cnam/security-jwt-service-provider
+- https://angular.io/guide/http
+
+- https://github.com/angular/angular/issues/22492
+- https://stackoverflow.com/questions/36353532/angular2-options-method-sent-when-asking-for-http-get
+- https://stackoverflow.com/questions/1256593/why-am-i-getting-an-options-request-instead-of-a-get-request
+- http://restlet.com/company/blog/2015/12/15/understanding-and-using-cors/
+- https://stackoverflow.com/questions/35588699/response-to-preflight-request-doesnt-pass-access-control-check
 
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
-
+yarn add @auth0/angular-jwt
 
 
 # Backend side (Warning : will need Internet to connect to your client...)
@@ -70,7 +79,11 @@ composer init --name "monwoo/moon-box-backend" --type "project" \
 composer require 'silex/silex:^2.0' 'cnam/security-jwt-service-provider:2.*'
 
 # Launch dev server :
-php -eS localhost:6901
+php -eS localhost:6901 &
+cd -
+(cd backend && php -eS localhost:6901)
 
+# after changing autoload param in composer.json :
+(cd backend && composer dump-autoload)
 
 ```
