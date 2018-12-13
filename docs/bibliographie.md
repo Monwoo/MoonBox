@@ -63,6 +63,10 @@
 - https://github.com/Seldaek/monolog/blob/master/src/Monolog/Logger.php
 - https://github.com/symfony/symfony/blob/4.2/src/Symfony/Component/HttpKernel/Log/Logger.php
 
+- https://blog.angular-university.io/angular-http/
+- https://www.learnrxjs.io/operators/transformation/pluck.html
+- https://www.learnrxjs.io/operators/combination/forkjoin.html
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

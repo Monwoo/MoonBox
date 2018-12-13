@@ -8,9 +8,17 @@ import { MonwooMoonBoxWrapModule } from '@moon-box/monwoo-moon-box-wrap.module';
 import { BoxReaderComponent } from './components/box-reader/box-reader.component';
 import { ParametersComponent } from './components/parameters/parameters.component';
 import { BoxesComponent } from './components/boxes/boxes.component';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms'; // <== add the imports!
 
 @NgModule({
   declarations: [BoxReaderComponent, ParametersComponent, BoxesComponent],
-  imports: [CommonModule, MoonBoxRoutingModule, MonwooMoonManagerWrapModule, MonwooMoonBoxWrapModule]
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MoonBoxRoutingModule,
+    MonwooMoonManagerWrapModule,
+    MonwooMoonBoxWrapModule
+  ]
 })
 export class MoonBoxModule {}

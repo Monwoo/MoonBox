@@ -1,13 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { HttpHeaders } from '@angular/common/http';
+// Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 
-const httpPostOptions = {
-  headers: new HttpHeaders({
-    'Content-Type': 'application/json'
-    // JWT injected => 'Authorization': 'my-auth-token'
-  })
-};
+import { Component, OnInit } from '@angular/core';
+import { FormGroup, Validators, FormBuilder } from '@angular/forms';
+import { BackendService } from '@moon-box/services/backend.service';
 
 @Component({
   selector: 'moon-box-reader',
@@ -15,6 +10,8 @@ const httpPostOptions = {
   styleUrls: ['./box-reader.component.scss']
 })
 export class BoxReaderComponent implements OnInit {
+  form: FormGroup;
+
   imapProviders = {
     OVH: {
       name: 'O.V.H.',
@@ -35,7 +32,13 @@ export class BoxReaderComponent implements OnInit {
   defaultProvider = 'GoDaddy';
   imapClient: any = null;
 
-  constructor(public http: HttpClient) {}
+  constructor(private fb: FormBuilder, private backend: BackendService) {
+    // TODO : translate ?
+    this.form = this.fb.group({
+      email: ['', Validators.required],
+      password: ['', Validators.required]
+    });
+  }
 
   errorHandler(err: any) {
     console.error(err);
@@ -49,11 +52,20 @@ export class BoxReaderComponent implements OnInit {
         pass: 'testpass'
       }
     };
-    this.http.post('http://localhost:6901/api/login', ctx, httpPostOptions).subscribe(loginStatus => {
-      console.log(loginStatus);
-      this.http.get('http://localhost:6901/api/messages').subscribe(messages => {
-        console.log(messages);
-      }, this.errorHandler);
+
+    this.backend.fetchMsg(ctx).subscribe((messages: any) => {
+      console.log(messages);
     }, this.errorHandler);
+  }
+
+  login() {
+    const val = this.form.value;
+
+    if (val.email && val.password) {
+      this.backend.login(val.email, val.password).subscribe(() => {
+        console.log('User is logged in');
+        // this.router.navigateByUrl('/');
+      });
+    }
   }
 }
