@@ -58,6 +58,11 @@
 - http://restlet.com/company/blog/2015/12/15/understanding-and-using-cors/
 - https://stackoverflow.com/questions/35588699/response-to-preflight-request-doesnt-pass-access-control-check
 
+- https://github.com/silexphp/Silex-Providers/blob/master/MonologServiceProvider.php
+- https://symfony.com/doc/current/components/filesystem.html
+- https://github.com/Seldaek/monolog/blob/master/src/Monolog/Logger.php
+- https://github.com/symfony/symfony/blob/4.2/src/Symfony/Component/HttpKernel/Log/Logger.php
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
@@ -85,5 +90,11 @@ cd -
 
 # after changing autoload param in composer.json :
 (cd backend && composer dump-autoload)
+
+# add some packages :
+(cd backend && composer require monolog/monolog symfony/yaml \ symfony/monolog-bridge symfony/filesystem)
+
+# clean all and rebuild :
+rm -rf backend/vendor && (cd backend && composer install)
 
 ```

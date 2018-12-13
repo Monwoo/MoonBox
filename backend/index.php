@@ -9,14 +9,77 @@ use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\User\InMemoryUserProvider;
 use Symfony\Component\Security\Core\User\User;
 use Monwoo\Middleware\AddingCors;
+use Monolog\Logger;
+use Symfony\Component\HttpKernel\Log\Logger as ConsoleLogger;
+
+use Symfony\Component\Yaml\Yaml;
+use Symfony\Component\Filesystem\Filesystem;
+use Monolog\Handler\AbstractProcessingHandler as AbstractMonologHandler;
+use Symfony\Component\HttpKernel\Profiler\Profiler;
+use Symfony\Bridge\Monolog\Processor\DebugProcessor;
+use Psr\Log\LogLevel;
 
 $config = [
-  'debug' => true,
+    'debug' => true,
+    'loggerName' => "MoonBoxLog",
+    'logFilePath' => __DIR__  . '/logs.txt',
 ];
 
 $app = new Silex\Application([
     'debug' => $config['debug'],
+    'logger' => new \Monolog\Logger($config['loggerName']),
+    'logFilePath' => $config['logFilePath'],
 ]);
+$logLvl = $app['debug'] ? Logger::DEBUG : Logger::ERROR;
+
+$mySaveToFileHandler = new class ($app, $logLvl) extends AbstractMonologHandler {
+    public function __construct($app, $level = Logger::DEBUG, $bubble = true) {
+        parent::__construct($level, $bubble);
+        $self = $this;
+        $self->app = $app;
+        $self->monologLvlToPsrLvl = [
+            Logger::DEBUG     => LogLevel::DEBUG,
+            Logger::INFO      => LogLevel::INFO,
+            Logger::NOTICE    => LogLevel::NOTICE,
+            Logger::WARNING   => LogLevel::WARNING,
+            Logger::ERROR     => LogLevel::ERROR,
+            Logger::CRITICAL  => LogLevel::CRITICAL,
+            Logger::ALERT     => LogLevel::ALERT,
+            Logger::EMERGENCY => LogLevel::EMERGENCY,
+        ];
+    }
+    protected function write(array $record): void {
+        $self = $this;
+        $app = $self->app;
+        $logPath = $app['logFilePath'];
+        $logs = [];
+        $logs[] = $record;
+        $fs = new Filesystem();
+        $basePath = dirname($logPath);
+        if (!is_dir($basePath)) {
+            $fs->mkdir($basePath);
+        }
+        if ($record['level'] >= Logger::WARNING) {
+            // Writting only warnings and errors to logs file
+            // to avoid useless huges logs
+            $dump = Yaml::dump($logs, 4);//, 4, Yaml::DUMP_OBJECT);
+            $fs->appendToFile($logPath, $dump);
+        }
+        if (isset($app['consoleLogger'])) {
+            // var_dump($record); exit;
+            // var_dump($self->monologLvlToPsrLvl[$record['level']]); exit;
+            $app['consoleLogger']->log($self->monologLvlToPsrLvl[
+                $record['level'] // intval($record['level'])
+            ], $record['message'], $record['context']);
+        }
+    }
+};
+$app['logger']->pushHandler($mySaveToFileHandler);
+if ($app['debug']) {
+    $app['logger']->pushProcessor(new DebugProcessor());
+    $app['consoleLogger'] = new ConsoleLogger(LogLevel::DEBUG);
+}
+$app['logger']->debug("Backend {Action}", ['Action' => "Init"]);
 
 $app['security.jwt'] = [
   'secret_key' => 'Very_secret_key',
