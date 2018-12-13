@@ -31,7 +31,12 @@ $app = new Silex\Application([
     'logFilePath' => $config['logFilePath'],
 ]);
 // Early event register to avoid missing 'session' inside app...
-$app->register(new Silex\Provider\SessionServiceProvider());
+$app->register(new Silex\Provider\SessionServiceProvider(), [
+    'session.storage.options' => [
+        // session life time in secondes
+        'cookie_lifetime' => 60 * 10,
+    ],
+]);
 
 
 $logLvl = $app['debug'] ? Logger::DEBUG : Logger::ERROR;
