@@ -11,13 +11,17 @@ import { LocalStorage } from '@ngx-pwa/local-storage';
 export class User {
   _username: string;
   _password: string;
+  connector: string;
 }
 
-const httpPostOptions = {
+const httpOptions = {
   headers: new HttpHeaders({
-    'Content-Type': 'application/json'
+    //'Content-Type': 'application/json'
     // JWT injected => 'Authorization': 'my-auth-token'
-  })
+  }),
+  // https://github.com/angular/angular/issues/24283
+  // https://stackoverflow.com/questions/50210662/angular-6-httpclient-post-with-credentials
+  withCredentials: true
 };
 
 @Injectable({
@@ -28,10 +32,10 @@ export class BackendService {
 
   constructor(private http: HttpClient, private storage: LocalStorage) {}
 
-  login(_username: string, _password: string) {
+  login(_username: string, _password: string, connector: 'IMAP' | 'Unknown' = 'Unknown') {
     return (
       this.http
-        .post<any>(this.apiBaseUrl + 'api/login', <User>{ _username, _password })
+        .post<any>(this.apiBaseUrl + 'api/login', <User>{ _username, _password, connector }, httpOptions)
         // this is just the HTTP call,
         // we still need to handle the reception of the token
         .pipe(
@@ -52,7 +56,10 @@ export class BackendService {
 
   fetchMsg(ctx: any) {
     return this.http.get(this.apiBaseUrl + 'api/messages', {
-      params: new HttpParams().set('ctx', ctx)
+      ...httpOptions,
+      ...{
+        params: new HttpParams().set('ctx', JSON.stringify(ctx))
+      }
     });
 
     // return forkJoin(

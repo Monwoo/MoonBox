@@ -30,6 +30,10 @@ $app = new Silex\Application([
     'logger' => new \Monolog\Logger($config['loggerName']),
     'logFilePath' => $config['logFilePath'],
 ]);
+// Early event register to avoid missing 'session' inside app...
+$app->register(new Silex\Provider\SessionServiceProvider());
+
+
 $logLvl = $app['debug'] ? Logger::DEBUG : Logger::ERROR;
 
 $mySaveToFileHandler = new class ($app, $logLvl) extends AbstractMonologHandler {
@@ -86,39 +90,46 @@ $app['security.jwt'] = [
   'life_time'  => 86400,
   'options'    => [
       'username_claim' => 'name', // default name, option specifying claim containing username
-      'header_name' => 'X-Access-Token', // default null, option for usage normal oauth2 header
+      'header_name' => 'Authorization', // default null, option for usage normal oauth2 header
       'token_prefix' => 'Bearer',
   ]
 ];
 
 $app['users'] = function () use ($app) {
-  $users = [
-      'admin' => array(
-          'roles' => array('ROLE_ADMIN'),
-          // raw password is foo
-          'password' => '5FZ2Z8QIkA7UTZ4BYkoC+GsReLf569mSKDsfods6LYQ8t+a8EW9oaircfMpmaLbPBh4FOBiiFyLfuZmTSUwzZg==',
-          'enabled' => true
-      ),
-  ];
-
-  return new InMemoryUserProvider($users);
+    //   $users = [
+    //       'admin' => array(
+    //           'roles' => array('ROLE_ADMIN'),
+    //           // raw password is foo
+    //           'password' => '5FZ2Z8QIkA7UTZ4BYkoC+GsReLf569mSKDsfods6LYQ8t+a8EW9oaircfMpmaLbPBh4FOBiiFyLfuZmTSUwzZg==',
+    //           'enabled' => true
+    //       ),
+    //   ];
+    $users = $app['session']->get('users', []);
+    return new InMemoryUserProvider($users);
 };
 
 $app['security.firewalls'] = array(
-  'login' => [
-      'pattern' => 'login|register|oauth',
-      'anonymous' => true,
-  ],
-  'secured' => array(
-      'pattern' => '^.*$',
-      'logout' => array('logout_path' => '/logout'),
-      'users' => $app['users'],
-      'jwt' => array(
-          'use_forward' => true,
-          'require_previous_session' => false,
-          'stateless' => true,
-      )
-  ),
+    'login' => [
+        'pattern' => 'login|register|oauth',
+        'anonymous' => true,
+        // 'methods' => ['GET', 'POST', 'OPTIONS'],
+    ],
+    'cors-handshake' => [
+        'pattern' => '^.*$',
+        'anonymous' => true,
+        'methods' => ['OPTIONS'],
+    ],
+    'secured' => array(
+        'pattern' => '^.*$',
+        'methods' => ['GET', 'POST'],
+        'logout' => array('logout_path' => '/logout'),
+        'users' => $app['users'],
+        'jwt' => array(
+            'use_forward' => true,
+            'require_previous_session' => false,
+            'stateless' => true,
+        )
+    ),
 );
 
 $app->register(new Silex\Provider\SecurityServiceProvider());
@@ -146,24 +157,20 @@ $ctlrs->match('/api/login', function(Request $request) use ($app){
       }
       $userName = $vars['_username'];
 
+      $users = $app['session']->get('users', []);
+      $users[$userName] = [
+        // 'roles' => array('ROLE_ADMIN'),
+        // raw password is foo
+        // 'password' => '5FZ2Z8QIkA7UTZ4BYkoC+GsReLf569mSKDsfods6LYQ8t+a8EW9oaircfMpmaLbPBh4FOBiiFyLfuZmTSUwzZg==',
+        'enabled' => true,
+        'connector' => $vars['connector'] ?? 'Unknow',
+      ];
+      $app['session']->set('users', $users);
+
       $response = [
         'success' => true,
         'token' => $app['security.jwt.encoder']->encode(['name' => $userName]),
       ]; // Allowing all, backend is only a proxy server for IMAP and other Server side API features
-
-      /**
-       * @var $user User
-        $user = $app['users']->loadUserByUsername($vars['_username']);
-
-        if (! $app['security.encoder.digest']->isPasswordValid($user->getPassword(), $vars['_password'], '')) {
-            throw new UsernameNotFoundException(sprintf('Username "%s" does not exist.', $vars['_username']));
-        } else {
-            $response = [
-                'success' => true,
-                'token' => $app['security.jwt.encoder']->encode(['name' => $user->getUsername()]),
-            ];
-        }
-       */
     } catch (UsernameNotFoundException $e) {
       $response = [
           'success' => false,
@@ -172,9 +179,10 @@ $ctlrs->match('/api/login', function(Request $request) use ($app){
   }
 
   return $app->json($response, ($response['success'] == true ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST));
-})->bind('api_login')->method('OPTIONS|POST');
+})->bind('api.login')->method('OPTIONS|POST');
 
-$ctlrs->get('/api/messages', function() use ($app){
+$ctlrs->match('/api/messages', function() use ($app){
+  $app['logger']->debug("Listing Messages");
   $jwt = 'no';
   $token = $app['security.token_storage']->getToken();
   if ($token instanceof Silex\Component\Security\Http\Token\JWTToken) {
@@ -193,15 +201,19 @@ $ctlrs->get('/api/messages', function() use ($app){
       $granted_super = 'yes';
   }
   $user = $token->getUser();
+  $localUsers = $app['session']->get('users', []);
+  $localUser = $localUsers[$token->getUsername()];
+
   return $app->json([
       'hello' => $token->getUsername(),
       'username' => $user->getUsername(),
+      'connector' => $localUser['connector'],
       'auth' => $jwt,
       'granted' => $granted,
       'granted_user' => $granted_user,
       'granted_super' => $granted_super,
   ]);
-});
+})->bind('api.messages')->method('OPTIONS|GET');;
 
 $ctlrs->after(function($request, Response $response) use ($app) {
     $app['logger']->debug("Adding Cors");

@@ -18,10 +18,11 @@ import { I18n, MISSING_TRANSLATION_STRATEGY } from '@ngx-translate/i18n-polyfill
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { HttpModule, Http } from '@angular/http';
 import { TranslateLoader } from '@ngx-translate/core';
+import { tap } from 'rxjs/operators';
 
 import { Logger } from '@app/core/logger.service';
 
-import { JwtModule, JWT_OPTIONS } from '@auth0/angular-jwt';
+import { JwtModule, JwtModuleOptions, JWT_OPTIONS } from '@auth0/angular-jwt';
 // import { Storage } from '@ionic/storage';
 // import { TokenService } from './app.tokenservice';
 import { LocalStorage } from '@ngx-pwa/local-storage';
@@ -31,8 +32,19 @@ import { LocalStorage } from '@ngx-pwa/local-storage';
 export function jwtOptionsFactory(storage: LocalStorage) {
   return {
     tokenGetter: () => {
-      return storage.getItem<any>('access_token');
-    }
+      return storage
+        .getItem<any>('access_token')
+        .pipe(
+          tap((token: any) => {
+            console.log('Token :', token);
+          })
+        )
+        .toPromise();
+    },
+    whitelistedDomains: ['localhost:6901', '127.0.0.1:6901', '[::1]:6901', 'monwoo.com', 'monwoo.fr']
+    //deps: [TokenService]
+    // whitelistedDomains: ['example.com'],
+    // blacklistedRoutes: ['example.com/examplebadroute/'],
   };
 }
 
@@ -75,9 +87,6 @@ export function createWebpackTranslateLoader(i18nService: I18nService) {
         provide: JWT_OPTIONS,
         useFactory: jwtOptionsFactory,
         deps: [LocalStorage]
-        //deps: [TokenService]
-        // whitelistedDomains: ['example.com'],
-        // blacklistedRoutes: ['example.com/examplebadroute/'],
       }
     }),
     // TODO refactor : move to Shard module ?

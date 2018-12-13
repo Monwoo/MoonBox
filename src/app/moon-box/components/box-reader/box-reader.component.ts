@@ -57,7 +57,7 @@ export class BoxReaderComponent implements OnInit {
     const val = this.form.value;
 
     if (val.email && val.password) {
-      this.backend.login(val.email, val.password).subscribe(() => {
+      this.backend.login(val.email, val.password, 'IMAP').subscribe(() => {
         console.log('User is logged in');
 
         const ctx = {};
