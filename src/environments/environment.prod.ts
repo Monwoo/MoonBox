@@ -4,7 +4,8 @@ import env from './.env';
 export const environment = {
   production: true,
   version: env.npm_package_version,
-  serverUrl: '/MoonManager/Demo/',
+  serverUrl: '/MoonBox/Demo/',
+  moonBoxBackendUrl: '/MoonBox/Demo/backend/',
   defaultLanguage: 'fr-FR',
   supportedLanguages: ['fr-FR', 'en-US']
 };

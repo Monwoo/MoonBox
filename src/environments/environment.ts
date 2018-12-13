@@ -12,6 +12,7 @@ export const environment = {
   version: env.npm_package_version + '-dev',
   // serverUrl: '/api',
   serverUrl: '/',
+  moonBoxBackendUrl: 'http://localhost:6901/',
   defaultLanguage: 'fr-FR',
   supportedLanguages: ['fr-FR', 'en-US'] // [extract('fr-FR'), extract('en-US')]
 };

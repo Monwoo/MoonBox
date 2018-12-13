@@ -124,29 +124,47 @@ $app['security.firewalls'] = array(
 $app->register(new Silex\Provider\SecurityServiceProvider());
 $app->register(new Silex\Provider\SecurityJWTServiceProvider());
 
-// $app->post('/api/login', function(Request $request) use ($app){
-$app->match('/api/login', function(Request $request) use ($app){
-  $vars = json_decode($request->getContent(), true);
+$ctlrs = $app['controllers'];
 
+$ctlrs->before(function($request, $app) {
+    // $app['logger']->debug("BEFORE");
+    // return new Response('d', 200);        
+    if ('OPTIONS' === $request->getMethod()) {
+        $app['logger']->debug("Allowing options");
+        return new Response('', 200);        
+    }
+});
+
+// $app->post('/api/login', function(Request $request) use ($app){
+$ctlrs->match('/api/login', function(Request $request) use ($app){
+
+  $vars = json_decode($request->getContent(), true);
+  // var_dump($vars);exit;
   try {
       if (empty($vars['_username']) || empty($vars['_password'])) {
           throw new UsernameNotFoundException(sprintf('Username "%s" does not exist.', $vars['_username']));
       }
+      $userName = $vars['_username'];
+
+      $response = [
+        'success' => true,
+        'token' => $app['security.jwt.encoder']->encode(['name' => $userName]),
+      ]; // Allowing all, backend is only a proxy server for IMAP and other Server side API features
 
       /**
        * @var $user User
-       */
-      $user = $app['users']->loadUserByUsername($vars['_username']);
+        $user = $app['users']->loadUserByUsername($vars['_username']);
 
-      if (! $app['security.encoder.digest']->isPasswordValid($user->getPassword(), $vars['_password'], '')) {
-          throw new UsernameNotFoundException(sprintf('Username "%s" does not exist.', $vars['_username']));
-      } else {
-          $response = [
-              'success' => true,
-              'token' => $app['security.jwt.encoder']->encode(['name' => $user->getUsername()]),
-          ];
-      }
-  } catch (UsernameNotFoundException $e) {
+        if (! $app['security.encoder.digest']->isPasswordValid($user->getPassword(), $vars['_password'], '')) {
+            throw new UsernameNotFoundException(sprintf('Username "%s" does not exist.', $vars['_username']));
+        } else {
+            $response = [
+                'success' => true,
+                'token' => $app['security.jwt.encoder']->encode(['name' => $user->getUsername()]),
+            ];
+        }
+       */
+    } catch (UsernameNotFoundException $e) {
       $response = [
           'success' => false,
           'error' => 'Invalid credentials',
@@ -156,7 +174,7 @@ $app->match('/api/login', function(Request $request) use ($app){
   return $app->json($response, ($response['success'] == true ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST));
 })->bind('api_login')->method('OPTIONS|POST');
 
-$app->get('/api/messages', function() use ($app){
+$ctlrs->get('/api/messages', function() use ($app){
   $jwt = 'no';
   $token = $app['security.token_storage']->getToken();
   if ($token instanceof Silex\Component\Security\Http\Token\JWTToken) {
@@ -185,8 +203,9 @@ $app->get('/api/messages', function() use ($app){
   ]);
 });
 
-$app->after(function($request, $app) {
-    AddingCors::addCors($request, $app);
+$ctlrs->after(function($request, Response $response) use ($app) {
+    $app['logger']->debug("Adding Cors");
+    AddingCors::addCors($request, $response);
 });
 
 $app->run();

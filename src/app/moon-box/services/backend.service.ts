@@ -1,14 +1,16 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { HttpHeaders } from '@angular/common/http';
 import { pluck, share, shareReplay, tap } from 'rxjs/operators';
 import { forkJoin, of, interval } from 'rxjs';
+import { environment } from '@env/environment';
+import { LocalStorage } from '@ngx-pwa/local-storage';
 
 export class User {
-  email: string;
-  password: string;
+  _username: string;
+  _password: string;
 }
 
 const httpPostOptions = {
@@ -22,26 +24,44 @@ const httpPostOptions = {
   providedIn: 'root'
 })
 export class BackendService {
-  constructor(private http: HttpClient) {}
+  apiBaseUrl: string = environment.moonBoxBackendUrl;
 
-  login(email: string, password: string) {
+  constructor(private http: HttpClient, private storage: LocalStorage) {}
+
+  login(_username: string, _password: string) {
     return (
       this.http
-        .post<User>('/api/login', { email, password })
+        .post<any>(this.apiBaseUrl + 'api/login', <User>{ _username, _password })
         // this is just the HTTP call,
         // we still need to handle the reception of the token
-        .pipe(shareReplay())
+        .pipe(
+          tap((payload: any) => {
+            this.storage
+              .setItem('access_token', payload.token)
+              .pipe(
+                tap(_ => {
+                  console.log('Access token saved');
+                })
+              )
+              .subscribe();
+          }),
+          shareReplay()
+        )
     );
   }
 
   fetchMsg(ctx: any) {
-    return forkJoin(
-      this.http.post('http://localhost:6901/api/login', ctx, httpPostOptions).pipe(
-        tap(loginStatus => {
-          console.log(loginStatus);
-        })
-      ),
-      this.http.get('http://localhost:6901/api/messages')
-    );
+    return this.http.get(this.apiBaseUrl + 'api/messages', {
+      params: new HttpParams().set('ctx', ctx)
+    });
+
+    // return forkJoin(
+    //   this.http.post(this.apiBaseUrl + 'api/login', ctx.auth, httpPostOptions).pipe(
+    //     tap(loginStatus => {
+    //       console.log(loginStatus);
+    //     })
+    //   ),
+    //   this.http.get(this.apiBaseUrl + 'api/messages')
+    // );
   }
 }

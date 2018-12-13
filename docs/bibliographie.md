@@ -67,6 +67,9 @@
 - https://www.learnrxjs.io/operators/transformation/pluck.html
 - https://www.learnrxjs.io/operators/combination/forkjoin.html
 
+- http://zacstewart.com/2012/04/14/http-options-method.html
+- https://developer.mozilla.org/fr/docs/Glossaire/requete_pre-verification
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
