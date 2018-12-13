@@ -15,6 +15,10 @@
     }
   ],
   "sockets": {
+    "udp": {
+      "send": "*",
+      "bind": "*"
+    },
     "tcp": {
       "connect": "*"
     },

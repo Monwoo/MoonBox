@@ -42,8 +42,35 @@
 - https://developer.chrome.com/apps/sockets_tcp
 - https://developer.chrome.com/apps/manifest/sockets
 
+- https://www.npmjs.com/package/tls-browserify
+- https://github.com/emersion/tls-browserify
+- https://www.npmjs.com/package/browserify-sign
+- https://www.npmjs.com/package/net-browserify
+
+- https://silex.symfony.com/
+
 ```bash
 # Added packages :
-yarn add emailjs-imap-client imports-loader net tls
+yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
+
+
+
+# Backend side (Warning : will need Internet to connect to your client...)
+mkdir backend && cd backend
+# alias php=/Applications/MAMP/bin/php/php5.6.7/bin/php => use php > 7.1
+export PATH=/Applications/MAMP/bin/php/php7.1.8/bin:$PATH
+curl -sS https://getcomposer.org/installer | php
+alias composer='php composer.phar'
+composer init --name "monwoo/moon-box-backend" --type "project" \
+--description "Backend for Monwoo's Moon Box" \
+--author "Miguel Monwoo <service@monwoo.com>" \
+--homepage "https://github.com/Monwoo/MoonBox" --stability "dev" \
+--license "MIT, Copyrights Monwoo 2018, service@monwwo.com"
+
+composer require 'silex/silex:^2.0' 'cnam/security-jwt-service-provider:2.*'
+
+# Launch dev server :
+php -eS localhost:6901
+
 
 ```

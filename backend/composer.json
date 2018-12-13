@@ -1,0 +1,18 @@
+{
+  "name": "monwoo/moon-box-backend",
+  "description": "Backend for Monwoo's Moon Box",
+  "type": "project",
+  "homepage": "https://github.com/Monwoo/MoonBox",
+  "license": "MIT, Copyrights Monwoo 2018, service@monwwo.com",
+  "authors": [
+    {
+      "name": "Miguel Monwoo",
+      "email": "service@monwoo.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "cnam/security-jwt-service-provider": "2.*",
+    "silex/silex": "^2.0"
+  }
+}

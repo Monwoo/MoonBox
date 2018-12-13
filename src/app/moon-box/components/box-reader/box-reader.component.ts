@@ -22,6 +22,7 @@ declare const require: any; // To avoid typeScript error about require that don'
 // const ImapClient: any = require('imports-loader?net=>null,tls=>null!emailjs-imap-client');
 // const ImapClient:any = require('emailjs-imap-client/dist/client.js');
 // const ImapClient: any = require('imports-loader?define=>false!emailjs-imap-client');
+// const IMAPLib: any = require('imports-loader?net=net-browserify,tls=tls-browserify!emailjs-imap-client');
 const IMAPLib: any = require('emailjs-imap-client');
 const ImapClient = IMAPLib.default;
 // import * as ImapClient from 'emailjs-imap-client';

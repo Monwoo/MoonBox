@@ -1,0 +1,11 @@
+/vendor/
+/build/
+/dev/
+backups/*
+!backups/.htaccess
+build/
+vendor/
+node_modules/
+bower_components/
+var/*
+**.DS_Store

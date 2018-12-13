@@ -74,7 +74,7 @@
     "lodash": "^4.17.10",
     "lodash-es": "^4.17.11",
     "moment": "^2.22.2",
-    "net": "^1.0.2",
+    "net-browserify": "^0.2.4",
     "ngx-clipboard": "^11.1.9",
     "ngx-dropzone-wrapper": "^7.1.0",
     "ngx-papaparse": "3",
@@ -83,7 +83,7 @@
     "primeicons": "^1.0.0",
     "primeng": "^6.1.7",
     "rxjs": "^6.3.1",
-    "tls": "^0.0.1",
+    "tls-browserify": "^0.2.2",
     "ts-md5": "^1.2.4",
     "yamljs": "^0.3.0",
     "zone.js": "^0.8.26"
