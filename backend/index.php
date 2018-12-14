@@ -23,18 +23,20 @@ $config = [
     'debug' => true,
     'loggerName' => "MoonBoxLog",
     'logFilePath' => __DIR__  . '/logs.txt',
+    'sessionTimeOut' => 60 * 10, // Session life time in secondes
 ];
 
 $app = new Silex\Application([
     'debug' => $config['debug'],
     'logger' => new \Monolog\Logger($config['loggerName']),
     'logFilePath' => $config['logFilePath'],
+    'sessionTimeOut' => $config['sessionTimeOut'],
 ]);
 // Early event register to avoid missing 'session' inside app...
 $app->register(new Silex\Provider\SessionServiceProvider(), [
     'session.storage.options' => [
         // session life time in secondes
-        'cookie_lifetime' => 60 * 10,
+        'cookie_lifetime' => $app['sessionTimeOut'],
     ],
 ]);
 
