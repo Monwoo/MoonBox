@@ -1,24 +1,43 @@
-<p>box-reader works!</p>
-
-<form [formGroup]="form">
-  <mat-form-field class="float-right">
-    <mat-select placeholder="{{'mb.box-reader.provider.plhdr'|translate}}" [value]="selectedProvider">
-      <mat-option
-        *ngFor="let idx of (backend.providers | keyvalue); let i = index"
-        (click)="selectedProvider = idx.key"
-        [value]="idx.key"
-      >
-        {{ idx.value.name | translate }}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
-
-  <fieldset>
-    <legend>Login</legend>
-    <div class="form-field"><label>Email:</label> <input name="email" formControlName="email" /></div>
-    <div class="form-field">
-      <label>Password:</label> <input name="password" formControlName="password" type="password" />
+<mat-card class="bs box-reader">
+  <mat-card-content class="container-fluid">
+    <div class="row">
+      <div class="col-12 col-md-6 text-md-left">
+        <mat-form-field class="float-right">
+          <mat-select placeholder="{{'mb.box-reader.provider.plhdr'|translate}}" [value]="selectedProvider">
+            <mat-option
+              *ngFor="let idx of (backend.providers | keyvalue); let i = index"
+              (click)="selectedProvider = idx.key"
+              [value]="idx.key"
+            >
+              {{ idx.value.name | translate }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="col-12 col-md-6 text-md-right">
+        <form *ngIf="formGroup" [formGroup]="formGroup" #loginForm="ngForm">
+          <dynamic-material-form [group]="formGroup" [model]="formModel" [layout]="formLayout"> </dynamic-material-form>
+        </form>
+        <button
+          mat-button
+          color="primary"
+          matTooltip="{{'mb.box-reader.btn.Login.tooltip'|translate}}"
+          (click)="login($event)"
+        >
+          <i class="fas fa-login"></i> {{ 'mb.box-reader.btn.Login' | translate }}
+        </button>
+      </div>
+      <div class="col-12 text-md-left">// TODO : mail content</div>
+      <div class="col-12 text-md-right">
+        <button
+          mat-button
+          color="primary"
+          matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
+          (click)="resetConfigAction($event)"
+        >
+          <i class="fas fa-add"></i> {{ 'mb.box-reader.btn.LoadMore' | translate }}
+        </button>
+      </div>
     </div>
-  </fieldset>
-  <div class="form-buttons"><button class="button button-primary" (click)="login()">Login</button></div>
-</form>
+  </mat-card-content>
+</mat-card>
