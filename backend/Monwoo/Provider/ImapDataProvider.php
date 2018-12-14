@@ -1,7 +1,7 @@
 <?php
 // Copyright Monwoo 2017-2018, by Miguel Monwoo, service@monwoo.com
 
-namespace App\MonwooConnector\Provider;
+namespace Monwoo\Provider;
 use Silex\Application;
 use Silex\Api\EventListenerProviderInterface;
 use Silex\Api\ControllerProviderInterface;
@@ -12,11 +12,6 @@ use Pimple\ServiceProviderInterface;
 use LogicException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PropertyAccess\PropertyPath;
-use Symfony\Component\Console\Application as Console;
-use Symfony\Component\Console\Helper\HelperSet;
-use \Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type as FormType;
@@ -36,28 +31,15 @@ use JasonGrimes\Paginator;
 
 class ImapDataProvider extends DataProvider
 {
-    const configFormDataKey = 'imap_connector_config_form';
-    const editFormDataKey = 'imap_connector_edit_form';
     const cacheLifetime = 60*30; // 30 minutes
-    protected function getConfigFormStoreKey() {
-        $self = $this;
-        $app = $self->app;
-        $sessionId = $app['session']->getId();
-        return $sessionId . "." . self::configFormDataKey;
-    }
-    protected function getEditFormStoreKey() {
-        $self = $this;
-        $app = $self->app;
-        $sessionId = $app['session']->getId();
-        return $sessionId . "." . self::editFormDataKey;
-    }
+
     protected $imap = null;
     protected $storage = null;
     protected function init() {
         $self = $this;
         $self->dataset = [];
         $self->dataset_name = 'ImapData';
-        $self->dataset_id = 'imap_data';
+        $self->dataset_id = 'data_imap';
     }
     protected function storeInCache($key, $data) {
         $app = $this->app;
@@ -70,24 +52,12 @@ class ImapDataProvider extends DataProvider
     public function register(Container $app) {
         parent::register($app);
         $self = $this;
-        // TODO : load from cache ? // TODO : load only on needs, lasy load ? + auto save on config form update...
-        if (!isset($app["{$self->manager_route_name}.connections"])) {
-            $app["{$self->manager_route_name}.connections"] = [
-                'serviceEmail' => [
-                    'username' => 'service@domain.com',
-                    'authtype' => '',
-                    'mailhost'     => 'imap.domain.com',
-                    'mailport'     => null,
-                    'password' => null, // Do not put your passwords in default config, will be cached online...
-                ],
-            ];
-        }
         $app->before(function($request, $app) use ($self) {
             $locale = $app['locale'];
             $data = [];
             $self->dataset = &$data;
             /* DEBUG
-            $app['debug.logger']->debug('Imap Data Will transform');
+            $app['logger']->debug('Imap Data Will transform');
             // */
             // $app["{$self->manager_route_name}.data"] = $data; // Always empty ?
             $self->updateGeneratedData();
@@ -154,7 +124,7 @@ class ImapDataProvider extends DataProvider
             $debugBacklog .= $response . "|\n";
             if ($is_plus) {
                 // * DEBUG
-                $app['debug.logger']->debug('Imap Auth got an extra server challenge', [
+                $app['logger']->debug('Imap Auth got an extra server challenge', [
                     'response' => $response,
                 ]);
                 // */
@@ -163,7 +133,7 @@ class ImapDataProvider extends DataProvider
             } else {
                 if (preg_match('/^NO /i', $response) ||
                 preg_match('/^BAD /i', $response)) {
-                    $app['debug.logger']->error('Imap Auth got got failure response', [
+                    $app['logger']->error('Imap Auth got got failure response', [
                         'response' => $response,
                         // https://developers.google.com/drive/v3/web/handle-errors#401_invalid_credentials
                         'googleImapErr' => base64_decode(explode('|', $debugBacklog)[0]),
@@ -229,7 +199,7 @@ class ImapDataProvider extends DataProvider
         //     'ssl' => true,
         // ];
         // * DEBUG
-        $app['debug.logger']->debug("Starting connection {$connection['username']}", [
+        $app['logger']->debug("Starting connection {$connection['username']}", [
             '$connection' => $connection,
         ]);
         $imap = null;
@@ -247,12 +217,12 @@ class ImapDataProvider extends DataProvider
             // TODO : do not seem to work with google imap connection,
             if ($self->imapGoogleAuthenticate($imap, $connection['username'], $imapAuthToken)) {
                 // * DEBUG
-                $app['debug.logger']->debug("Succed to connect to google IMAP {$connection['username']}", [
+                $app['logger']->debug("Succed to connect to google IMAP {$connection['username']}", [
                     '$connection' => $connection,
                 ]);
                 // * /
             } else {
-                $app['debug.logger']->error("Fail to connect to Email {$connection['username']}", [
+                $app['logger']->error("Fail to connect to Email {$connection['username']}", [
                     'connection' => $connection,
                     'accessToken' => $accessToken, // TODO : use $password to get imapGoogle token access ?
                     'imapAuthToken' => $imapAuthToken,
@@ -272,7 +242,7 @@ class ImapDataProvider extends DataProvider
         $this->imap = $imap;
         // TODO assert witout imap_errors not available evrywhere
         // $imapErr = imap_errors();
-        // $app['debug.logger']->assert($this->storage,
+        // $app['logger']->assert($this->storage,
         // "Inbox should have been set", $imapErr);
         // Tree view of mailbox :
         // $folders = new \RecursiveIteratorIterator(
@@ -289,13 +259,21 @@ class ImapDataProvider extends DataProvider
         $success = true;
         $self->context = [];
         $self->actionResponse = null;
+
+        $token = $app['security.token_storage']->getToken();
+        $user = $token->getUser();
+        $localUsers = $app['session']->get('users', []);
+        $localUser = $localUsers[$token->getUsername()];
         $self->defaultConfig = [
-            // Default value overriden by config form submit in current session
-            // 'connections' => Yaml::dump(
-            //     $app["{$self->manager_route_name}.connections"], 4
-            // ),
-            'connections' =>
-            $app["{$self->manager_route_name}.connections"],
+            'connections' =>[
+              'serviceEmail' => [
+                  'username' => $localUser['username'],
+                  'authtype' => '',
+                  'mailhost' => $localUser['mailhost'],
+                  'mailport' => $localUser['mailport'],
+                  'password' => $localUser['password'], // Do not put your passwords in default config, will be cached online...
+              ],
+          ],
         ];
 
         $self->context['dataProvider'] = $self;
@@ -326,7 +304,7 @@ class ImapDataProvider extends DataProvider
             $paginator = new \JasonGrimes\Paginator(
                 $self->getSession('numResults'),
                 $limit, $page,
-                $app->path($self->manager_route_name, [
+                $app->path("TODO", [
                     'action' => 'admin_results',
                     // Escape issue : 'page' => '(:num)',
                     'limit' => $limit,
@@ -480,7 +458,7 @@ class ImapDataProvider extends DataProvider
                         ];
             		}
                     // * DEBUG
-                    $app['debug.logger']->debug("Did open MailBox {$connection['username']}", [
+                    $app['logger']->debug("Did open MailBox {$connection['username']}", [
                         'mailBoxFolders' => $folders,
                         'totalCountOfMsg' => $totalCountOfMsg,
                         'msgsOrderedByExpeditors' => $msgsOrderedByExpeditors,
@@ -492,7 +470,7 @@ class ImapDataProvider extends DataProvider
                     $errTrace = $e->getTrace();
                     $app['session']->getFlashBag()->add('error'
                     , "Faild to load Imap {$connection['username']}");
-                    $app['debug.logger']->error("Fail to load Imap {$connection['username']}"
+                    $app['logger']->error("Fail to load Imap {$connection['username']}"
                     , [$errMsg, $errPos, $errTrace]);
                 }
             }
@@ -558,7 +536,7 @@ class ImapDataProvider extends DataProvider
                 $bodyHTML = null;
                 $self->startImapProtocole($connection, $accessToken);
                 // * DEBUG
-                $app['debug.logger']->debug("Loading content at $bodyPath for {$connection['username']}", [
+                $app['logger']->debug("Loading content at $bodyPath for {$connection['username']}", [
                     'msg' => $app->fetchByPath($editData,
                     str_replace('[body]', '', $bodyPath)),
                     'connection' => $connection,
@@ -572,7 +550,7 @@ class ImapDataProvider extends DataProvider
                 // $imapIdPath = str_replace('[body]', '[imapId]', $bodyPath);
                 // $imapId = $app->fetchByPath($editData, $imapIdPath);
                 $msg = $this->storage->getMessage(intval($imapId));
-                $app['debug.logger']->assert($msg,
+                $app['logger']->assert($msg,
                 "Loading msg $imapId for {$connection['username']} FAIL");
                 $msgFlags = $msg->getFlags();
                 if ($msg->isMultipart()) {
@@ -590,7 +568,7 @@ class ImapDataProvider extends DataProvider
                                 if ($bodyHTML && $bodyHTML != '') break;
                             }
                         } catch (\Throwable $e) {
-                            $app['debug.logger']->error("Fail to load message part"
+                            $app['logger']->error("Fail to load message part"
                             , ['part' => $part, 'msg' => $msg]);
                         }
                     }
@@ -667,13 +645,13 @@ class ImapDataProvider extends DataProvider
     public function updateGeneratedData() {
         $self = $this;
         $app = $self->app;
-        $data = $app['data'];
-        unset($app['data']);
+        $data = $app["{$self->dataset_id}"];
+        unset($app["{$self->dataset_id}"]);
         $self->initDefaultAugmentedData($data);
         // * DEBUG
-        $app['debug.logger']->debug('Imap Data Did Updated Generated Data');
+        $app['logger']->debug('Imap Data Did Updated Generated Data');
         // */
-        $app['data'] = $data;
+        $app["{$self->dataset_id}"] = $data;
     }
     protected function initDefaultAugmentedData(&$data) {
         // Init for augmented data :
@@ -689,12 +667,12 @@ class ImapDataProvider extends DataProvider
     public function transformData($dataProvider, $forcePictReload) {
         $self = $this;
         $app = $self->app;
-        $data = $app['data'];
+        $data = $app["{$self->dataset_id}"];
         $self->initDefaultAugmentedData($data);
         // * DEBUG
-        $app['debug.logger']->debug('Imap Data Did transform Data');
+        $app['logger']->debug('Imap Data Did transform Data');
         // */
-        $locale = $app['locale'];//$app['translator']->getLocale();
-        $app['cache']->store("data_$locale", $data);
+        // $locale = $app['locale'];//$app['translator']->getLocale();
+        // $app['cache']->store("data_$locale", $data);
     }
 }

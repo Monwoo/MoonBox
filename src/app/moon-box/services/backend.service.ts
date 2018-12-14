@@ -33,9 +33,13 @@ export class BackendService {
   constructor(private http: HttpClient, private storage: LocalStorage) {}
 
   login(_username: string, _password: string, connector: 'IMAP' | 'Unknown' = 'Unknown') {
+    let params = {
+      mailhost: '',
+      mailport: ''
+    };
     return (
       this.http
-        .post<any>(this.apiBaseUrl + 'api/login', <User>{ _username, _password, connector }, httpOptions)
+        .post<any>(this.apiBaseUrl + 'api/login', <User>{ _username, _password, connector, params }, httpOptions)
         // this is just the HTTP call,
         // we still need to handle the reception of the token
         .pipe(

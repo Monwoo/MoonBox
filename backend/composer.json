@@ -15,13 +15,17 @@
       "Monwoo\\": "Monwoo/"
     }
   },
-  "minimum-stability": "dev",
+  "config": {
+    "sort-packages": true
+  },
   "require": {
     "cnam/security-jwt-service-provider": "2.*",
     "silex/silex": "^2.0",
     "monolog/monolog": "^1.19",
-    "symfony/monolog-bridge": "^4.0",
-    "symfony/yaml": "^4.0",
-    "symfony/filesystem": "^4.3@dev"
+    "symfony/monolog-bridge": "^4.3",
+    "symfony/yaml": "^4.3",
+    "symfony/filesystem": "^4.3",
+    "symfony/translation": "^4.3",
+    "zendframework/zend-mail": "^2.10"
   }
 }

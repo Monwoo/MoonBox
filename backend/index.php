@@ -126,6 +126,18 @@ $app['security.firewalls'] = array(
         'anonymous' => true,
         'methods' => ['OPTIONS'],
     ],
+    'api-moon-box' => [
+        'pattern' => '^/api/moon-box/.*$',
+        'methods' => ['GET', 'POST'],
+        'anonymous' => true,
+        // 'logout' => array('logout_path' => '/logout'),
+        // 'users' => $app['users'],
+        // 'jwt' => array(
+        //     'use_forward' => true,
+        //     'require_previous_session' => false,
+        //     'stateless' => true,
+        // )
+    ],
     'secured' => array(
         'pattern' => '^.*$',
         'methods' => ['GET', 'POST'],
@@ -141,6 +153,9 @@ $app['security.firewalls'] = array(
 
 $app->register(new Silex\Provider\SecurityServiceProvider());
 $app->register(new Silex\Provider\SecurityJWTServiceProvider());
+$app->register(new Silex\Provider\LocaleServiceProvider());
+$app->register(new Silex\Provider\TranslationServiceProvider());
+$app->register(new Monwoo\Provider\ImapDataProvider());
 
 $ctlrs = $app['controllers'];
 
@@ -170,6 +185,10 @@ $ctlrs->match('/api/login', function(Request $request) use ($app){
         // raw password is foo
         // 'password' => '5FZ2Z8QIkA7UTZ4BYkoC+GsReLf569mSKDsfods6LYQ8t+a8EW9oaircfMpmaLbPBh4FOBiiFyLfuZmTSUwzZg==',
         'enabled' => true,
+        'username' => $vars['_username'],
+        'password' => $vars['_password'],
+        'mailhost' => $vars['params']['mailhost'],
+        'mailport' => $vars['params']['mailport'],
         'connector' => $vars['connector'] ?? 'Unknow',
       ];
       $app['session']->set('users', $users);

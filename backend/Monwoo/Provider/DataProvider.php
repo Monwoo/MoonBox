@@ -1,6 +1,7 @@
 <?php
 // Copyright Monwoo 2017-2018, by Miguel Monwoo, service@monwoo.com
-namespace App\MonwooConnector\Provider;
+namespace Monwoo\Provider;
+
 use Silex\Application;
 use Silex\Api\EventListenerProviderInterface;
 use Silex\Api\ControllerProviderInterface;
@@ -10,13 +11,7 @@ use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use LogicException;
 use Symfony\Component\HttpFoundation\Response;
-use App\Security\Entity\User;
 use Symfony\Component\PropertyAccess\PropertyPath;
-use Symfony\Component\Console\Application as Console;
-use Symfony\Component\Console\Helper\HelperSet;
-use \Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Form\Extension\Core\Type as FormType;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -25,6 +20,7 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Process\ProcessBuilder;
 use Symfony\Component\Yaml\Yaml;
+
 class DataProvider implements ServiceProviderInterface, BootableProviderInterface, ControllerProviderInterface, EventListenerProviderInterface
 {
     // CONST FORM_FIELD_EDIT_PATH = 'editor_path';
@@ -32,7 +28,7 @@ class DataProvider implements ServiceProviderInterface, BootableProviderInterfac
         $self = $this;
         $self->dataset = [];
         $self->dataset_name = 'Data';
-        $self->dataset_id = 'data';
+        $self->dataset_id = 'data_data';
     }
     /**
     * {@inheritdoc}
@@ -41,13 +37,9 @@ class DataProvider implements ServiceProviderInterface, BootableProviderInterfac
         $self = $this;
         $self->app = $app;
         $self->init();
-        $self->manager_route_name = "monwoo.connector.{$self->dataset_id}";
-        $self->manager_route_pattern
-        = "/MonwooConnector/{$self->dataset_name}/{action}/{param}";
-        $app['data'] = function ($app) use ($self) {
+        $app["{$self->dataset_id}"] = function ($app) use ($self) {
             return $self->dataset;
         };
-        $app[$self->manager_route_name] = $self;
         /*
         https://silex.symfony.com/doc/2.0/middlewares.html
         $app->before(function (Request $request) {
@@ -93,18 +85,6 @@ class DataProvider implements ServiceProviderInterface, BootableProviderInterfac
     {
         $app->mount('/', $this->connect($app));
     }
-    public function isAuthenticated($app) {
-        $request = $app['request_stack']->getCurrentRequest();
-        $token = $request->get('api_auth'); // Fetch from Get/Post etc
-        if (!$token || $app['moonshop.auth_token'] !== $token
-        || strlen($token) < 10) {
-            $token = $app['security.token_storage']->getToken();
-            if (!$token || !($token->getUser() instanceof User)) {
-                return false;
-            }
-        }
-        return true;
-    }
     protected function handleAction($action, $param) {
         $self = $this;
         $app = $self->app;
@@ -135,12 +115,9 @@ class DataProvider implements ServiceProviderInterface, BootableProviderInterfac
         // /** @var ControllerCollection $controllers */
         $controllers = $app['controllers_factory'];
         // TODO register url for backup zip protected download for admin users
-        $controllers->match($self->manager_route_pattern,
+        $controllers->match("api/moon-box/{$self->dataset_id}/{action}/{param}",
         function ($action, $param)
         use ($app, $self) {
-            if (!$self->isAuthenticated($app)) {
-                return $app->redirect($app->path('admin.home'), 302);
-            }
             if ($self->handleAction($action, $param)) {
                 return $self->actionResponse ?? $app->json(
                     ['status' => 'Action did not return response']

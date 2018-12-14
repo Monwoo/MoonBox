@@ -102,7 +102,10 @@ cd -
 (cd backend && composer dump-autoload)
 
 # add some packages :
-(cd backend && composer require monolog/monolog symfony/yaml \ symfony/monolog-bridge symfony/filesystem)
+(cd backend && composer require monolog/monolog symfony/yaml \
+symfony/monolog-bridge symfony/filesystem
+symfony/translation zendframework/zend-mail
+)
 
 # clean all and rebuild :
 rm -rf backend/vendor && (cd backend && composer install)
