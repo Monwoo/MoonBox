@@ -1,6 +1,18 @@
 <p>box-reader works!</p>
 
 <form [formGroup]="form">
+  <mat-form-field class="float-right">
+    <mat-select placeholder="{{'mb.box-reader.provider.plhdr'|translate}}" [value]="selectedProvider">
+      <mat-option
+        *ngFor="let idx of (backend.providers | keyvalue); let i = index"
+        (click)="selectedProvider = idx.key"
+        [value]="idx.key"
+      >
+        {{ idx.value.name | translate }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
   <fieldset>
     <legend>Login</legend>
     <div class="form-field"><label>Email:</label> <input name="email" formControlName="email" /></div>

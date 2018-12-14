@@ -151,22 +151,24 @@ $app['security.firewalls'] = array(
     ),
 );
 
+$ctlrs = $app['controllers'];
+
+$app->before(function($request, $app) {
+    // $app['logger']->debug("BEFORE");
+    // return new Response('d', 200);        
+    if ('OPTIONS' === $request->getMethod()) {
+        $r = new Response('', 200);
+        AddingCors::addCors($request, $r);
+        $app['logger']->debug("Allowing options");
+        return $r;        
+    }
+});
+
 $app->register(new Silex\Provider\SecurityServiceProvider());
 $app->register(new Silex\Provider\SecurityJWTServiceProvider());
 $app->register(new Silex\Provider\LocaleServiceProvider());
 $app->register(new Silex\Provider\TranslationServiceProvider());
 $app->register(new Monwoo\Provider\ImapDataProvider());
-
-$ctlrs = $app['controllers'];
-
-$ctlrs->before(function($request, $app) {
-    // $app['logger']->debug("BEFORE");
-    // return new Response('d', 200);        
-    if ('OPTIONS' === $request->getMethod()) {
-        $app['logger']->debug("Allowing options");
-        return new Response('', 200);        
-    }
-});
 
 // $app->post('/api/login', function(Request $request) use ($app){
 $ctlrs->match('/api/login', function(Request $request) use ($app){
@@ -190,7 +192,9 @@ $ctlrs->match('/api/login', function(Request $request) use ($app){
         'mailhost' => $vars['params']['mailhost'],
         'mailport' => $vars['params']['mailport'],
         'connector' => $vars['connector'] ?? 'Unknow',
+        'moonBoxEmailsGrouping' => $vars['params']['moonBoxEmailsGrouping'],
       ];
+      $app['logger']->debug("Having User : " . $app->json($users[$userName])->getContent());
       $app['session']->set('users', $users);
 
       $response = [
@@ -241,7 +245,7 @@ $ctlrs->match('/api/messages', function() use ($app){
   ]);
 })->bind('api.messages')->method('OPTIONS|GET');;
 
-$ctlrs->after(function($request, Response $response) use ($app) {
+$app->after(function($request, Response $response) use ($app) {
     $app['logger']->debug("Adding Cors");
     AddingCors::addCors($request, $response);
 });

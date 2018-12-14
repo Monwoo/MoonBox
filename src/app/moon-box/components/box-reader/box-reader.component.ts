@@ -2,7 +2,7 @@
 
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, Validators, FormBuilder } from '@angular/forms';
-import { BackendService } from '@moon-box/services/backend.service';
+import { BackendService, ProviderID } from '@moon-box/services/backend.service';
 
 @Component({
   selector: 'moon-box-reader',
@@ -12,25 +12,8 @@ import { BackendService } from '@moon-box/services/backend.service';
 export class BoxReaderComponent implements OnInit {
   form: FormGroup;
 
-  imapProviders = {
-    OVH: {
-      name: 'O.V.H.',
-      serverUrl: 'SSL0.OVH.NET',
-      serverPort: '993'
-    },
-    GoDaddy: {
-      name: 'GoDaddy',
-      serverUrl: 'imap.secureserver.net',
-      serverPort: '993'
-    },
-    LWS: {
-      name: 'L.W.S.',
-      serverUrl: 'mail07.lwspanel.com',
-      serverPort: '993'
-    }
-  };
-  defaultProvider = 'GoDaddy';
   imapClient: any = null;
+  selectedProvider: ProviderID = 'OVH';
 
   constructor(private fb: FormBuilder, private backend: BackendService) {
     // TODO : translate ?
@@ -45,7 +28,7 @@ export class BoxReaderComponent implements OnInit {
   }
 
   ngOnInit() {
-    const imapProvider = this.imapProviders[this.defaultProvider];
+    // const imapProvider = this.imapProviders[this.defaultProvider];
     const ctx = {};
 
     this.backend.fetchMsg(ctx).subscribe((messages: any) => {
@@ -57,7 +40,7 @@ export class BoxReaderComponent implements OnInit {
     const val = this.form.value;
 
     if (val.email && val.password) {
-      this.backend.login(val.email, val.password, 'IMAP').subscribe(() => {
+      this.backend.login(val.email, val.password, this.selectedProvider).subscribe(() => {
         console.log('User is logged in');
 
         const ctx = {};

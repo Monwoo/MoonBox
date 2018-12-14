@@ -132,7 +132,7 @@ class DataProvider implements ServiceProviderInterface, BootableProviderInterfac
         })
         ->value('action', 'list')
         ->value('param', null)
-        ->method('GET|POST')
+        ->method('GET|POST|OPTIONS')
         ->bind($self->manager_route_name);
         return $controllers;
     }

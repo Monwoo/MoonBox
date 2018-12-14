@@ -36,7 +36,8 @@ export function jwtOptionsFactory(storage: LocalStorage) {
         .getItem<any>('access_token')
         .pipe(
           tap((token: any) => {
-            console.log('Token :', token);
+            // Tap needed to pop item in toPromise ... ?
+            // console.log('Token :', token);
           })
         )
         .toPromise();

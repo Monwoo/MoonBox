@@ -25,6 +25,7 @@ use Symfony\Component\Process\ProcessBuilder;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\DomCrawler\Crawler;
+use Monwoo\Middleware\AddingCors;
 
 use Monwoo\Middleware\MonwooDataEventsMiddleware;
 use JasonGrimes\Paginator;
@@ -260,6 +261,15 @@ class ImapDataProvider extends DataProvider
         $self->context = [];
         $self->actionResponse = null;
 
+        // if ('OPTIONS' === $request->getMethod()) {
+        //   $r = new Response('', 200);
+        //   AddingCors::addCors($request, $r);
+        //   // TODO : why failback needed ? before check in index.php should have catch it right ?
+        //   $app['logger']->debug("Allowing options Failback");
+        //   $self->actionResponse = $r;
+        //   return true;
+        // }
+  
         $token = $app['security.token_storage']->getToken();
         $user = $token->getUser();
         $localUsers = $app['session']->get('users', []);
@@ -275,6 +285,8 @@ class ImapDataProvider extends DataProvider
               ],
           ],
         ];
+        $app['logger']->debug("ImapData $action : "
+        . $app->json($self->defaultConfig)->getContent());
 
         $self->context['dataProvider'] = $self;
         $order_by = $request->get('order_by') ?: 'time';
@@ -321,7 +333,7 @@ class ImapDataProvider extends DataProvider
             );
         } else if ('submit_refresh' === $action) {
             // $self->context['admin_result_form'] = $self->buildAdminForm();
-            $connections = $self->configFormData["connections"];
+            $connections = $self->defaultConfig["connections"];
             $numResults = 0;
             $msgsOrderedByExpeditors = [
             /* Data model to be able to filter on expeditor|timestamp|tags
@@ -359,20 +371,17 @@ class ImapDataProvider extends DataProvider
             ];
             // TODO : load from DB : MoonShopEvent regroup on client email ?
             // + append custom client email from spreadsheet ?
-            $moonShopEventClientEmails = [
-                'xxx@yopmail.com' => true,
-                'aaa@yopmail.com' => true,
-            ];
-            // TODO : load from db or from Spreadsheet
-            $mainAnswerBoxByExpeditor = [
-                'axa@yopmail.com' => 'aaa@yopmail.com',
-            ];
+            $moonBoxEmailsGrouping = $localUser['moonBoxEmailsGrouping'] ?? [];
+            // [
+            //     'xxx@yopmail.com' => 'xxx@yopmail.com',
+            //     'aaa@yopmail.com' => 'aaa@yopmail.com',
+            // ];
             // var_dump($connections); exit();
             foreach ($connections as $connectionName => $connection) {
                 try {
                     $self->startImapProtocole($connection, $accessToken);
                     $folders = [];
-            		$foldersRoot = $this->storage->getFolders();
+                		$foldersRoot = $this->storage->getFolders();
                     $foldersIt = new \RecursiveIteratorIterator(
                         $foldersRoot,
                         \RecursiveIteratorIterator::SELF_FIRST
@@ -403,7 +412,7 @@ class ImapDataProvider extends DataProvider
                         // https://docs.zendframework.com/zend-mail/read/
                         // https://framework.zend.com/manual/2.4/en/modules/zend.mail.message.html
                         // Zend\Mail\Storage\Message instance
-            			$msgStore = $this->storage->getMessage($i);
+                  			$msgStore = $this->storage->getMessage($i);
                         // https://framework.zend.com/manual/2.1/en/modules/zend.mail.read.html
                         $msg = $msgStore;
                         $headers = [];
@@ -456,7 +465,7 @@ class ImapDataProvider extends DataProvider
                             // Configure minimal body summary lenght to get all generated data from auto-mailing
                             'connectionName' => $connectionName, // used connection, without password,
                         ];
-            		}
+                		}
                     // * DEBUG
                     $app['logger']->debug("Did open MailBox {$connection['username']}", [
                         'mailBoxFolders' => $folders,
@@ -474,16 +483,18 @@ class ImapDataProvider extends DataProvider
                     , [$errMsg, $errPos, $errTrace]);
                 }
             }
-            $msgsByExpeditorWithMoonShopClientEmail = [];
-            $msgsByExpeditorWithoutMoonShopClientEmail = [];
+            $defaultGroup = "_";
+            $msgsByMoonBoxGroup = [];
             foreach ($msgsOrderedByExpeditors as $msg) {
-                if (isset($moonShopEventClientEmails[
+                if (isset($moonBoxEmailsGrouping[
                     $msg['expeditorMainAnswerBox']
                 ])) {
-                    $msg['haveMoonShopEvent'] = true;
-                    $msgsByExpeditorWithMoonShopClientEmail[] = $msg;
+                    $msg['haveMoonBoxGroupping'] = true;
+                    $msgsByMoonBoxGroup[$moonBoxEmailsGrouping[
+                      $msg['expeditorMainAnswerBox']
+                    ]] = $msg;
                 } else {
-                    $msgsByExpeditorWithoutMoonShopClientEmail[] = $msg;
+                    $msgsByMoonBoxGroup[$defaultGroup] = $msg;
                 }
             }
             $msgComparator = function ($a, $b) {
@@ -491,12 +502,7 @@ class ImapDataProvider extends DataProvider
                 <=> strtolower($b['expeditorMainAnswerBox']);
                 return $cmp ? $cmp : $b['timestamp'] <=> $a['timestamp'];
             };
-            usort($msgsByExpeditorWithMoonShopClientEmail, $msgComparator);
-            usort($msgsByExpeditorWithoutMoonShopClientEmail, $msgComparator);
-            $msgsOrderedByExpeditors = array_merge(
-                $msgsByExpeditorWithMoonShopClientEmail,
-                $msgsByExpeditorWithoutMoonShopClientEmail
-            );
+            usort($msgsOrderedByExpeditors, $msgComparator);
             // Transform data based on previously ordered messages
             foreach ($msgsOrderedByExpeditors as $it => $msg) {
                 $msgsOrderedByExpeditors[$it]
@@ -506,16 +512,14 @@ class ImapDataProvider extends DataProvider
             }
             // TODO : refactor saved data model to be extendable object ?
             // $msgsOrderedByExpeditors->numResults = $numResults;
-            $self->setSession('numResults', $numResults);
-            $self->storeInCache($self->getEditFormStoreKey()
-            , $msgsOrderedByExpeditors);
-            $self->actionResponse = $app
-            ->redirect($app->path($self->manager_route_name, [
-                'action' => 'admin_results',
-            ]));
+            $self->actionResponse = $app->json([
+              'numResults' => $numResults,
+              'msgsOrderedByExpeditors' => $msgsOrderedByExpeditors,
+              'msgsByMoonBoxGroup' => $msgsByMoonBoxGroup,
+            ]);
         } else if ('msg_body' === $action) {
             $param = explode('<|>', $param);
-            $connections = $self->configFormData["connections"];
+            $connections = $self->defaultConfig["connections"];
             $connection = $connections[$param[0]];
             $bodyPath = $param[1];
             // TODO : realy slow for each iframe rendering.
@@ -649,7 +653,7 @@ class ImapDataProvider extends DataProvider
         unset($app["{$self->dataset_id}"]);
         $self->initDefaultAugmentedData($data);
         // * DEBUG
-        $app['logger']->debug('Imap Data Did Updated Generated Data');
+        $app['logger']->debug('Imap Did Update Generated Data');
         // */
         $app["{$self->dataset_id}"] = $data;
     }
