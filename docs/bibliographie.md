@@ -73,10 +73,14 @@
 - https://stackoverflow.com/questions/50210662/angular-6-httpclient-post-with-credentials
 - https://github.com/angular/angular/issues/24283
 
+- https://github.com/udos86/ng-dynamic-forms
+- https://medium.freecodecamp.org/everything-you-need-to-know-about-ng-template-ng-content-ng-container-and-ngtemplateoutlet-4b7b51223691
+- https://blog.angular-university.io/angular-ng-template-ng-container-ngtemplateoutlet/
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
-yarn add @auth0/angular-jwt
+yarn add @auth0/angular-jwt ngx-show-hide-password
 
 
 # Backend side (Warning : will need Internet to connect to your client...)

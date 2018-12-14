@@ -1,7 +1,7 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 
 import {
-  DynamicFormModel,
+  DynamicFormGroupModel,
   DynamicCheckboxModel,
   DynamicInputModel,
   DynamicFormControlModel
@@ -110,6 +110,20 @@ export const formModel = async (caller: any) => {
           id: 'keepInMemory',
           label: await fetchTrans(extract('Conserver la session (Accès au Navigateur == accès aux data)')),
           value: d.keepInMemory
+        }),
+        new DynamicFormGroupModel({
+          id: 'params',
+          legend: await fetchTrans(extract('Paramètres')),
+          group: [
+            new DynamicInputModel({
+              id: 'mailhost',
+              label: await fetchTrans(extract('Url du server'))
+            }),
+            new DynamicInputModel({
+              id: 'mailport',
+              label: await fetchTrans(extract('Port du server'))
+            })
+          ]
         })
       ]);
     })();

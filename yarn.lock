@@ -5435,6 +5435,10 @@ ngx-quill@^4.3.0:
   dependencies:
     tslib "^1.9.0"
 
+ngx-show-hide-password@^1.2.6:
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/ngx-show-hide-password/-/ngx-show-hide-password-1.2.6.tgz#76ed119f5c56c5d841e5249260b5260032b90e2b"
+
 ngx-window-token@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/ngx-window-token/-/ngx-window-token-1.0.2.tgz#2ebadd300fee1f61eb8b851b0ad97b1f46f5e4cc"

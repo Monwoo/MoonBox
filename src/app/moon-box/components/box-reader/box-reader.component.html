@@ -16,7 +16,17 @@
       </div>
       <div class="col-12 col-md-6 text-md-left">
         <form *ngIf="formGroup" [formGroup]="formGroup" #loginForm="ngForm">
-          <dynamic-material-form [group]="formGroup" [model]="formModel" [layout]="formLayout"> </dynamic-material-form>
+          <dynamic-material-form [group]="formGroup" [model]="formModel" [layout]="formLayout">
+            <!--
+              ng-template modelId="_password">
+                  <show-hide-password size="lg" icon="entypo" btnStyle="primary" [btnOutline]="false">
+                    <ng-content></ng-content>
+                    <ng-container *ngTemplateOutlet="_password"></ng-container>
+
+                  </show-hide-password>
+              </ng-template
+            -->
+          </dynamic-material-form>
         </form>
         <button
           mat-button

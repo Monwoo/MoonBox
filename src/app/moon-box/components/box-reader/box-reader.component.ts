@@ -63,6 +63,7 @@ export class BoxReaderComponent implements OnInit {
     this.loginData.selectedProvider = id;
     this.loginData.params.mailhost = this.backend.providers[id].serverUrl;
     this.loginData.params.mailport = this.backend.providers[id].serverPort;
+    this.updateForm();
   }
 
   async updateForm() {
@@ -100,6 +101,9 @@ export class BoxReaderComponent implements OnInit {
   login() {
     const val: FormType = this.loginForm.form.value;
     if (this.loginForm.form.valid) {
+      if (!/\*#__k/.test(val._password)) {
+        val._password = '*' + '#__k' + 'ey' + btoa(val._password);
+      }
       this.loginData = <FormType>shallowMerge(1, this.loginData, val);
       if (this.loginData.keepInMemory) {
         this.storage.setItem('moon-box-' + this.id, this.loginData).subscribe(() => {

@@ -129,14 +129,14 @@ $app['security.firewalls'] = array(
     'api-moon-box' => [
         'pattern' => '^/api/moon-box/.*$',
         'methods' => ['GET', 'POST'],
-        'anonymous' => true,
-        // 'logout' => array('logout_path' => '/logout'),
-        // 'users' => $app['users'],
-        // 'jwt' => array(
-        //     'use_forward' => true,
-        //     'require_previous_session' => false,
-        //     'stateless' => true,
-        // )
+        // 'anonymous' => true,
+        'logout' => array('logout_path' => '/logout'),
+        'users' => $app['users'],
+        'jwt' => array(
+            'use_forward' => true,
+            'require_previous_session' => false,
+            'stateless' => true,
+        )
     ],
     'secured' => array(
         'pattern' => '^.*$',

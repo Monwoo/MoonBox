@@ -26,19 +26,19 @@ import { MatCardModule } from '@angular/material';
 
 import { DynamicFormsCoreModule } from '@ng-dynamic-forms/core';
 import { DynamicFormsMaterialUIModule } from '@ng-dynamic-forms/ui-material';
+import { ShowHidePasswordModule } from 'ngx-show-hide-password';
 
 @NgModule({
   declarations: [BoxReaderComponent, ParametersComponent, BoxesComponent],
   imports: [
     CommonModule,
     TranslateModule,
-    FormsModule,
-    ReactiveFormsModule,
     MoonBoxRoutingModule,
     CalendarModule.forRoot({
       provide: DateAdapter,
       useFactory: adapterFactory
     }),
+    ShowHidePasswordModule.forRoot(),
     FormsModule,
     ReactiveFormsModule,
     MatButtonModule,

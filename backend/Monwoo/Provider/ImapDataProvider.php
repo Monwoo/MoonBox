@@ -286,7 +286,12 @@ class ImapDataProvider extends DataProvider
           ],
         ];
         $app['logger']->debug("ImapData $action : "
-        . $app->json($self->defaultConfig)->getContent());
+        . $app->json([
+            'conf' => $self->defaultConfig,
+            'userName' => $token->getUsername(),
+            'user' => $user,
+            'localUsers' => $localUsers,
+        ])->getContent());
 
         $self->context['dataProvider'] = $self;
         $order_by = $request->get('order_by') ?: 'time';

@@ -80,6 +80,7 @@
     "ngx-dropzone-wrapper": "^7.1.0",
     "ngx-papaparse": "3",
     "ngx-quill": "^4.3.0",
+    "ngx-show-hide-password": "^1.2.6",
     "primeflex": "^1.0.0-rc.1",
     "primeicons": "^1.0.0",
     "primeng": "^6.1.7",
