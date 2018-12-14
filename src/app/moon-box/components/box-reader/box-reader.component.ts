@@ -30,7 +30,6 @@ export class BoxReaderComponent implements OnInit {
   formGroup: FormGroup = null;
 
   loginData: FormType = null;
-  selectedProvider: ProviderID = 'OVH';
 
   constructor(
     private fb: FormBuilder,
@@ -41,7 +40,10 @@ export class BoxReaderComponent implements OnInit {
     private ngZone: NgZone,
     private notif: NotificationsService
   ) {
-    this.updateForm();
+    formDefaults(this).then(d => {
+      this.loginData = d;
+      this.updateForm();
+    });
   }
 
   errorHandler(err: any) {
@@ -57,38 +59,61 @@ export class BoxReaderComponent implements OnInit {
     }, this.errorHandler);
   }
 
+  selectProvider(id: ProviderID) {
+    this.loginData.selectedProvider = id;
+    this.loginData.params.mailhost = this.backend.providers[id].serverUrl;
+    this.loginData.params.mailport = this.backend.providers[id].serverPort;
+  }
+
   async updateForm() {
     formModel(this).then((fm: DynamicFormModel) => {
       this.formModel = fm;
       this.formGroup = this.formService.createFormGroup(this.formModel);
 
       // Load from params from local storage ? :
-      this.storage.getItem<FormType>('moon-box-' + this.id, {}).subscribe(
-        loginData => {
-          (async () => {
-            // Called if data is valid or null
-            let freshDefaults = await formDefaults(this);
-            this.loginData = <FormType>shallowMerge(1, freshDefaults, loginData);
-            // transforms...
-            let transforms = this.loginData;
-            const patch = <FormType>shallowMerge(1, this.loginData, transforms);
-            console.log('Patching form : ', patch);
-            this.ngZone.run(() => {
-              this.formGroup.patchValue(patch);
-            });
-          })();
-        },
-        error => {
-          console.error('Fail to fetch config');
-        }
-      );
+      if (this.loginData.keepInMemory) {
+        this.storage.getItem<FormType>('moon-box-' + this.id, {}).subscribe(
+          loginData => {
+            (async () => {
+              // Called if data is valid or null
+              let freshDefaults = await formDefaults(this);
+              this.loginData = <FormType>shallowMerge(1, freshDefaults, loginData);
+              // transforms... ?
+              let transforms = this.loginData;
+              this.loginData = <FormType>shallowMerge(1, this.loginData, transforms);
+              console.log('Patching form : ', this.loginData);
+              this.ngZone.run(() => {
+                this.formGroup.patchValue(this.loginData);
+              });
+            })();
+          },
+          error => {
+            console.error('Fail to fetch config');
+          }
+        );
+      } else {
+        this.formGroup.patchValue(this.loginData);
+      }
     });
   }
 
   login() {
-    let val: FormType = this.loginForm.form.value;
+    const val: FormType = this.loginForm.form.value;
     if (this.loginForm.form.valid) {
-      this.backend.login(val._username, val._password, this.selectedProvider).subscribe(() => {
+      this.loginData = <FormType>shallowMerge(1, this.loginData, val);
+      if (this.loginData.keepInMemory) {
+        this.storage.setItem('moon-box-' + this.id, this.loginData).subscribe(() => {
+          this.i18nService.get(extract('mm.param.notif.saveSucced')).subscribe(t => {
+            this.notif.success(t);
+            // this.ll.hideLoader();
+          });
+        }, this.errorHandler);
+      } else {
+        this.storage.removeItem('moon-box-' + this.id).subscribe(() => {
+          console.log('No save required for moon-box-' + this.id);
+        }, this.errorHandler);
+      }
+      this.backend.login(this.loginData).subscribe(() => {
         console.log('User is logged in');
 
         const ctx = {};

@@ -4,7 +4,7 @@ import {
   DynamicFormModel,
   DynamicCheckboxModel,
   DynamicInputModel,
-  DynamicRadioGroupModel
+  DynamicFormControlModel
 } from '@ng-dynamic-forms/core';
 import { extract } from '@app/core';
 import { ProviderID } from '@moon-box/services/backend.service';
@@ -15,6 +15,7 @@ export type FormType = {
   _username: string;
   _password: string;
   selectedProvider: ProviderID;
+  keepInMemory: boolean;
   params: {
     mailhost: string;
     mailport: string;
@@ -42,6 +43,7 @@ export const formDefaults = async (caller: any) => {
         _username: await fetchTrans(extract('JohnDoe@yopmail.com')),
         _password: '',
         selectedProvider: 'Unknown',
+        keepInMemory: false,
         params: {
           mailhost: '',
           mailport: '',
@@ -86,7 +88,7 @@ export const formModel = async (caller: any) => {
       // throw 'Translation issue';
       return ''; // will be taken as await result on errors
     });
-  return new Promise<DynamicInputModel[]>(function(resolve, reject) {
+  return new Promise<DynamicFormControlModel[]>(function(resolve, reject) {
     (async () => {
       const d = await formDefaults(caller);
       resolve([
@@ -103,6 +105,11 @@ export const formModel = async (caller: any) => {
           inputType: 'password',
           placeholder: await fetchTrans(extract('Password')),
           value: d._password
+        }),
+        new DynamicCheckboxModel({
+          id: 'keepInMemory',
+          label: await fetchTrans(extract('Conserver la session (Accès au Navigateur == accès aux data)')),
+          value: d.keepInMemory
         })
       ]);
     })();

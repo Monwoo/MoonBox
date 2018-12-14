@@ -3,10 +3,10 @@
     <div class="row">
       <div class="col-12 col-md-6 text-md-left">
         <mat-form-field class="float-right">
-          <mat-select placeholder="{{'mb.box-reader.provider.plhdr'|translate}}" [value]="selectedProvider">
+          <mat-select placeholder="{{'mb.box-reader.provider.plhdr'|translate}}" [value]="loginData.selectedProvider">
             <mat-option
               *ngFor="let idx of (backend.providers | keyvalue); let i = index"
-              (click)="selectedProvider = idx.key"
+              (click)="selectProvider(idx.key)"
               [value]="idx.key"
             >
               {{ idx.value.name | translate }}
@@ -14,7 +14,7 @@
           </mat-select>
         </mat-form-field>
       </div>
-      <div class="col-12 col-md-6 text-md-right">
+      <div class="col-12 col-md-6 text-md-left">
         <form *ngIf="formGroup" [formGroup]="formGroup" #loginForm="ngForm">
           <dynamic-material-form [group]="formGroup" [model]="formModel" [layout]="formLayout"> </dynamic-material-form>
         </form>

@@ -10,13 +10,7 @@ import { LocalStorage } from '@ngx-pwa/local-storage';
 import { NotificationsService } from 'angular2-notifications';
 import { extract } from '@app/core';
 import { I18nService } from '@app/core';
-
-export class User {
-  _username: string;
-  _password: string;
-  selectedProvider: string;
-  params: any;
-}
+import { FormType as LoginFormType } from '@moon-box/components/box-reader/login-form.model';
 
 export type ProviderID = 'OVH' | 'GoDaddy' | 'LWS' | 'Unknown';
 
@@ -50,6 +44,11 @@ export class BackendService {
       name: extract('L.W.S.'),
       serverUrl: 'mail07.lwspanel.com',
       serverPort: '993'
+    },
+    Unknown: {
+      name: extract('Unknown'),
+      serverUrl: '',
+      serverPort: ''
     }
   };
 
@@ -60,28 +59,20 @@ export class BackendService {
     private notif: NotificationsService
   ) {}
 
-  login(_username: string, _password: string, selectedProvider: ProviderID = 'Unknown') {
-    if (selectedProvider === 'Unknown') {
+  login(loginData: LoginFormType) {
+    if (loginData.selectedProvider === 'Unknown') {
       this.i18nService.get(extract('mb.backend.connector.unknown')).subscribe(t => {
         this.notif.warn('Backend', t, {
           timeOut: 6000
         });
       });
 
-      return null;
+      throw new Error("Can't login with Unknown provider");
     }
 
-    let params = {
-      mailhost: this.providers[selectedProvider].serverUrl,
-      mailport: this.providers[selectedProvider].serverPort,
-      moonBoxEmailsGrouping: {
-        'aaa@yopmail.com': 'xxa@yopmail.com',
-        'xxx@yopmail.com': 'xxa@yopmail.com'
-      }
-    };
     return (
       this.http
-        .post<any>(this.apiBaseUrl + 'api/login', <User>{ _username, _password, selectedProvider, params }, httpOptions)
+        .post<any>(this.apiBaseUrl + 'api/login', loginData, httpOptions)
         // this is just the HTTP call,
         // we still need to handle the reception of the token
         .pipe(
