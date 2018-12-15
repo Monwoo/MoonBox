@@ -1,5 +1,5 @@
-<mat-card class="bs box-reader">
-  <mat-card-content class="container-fluid">
+<div class="bs box-reader">
+  <div class="container-fluid">
     <div class="row">
       <div class="col-12 col-md-6 text-md-left">
         <mat-form-field class="float-right">
@@ -37,7 +37,27 @@
           <i class="fas fa-login"></i> {{ 'mb.box-reader.btn.Login' | translate }}
         </button>
       </div>
-      <div class="col-12 text-md-left">// TODO : mail content</div>
+      <div *ngIf="messages" class="col-12 text-md-left">
+        <mat-card *ngFor="let groupMsgs of (messages.msgsByMoonBoxGroup | keyvalue)" class="bs box-reader">
+          <mat-card-subtitle>{{ groupMsgs.key }}</mat-card-subtitle>
+          <mat-card-content class="container-fluid">
+            <mat-card *ngFor="let msg of groupMsgs.value" class="bs box-reader">
+              <mat-card-content class="container-fluid">
+                <mat-card-header>
+                  <div mat-card-avatar>{{ msg.localTime }}</div>
+                  <mat-card-title>{{ msg.subject }}</mat-card-title>
+                  <mat-card-subtitle>{{ msg.expeditorFullName }}</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <ng-template #msgBody> <div [innerHTML]="msg.iframeBody | safeHtml"></div> </ng-template>
+                  <ng-container *ngTemplateOutlet="msgBody"> </ng-container>
+                  <pre class="msg-header">{{ msg.headers }}</pre>
+                </mat-card-content>
+              </mat-card-content>
+            </mat-card>
+          </mat-card-content>
+        </mat-card>
+      </div>
       <div class="col-12 text-md-right">
         <button
           mat-button
@@ -49,5 +69,5 @@
         </button>
       </div>
     </div>
-  </mat-card-content>
-</mat-card>
+  </div>
+</div>

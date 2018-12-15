@@ -39,6 +39,8 @@ export class BoxReaderComponent implements OnInit {
 
   loginData: FormType = null;
 
+  messages: any = null;
+
   constructor(
     private fb: FormBuilder,
     public backend: BackendService,
@@ -64,6 +66,7 @@ export class BoxReaderComponent implements OnInit {
 
     this.backend.fetchMsg(ctx).subscribe((messages: any) => {
       console.log(messages);
+      this.messages = messages;
     }, this.errorHandler);
   }
 
@@ -133,6 +136,7 @@ export class BoxReaderComponent implements OnInit {
 
         this.backend.fetchMsg(ctx).subscribe((messages: any) => {
           console.log(messages);
+          this.messages = messages;
         }, this.errorHandler);
 
         // this.router.navigateByUrl('/');

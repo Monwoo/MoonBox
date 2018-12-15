@@ -1,0 +1,22 @@
+// Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
+
+pre {
+  white-space: pre-wrap; /* Since CSS 2.1 */
+  white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+  white-space: -pre-wrap; /* Opera 4-6 */
+  white-space: -o-pre-wrap; /* Opera 7 */
+  word-wrap: break-word; /* Internet Explorer 5.5+ */
+  word-break: break-all;
+  font-size: 14px;
+  color: inherit;
+}
+
+.msg-header {
+  font-size: 8pt;
+}
+::ng-deep {
+  .mat-card-avatar {
+    height: auto;
+    width: auto;
+  }
+}

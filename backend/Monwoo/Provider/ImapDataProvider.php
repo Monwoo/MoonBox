@@ -498,20 +498,6 @@ class ImapDataProvider extends DataProvider
                     , [$errMsg, $errPos, $errTrace]);
                 }
             }
-            $defaultGroup = "_";
-            $msgsByMoonBoxGroup = [];
-            foreach ($msgsOrderedByExpeditors as $msg) {
-                if (isset($moonBoxEmailsGrouping[
-                    $msg['expeditorMainAnswerBox']
-                ])) {
-                    $msg['haveMoonBoxGroupping'] = true;
-                    $msgsByMoonBoxGroup[$moonBoxEmailsGrouping[
-                      $msg['expeditorMainAnswerBox']
-                    ]] = $msg;
-                } else {
-                    $msgsByMoonBoxGroup[$defaultGroup] = $msg;
-                }
-            }
             $msgComparator = function ($a, $b) {
                 $cmp = strtolower($a['expeditorMainAnswerBox'])
                 <=> strtolower($b['expeditorMainAnswerBox']);
@@ -525,6 +511,34 @@ class ImapDataProvider extends DataProvider
                     "{$msg['connectionName']}<|>[$it][body]"
                 );
             }
+
+            $defaultGroup = "_";
+            $msgsByMoonBoxGroup = [];
+            foreach ($msgsOrderedByExpeditors as &$msg) {
+                if (isset($moonBoxEmailsGrouping[
+                    $msg['expeditorMainAnswerBox']
+                ])) {
+                    $msg['haveMoonBoxGroupping'] = true;
+                    if (isset($msgsByMoonBoxGroup[$moonBoxEmailsGrouping[
+                        $msg['expeditorMainAnswerBox']
+                    ]])) {
+                        $msgsByMoonBoxGroup[$moonBoxEmailsGrouping[
+                            $msg['expeditorMainAnswerBox']
+                        ]][] = $msg;
+                    } else {
+                        $msgsByMoonBoxGroup[$moonBoxEmailsGrouping[
+                            $msg['expeditorMainAnswerBox']
+                        ]] = [ $msg ];      
+                    }
+                } else {
+                    if (isset($msgsByMoonBoxGroup[$defaultGroup])) {
+                        $msgsByMoonBoxGroup[$defaultGroup][] = $msg;
+                    } else {
+                        $msgsByMoonBoxGroup[$defaultGroup] = [$msg];
+                    }
+                }
+            }
+
             // TODO : refactor saved data model to be extendable object ?
             // $msgsOrderedByExpeditors->numResults = $numResults;
             $self->actionResponse = $app->json([

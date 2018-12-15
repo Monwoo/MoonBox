@@ -33,9 +33,10 @@ import {
   customForbiddenValidator,
   customAsyncFormGroupValidator
 } from './moon-box.validators';
+import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 
 @NgModule({
-  declarations: [BoxReaderComponent, ParametersComponent, BoxesComponent],
+  declarations: [BoxReaderComponent, ParametersComponent, BoxesComponent, SafeHtmlPipe],
   imports: [
     CommonModule,
     TranslateModule,
