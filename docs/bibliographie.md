@@ -77,6 +77,10 @@
 - https://medium.freecodecamp.org/everything-you-need-to-know-about-ng-template-ng-content-ng-container-and-ngtemplateoutlet-4b7b51223691
 - https://blog.angular-university.io/angular-ng-template-ng-container-ngtemplateoutlet/
 
+- https://github.com/udos86/ng-dynamic-forms/tree/master/sample/app/ui-material
+- https://github.com/udos86/ng-dynamic-forms#form-arrays
+- https://github.com/sockjs/sockjs-node
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

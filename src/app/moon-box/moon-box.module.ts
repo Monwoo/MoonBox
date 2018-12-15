@@ -8,7 +8,7 @@ import { MonwooMoonBoxWrapModule } from '@moon-box/monwoo-moon-box-wrap.module';
 import { BoxReaderComponent } from './components/box-reader/box-reader.component';
 import { ParametersComponent } from './components/parameters/parameters.component';
 import { BoxesComponent } from './components/boxes/boxes.component';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms'; // <== add the imports!
+import { ReactiveFormsModule, FormsModule, NG_VALIDATORS, NG_ASYNC_VALIDATORS } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { CalendarModule, DateAdapter } from 'angular-calendar';
@@ -22,11 +22,17 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { MatCardModule } from '@angular/material';
+import { MAT_CHIPS_DEFAULT_OPTIONS, MatCardModule, MatNativeDateModule } from '@angular/material';
 
-import { DynamicFormsCoreModule } from '@ng-dynamic-forms/core';
+import { DYNAMIC_VALIDATORS, DynamicFormsCoreModule, Validator, ValidatorFactory } from '@ng-dynamic-forms/core';
 import { DynamicFormsMaterialUIModule } from '@ng-dynamic-forms/ui-material';
 import { ShowHidePasswordModule } from 'ngx-show-hide-password';
+import {
+  customValidator,
+  customDateRangeValidator,
+  customForbiddenValidator,
+  customAsyncFormGroupValidator
+} from './moon-box.validators';
 
 @NgModule({
   declarations: [BoxReaderComponent, ParametersComponent, BoxesComponent],
@@ -44,6 +50,7 @@ import { ShowHidePasswordModule } from 'ngx-show-hide-password';
     MatButtonModule,
     MatCheckboxModule,
     MatTooltipModule,
+    MatNativeDateModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -56,6 +63,38 @@ import { ShowHidePasswordModule } from 'ngx-show-hide-password';
 
     MonwooMoonManagerWrapModule,
     MonwooMoonBoxWrapModule
+  ],
+  providers: [
+    {
+      provide: NG_VALIDATORS,
+      useValue: customValidator,
+      multi: true
+    },
+    {
+      provide: NG_VALIDATORS,
+      useValue: customDateRangeValidator,
+      multi: true
+    },
+    {
+      provide: NG_ASYNC_VALIDATORS,
+      useValue: customAsyncFormGroupValidator,
+      multi: true
+    },
+    {
+      provide: DYNAMIC_VALIDATORS,
+      useValue: new Map<string, Validator | ValidatorFactory>([
+        ['customValidator', customValidator],
+        ['customDateRangeValidator', customDateRangeValidator],
+        ['customForbiddenValidator', customForbiddenValidator],
+        ['customAsyncFormGroupValidator', customAsyncFormGroupValidator]
+      ])
+    },
+    {
+      provide: MAT_CHIPS_DEFAULT_OPTIONS,
+      useValue: {
+        separatorKeyCodes: [13, 188]
+      }
+    }
   ]
 })
 export class MoonBoxModule {}

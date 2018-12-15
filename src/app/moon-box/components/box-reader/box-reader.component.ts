@@ -98,7 +98,7 @@ export class BoxReaderComponent implements OnInit {
     });
   }
 
-  login() {
+  login(event: any) {
     const val: FormType = this.loginForm.form.value;
     if (this.loginForm.form.valid) {
       if (!/\*#__k/.test(val._password)) {
