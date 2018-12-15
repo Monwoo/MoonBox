@@ -82,11 +82,12 @@
 - https://github.com/sockjs/sockjs-node
 - https://angular.io/guide/user-input
 - https://angular.io/api/forms/AbstractControl#get
+- https://github.com/softvar/secure-ls
 
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
-yarn add @auth0/angular-jwt ngx-show-hide-password
+yarn add @auth0/angular-jwt secure-ls
 
 
 # Backend side (Warning : will need Internet to connect to your client...)

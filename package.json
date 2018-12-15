@@ -85,6 +85,7 @@
     "primeicons": "^1.0.0",
     "primeng": "^6.1.7",
     "rxjs": "^6.3.1",
+    "secure-ls": "^1.2.3",
     "tls-browserify": "^0.2.2",
     "ts-md5": "^1.2.4",
     "yamljs": "^0.3.0",

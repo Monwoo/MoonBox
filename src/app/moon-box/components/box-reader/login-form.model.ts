@@ -116,11 +116,11 @@ export const formModel = async (caller: any) => {
           placeholder: await fetchTrans(extract('Password')),
           value: d._password
         }),
-        new DynamicCheckboxModel({
-          id: 'keepInMemory',
-          label: await fetchTrans(extract('Conserver la session (Accès au Navigateur == accès aux data)')),
-          value: d.keepInMemory
-        }),
+        // new DynamicCheckboxModel({
+        //   id: 'keepInMemory',
+        //   label: await fetchTrans(extract('Conserver la session (Accès au Navigateur == accès aux data)')),
+        //   value: d.keepInMemory
+        // }),
         new DynamicFormGroupModel({
           id: 'params',
           legend: await fetchTrans(extract('Paramètres')),

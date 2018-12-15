@@ -2,7 +2,8 @@
 
 import { Component, OnInit, ViewChild, Input, NgZone } from '@angular/core';
 import { NgForm, FormGroup, Validators, FormBuilder } from '@angular/forms';
-import { LocalStorage } from '@ngx-pwa/local-storage';
+// import { LocalStorage } from '@ngx-pwa/local-storage';
+import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { BackendService, ProviderID } from '@moon-box/services/backend.service';
 import { DynamicFormModel, DynamicFormLayout, DynamicFormService, validate } from '@ng-dynamic-forms/core';
 import { I18nService } from '@app/core';
@@ -23,6 +24,7 @@ export class BoxReaderComponent implements OnInit {
   @Input()
   set filters(filters: FiltersFormType) {
     this.loginData = <FormType>shallowMerge(1, this.loginData, filters);
+    this.updateForm();
   }
 
   @ViewChild('loginForm') loginForm: NgForm = null; // TODO : fail to use for now
@@ -41,7 +43,7 @@ export class BoxReaderComponent implements OnInit {
     private fb: FormBuilder,
     public backend: BackendService,
     private i18nService: I18nService,
-    private storage: LocalStorage,
+    private storage: SecuStorageService,
     private formService: DynamicFormService,
     private ngZone: NgZone,
     private notif: NotificationsService
@@ -83,9 +85,10 @@ export class BoxReaderComponent implements OnInit {
           loginData => {
             (async () => {
               // Called if data is valid or null
-              let freshDefaults = await formDefaults(this);
-              this.loginData = <FormType>shallowMerge(1, freshDefaults, loginData);
+              let freshDefaults = shallowMerge(1, await formDefaults(this), loginData);
+              this.loginData = <FormType>shallowMerge(1, this.loginData, freshDefaults);
               // transforms... ?
+              this.loginData.keepInMemory = true;
               let transforms = this.loginData;
               this.loginData = <FormType>shallowMerge(1, this.loginData, transforms);
               console.log('Patching form : ', this.loginData);

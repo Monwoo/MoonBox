@@ -5,7 +5,9 @@ import { NgForm, FormArray, Validators, FormBuilder } from '@angular/forms';
 import { FormType, FORM_LAYOUT, formModel, formDefaults, ContextType, contextDefaults } from './filters-form.model';
 import { I18nService } from '@app/core';
 import { DynamicFormArrayModel, DynamicFormLayout, DynamicFormService, validate } from '@ng-dynamic-forms/core';
-import { LocalStorage } from '@ngx-pwa/local-storage';
+// import { LocalStorage } from '@ngx-pwa/local-storage';
+import { SecuStorageService } from '@moon-box/services/secu-storage.service';
+
 import { shallowMerge } from '@moon-manager/tools';
 import { NotificationsService } from 'angular2-notifications';
 import { extract } from '@app/core';
@@ -26,7 +28,7 @@ export class BoxesComponent implements OnInit {
   constructor(
     private i18nService: I18nService,
     private formService: DynamicFormService,
-    private storage: LocalStorage,
+    private storage: SecuStorageService,
     private ngZone: NgZone,
     private notif: NotificationsService
   ) {
@@ -38,11 +40,17 @@ export class BoxesComponent implements OnInit {
 
   errorHandler(err: any) {
     console.error(err);
+    this.storage.setItem('moon-box-filters', this.filters.data).subscribe(() => {
+      this.i18nService.get(extract('mb.boxes.notif.havingError')).subscribe(t => {
+        this.notif.error('', t);
+        // this.ll.hideLoader();
+      });
+    }, this.errorHandler);
   }
 
   onFiltersChange() {
-    this.storage.getItem<FormType>('moon-box-filters', {}).subscribe(
-      filtersData => {
+    if (this.filtersForm.form.valid) {
+      this.storage.getItem<FormType>('moon-box-filters', {}).subscribe(filtersData => {
         (async () => {
           // Called if data is valid or null
           let freshDefaults = await formDefaults(this);
@@ -50,8 +58,8 @@ export class BoxesComponent implements OnInit {
           this.filters.data = <FormType>shallowMerge(1, transforms, this.filters.group.value);
 
           this.storage.setItem('moon-box-filters', this.filters.data).subscribe(() => {
-            this.i18nService.get(extract('mm.param.notif.saveSucced')).subscribe(t => {
-              this.notif.success(t);
+            this.i18nService.get(extract('mb.boxes.notif.changeRegistred')).subscribe(t => {
+              this.notif.success('', t);
               // this.ll.hideLoader();
             });
           }, this.errorHandler);
@@ -61,11 +69,15 @@ export class BoxesComponent implements OnInit {
             this.filters.group.patchValue(this.filters.data);
           });
         })();
-      },
-      error => {
-        console.error('Fail to fetch config');
-      }
-    );
+      }, this.errorHandler);
+    } else {
+      this.storage.setItem('moon-box-filters', this.filters.data).subscribe(() => {
+        this.i18nService.get(extract('mb.boxes.notif.changeFail')).subscribe(t => {
+          this.notif.error('', t);
+          // this.ll.hideLoader();
+        });
+      }, this.errorHandler);
+    }
   }
 
   async updateForm() {

@@ -5,7 +5,8 @@ import {
   DynamicDatePickerModel,
   DynamicInputModel,
   DynamicFormArrayModel,
-  DynamicFormControlModel
+  DynamicFormControlModel,
+  DynamicCheckboxModel
 } from '@ng-dynamic-forms/core';
 import { extract } from '@app/core';
 import { Logger } from '@app/core/logger.service';
@@ -19,6 +20,7 @@ export type FormType = {
     fetchStart: Date;
     fetchEnd: Date;
   };
+  keepInMemory: boolean;
   params: {
     moonBoxEmailsGrouping: {
       // [key: string]: string;
@@ -49,6 +51,7 @@ export const formDefaults = async (caller: any) => {
           fetchStart: null,
           fetchEnd: null
         },
+        keepInMemory: false,
         params: {
           moonBoxEmailsGrouping: {
             mbegKeyTransformer: []
@@ -152,6 +155,11 @@ export const formModel = async (caller: any) => {
           errorMessages: {
             customDateRangeValidator: await fetchTrans(extract('mb.boxes.filter.invalidPeriodErr'))
           }
+        }),
+        new DynamicCheckboxModel({
+          id: 'keepInMemory',
+          label: await fetchTrans(extract('Conserver la session (Accès au Navigateur == accès aux data)')),
+          value: d.keepInMemory
         }),
         new DynamicFormGroupModel({
           id: 'params',
