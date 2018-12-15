@@ -1,6 +1,11 @@
 <div>
   <form *ngIf="filters" [formGroup]="filters.group" #filtersForm="ngForm">
-    <dynamic-material-form [group]="filters.group" [model]="filters.model" [layout]="filters.layout">
+    <dynamic-material-form
+      [group]="filters.group"
+      [model]="filters.model"
+      [layout]="filters.layout"
+      (change)="onFiltersChange($event)"
+    >
       <!--
         ng-template modelId="_password">
             <show-hide-password size="lg" icon="entypo" btnStyle="primary" [btnOutline]="false">
@@ -13,5 +18,5 @@
     </dynamic-material-form>
   </form>
 
-  <moon-box-reader id="0"></moon-box-reader>
+  <moon-box-reader id="0" [filters]="filters.data"></moon-box-reader>
 </div>

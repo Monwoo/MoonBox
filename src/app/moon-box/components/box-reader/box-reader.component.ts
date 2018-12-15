@@ -10,6 +10,7 @@ import { shallowMerge } from '@moon-manager/tools';
 import { FormType, FORM_LAYOUT, formModel, formDefaults } from './login-form.model';
 import { NotificationsService } from 'angular2-notifications';
 import { extract } from '@app/core';
+import { FormType as FiltersFormType } from '@moon-box/components/boxes/filters-form.model';
 
 @Component({
   selector: 'moon-box-reader',
@@ -18,6 +19,11 @@ import { extract } from '@app/core';
 })
 export class BoxReaderComponent implements OnInit {
   @Input() id: string;
+
+  @Input()
+  set filters(filters: FiltersFormType) {
+    this.loginData = <FormType>shallowMerge(1, this.loginData, filters);
+  }
 
   @ViewChild('loginForm') loginForm: NgForm = null; // TODO : fail to use for now
 
