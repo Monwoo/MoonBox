@@ -1,1 +1,26 @@
-<p>parameters works!</p>
+<div>
+  <div>
+    <button
+      mat-button
+      color="primary"
+      matTooltip="{{'Reset parameters to factory'|translate}}"
+      (click)="resetConfigAction($event)"
+    >
+      <i class="fas fa-power-off"></i> {{ 'Reset' | translate }}
+    </button>
+    <mat-form-field class="float-right">
+      <mat-select placeholder="{{langPlaceholder|translate}}" [value]="currentLanguage">
+        <mat-option *ngFor="let language of languages" (click)="setLanguage(language)" [value]="language">
+          {{ language | translate }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+</div>
+
+<mat-card>
+  <a href="https://github.com/Monwoo/MoonBox">
+    {{ 'Project under M.I.T. Licence. Build by Monwoo.' | translate }}
+    <img src="https://www.monwoo.com/LogoMonwoo-32.png" alt="" />
+  </a>
+</mat-card>

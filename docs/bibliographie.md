@@ -81,6 +81,7 @@
 - https://github.com/udos86/ng-dynamic-forms#form-arrays
 - https://github.com/sockjs/sockjs-node
 - https://angular.io/guide/user-input
+- https://angular.io/api/forms/AbstractControl#get
 
 ```bash
 # Added packages :

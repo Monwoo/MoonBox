@@ -15,7 +15,15 @@
             </show-hide-password>
         </ng-template
       -->
+
+      <ng-template modelId="mbegKeyTransformer" let-context="context" let-index="index">
+        <!-- <pre>{{  index  | json }}</pre> -->
+
+        <button mat-button color="primary" type="button" (click)="clear($event, context, index)">Remove</button>
+      </ng-template>
     </dynamic-material-form>
+
+    <button mat-button color="primary" type="button" (click)="addItem()">Add item</button>
   </form>
 
   <moon-box-reader id="0" [filters]="filters.data"></moon-box-reader>

@@ -1,10 +1,10 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 
 import { Component, OnInit, ViewChild, NgZone } from '@angular/core';
-import { NgForm, FormGroup, Validators, FormBuilder } from '@angular/forms';
+import { NgForm, FormArray, Validators, FormBuilder } from '@angular/forms';
 import { FormType, FORM_LAYOUT, formModel, formDefaults, ContextType, contextDefaults } from './filters-form.model';
 import { I18nService } from '@app/core';
-import { DynamicFormModel, DynamicFormLayout, DynamicFormService, validate } from '@ng-dynamic-forms/core';
+import { DynamicFormArrayModel, DynamicFormLayout, DynamicFormService, validate } from '@ng-dynamic-forms/core';
 import { LocalStorage } from '@ngx-pwa/local-storage';
 import { shallowMerge } from '@moon-manager/tools';
 import { NotificationsService } from 'angular2-notifications';
@@ -19,6 +19,9 @@ export class BoxesComponent implements OnInit {
   @ViewChild('filtersForm') filtersForm: NgForm = null;
 
   filters: ContextType = null;
+
+  mbegKeyTransformerControl: FormArray;
+  mbegKeyTransformerModel: DynamicFormArrayModel;
 
   constructor(
     private i18nService: I18nService,
@@ -92,5 +95,23 @@ export class BoxesComponent implements OnInit {
     }
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.mbegKeyTransformerControl = this.filters.group.get(
+      'params.moonBoxEmailsGrouping.mbegKeyTransformer'
+    ) as FormArray;
+    this.mbegKeyTransformerModel = this.formService.findById(
+      'mbegKeyTransformer',
+      this.filters.model
+    ) as DynamicFormArrayModel;
+  }
+
+  addItem() {
+    this.formService.addFormArrayGroup(this.mbegKeyTransformerControl, this.mbegKeyTransformerModel);
+  }
+
+  clear(e: any, context: DynamicFormArrayModel, index: number) {
+    // console.log(e);
+    // this.formService.clearFormArray(this.mbegKeyTransformerControl, this.mbegKeyTransformerModel);
+    this.formService.removeFormArrayGroup(index, this.mbegKeyTransformerControl, context);
+  }
 }
