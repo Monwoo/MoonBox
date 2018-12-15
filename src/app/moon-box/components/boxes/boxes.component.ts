@@ -1,3 +1,5 @@
+// Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
+
 import { Component, OnInit, ViewChild, NgZone } from '@angular/core';
 import { NgForm, FormGroup, Validators, FormBuilder } from '@angular/forms';
 import { FormType, FORM_LAYOUT, formModel, formDefaults, ContextType, contextDefaults } from './filters-form.model';

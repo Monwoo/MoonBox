@@ -21,7 +21,11 @@ export type FormType = {
   };
   params: {
     moonBoxEmailsGrouping: {
-      [key: string]: string;
+      // [key: string]: string;
+      mbegKeyTransformer: {
+        key: string;
+        value: string;
+      }[];
     };
   };
 };
@@ -46,7 +50,9 @@ export const formDefaults = async (caller: any) => {
           fetchEnd: null
         },
         params: {
-          moonBoxEmailsGrouping: {}
+          moonBoxEmailsGrouping: {
+            mbegKeyTransformer: []
+          }
         }
       });
     })();
@@ -157,7 +163,7 @@ export const formModel = async (caller: any) => {
               group: [
                 new DynamicFormArrayModel({
                   id: 'mbegKeyTransformer',
-                  initialCount: 0,
+                  initialCount: 1,
                   groupFactory: await (async () => {
                     const srcLbl = await fetchTrans(extract('Source'));
                     const assLbl = await fetchTrans(extract('Association'));

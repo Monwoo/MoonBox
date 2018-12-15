@@ -20,7 +20,11 @@ export type FormType = {
     mailhost: string;
     mailport: string;
     moonBoxEmailsGrouping: {
-      [key: string]: string;
+      // [key: string]: string;
+      mbegKeyTransformer: {
+        key: string;
+        value: string;
+      }[];
     };
   };
 };
@@ -48,7 +52,13 @@ export const formDefaults = async (caller: any) => {
           mailhost: '',
           mailport: '',
           moonBoxEmailsGrouping: {
-            [await fetchTrans(extract('JohnDoe@yopmail.com'))]: await fetchTrans(extract('JohnDoe@yopmail.com'))
+            // [await fetchTrans(extract('JohnDoe@yopmail.com'))]: await fetchTrans(extract('JohnDoe@yopmail.com'))
+            mbegKeyTransformer: [
+              {
+                key: await fetchTrans(extract('JohnDoe@yopmail.com')),
+                value: await fetchTrans(extract('JohnDoe@yopmail.com'))
+              }
+            ]
           }
         }
       });
