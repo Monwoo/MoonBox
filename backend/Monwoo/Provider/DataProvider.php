@@ -30,6 +30,9 @@ class DataProvider implements ServiceProviderInterface, BootableProviderInterfac
         $self->dataset_name = 'Data';
         $self->dataset_id = 'data_data';
     }
+    public function actionRouteName() {
+        return "DataProvider.{$self->dataset_id}";
+    }
     /**
     * {@inheritdoc}
     */
@@ -133,7 +136,7 @@ class DataProvider implements ServiceProviderInterface, BootableProviderInterfac
         ->value('action', 'list')
         ->value('param', null)
         ->method('GET|POST|OPTIONS')
-        ->bind($self->manager_route_name);
+        ->bind($self->actionRouteName());
         return $controllers;
     }
     public function trans($message, $params = []) {

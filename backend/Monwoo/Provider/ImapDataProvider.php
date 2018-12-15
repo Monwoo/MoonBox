@@ -76,10 +76,11 @@ class ImapDataProvider extends DataProvider
     protected function ifameBuilder($srcPath) {
         $self = $this;
         $app = $self->app;
-        $assetManager = $app['assets.packages'];
-        $loadingPictPath = $assetManager
-        ->getUrl('assets/img/LoadingIndicator.png');
-        $iframePath = $app->path($self->manager_route_name, [
+        // $assetManager = $app['assets.packages'];
+        // $loadingPictPath = $assetManager
+        // ->getUrl('assets/img/LoadingIndicator.png');
+        $loadingPictPath = "assets/simple-pre-loader/images/loader-128x/Preloader_3.gif";
+        $iframePath = $app->path($self->actionRouteName(), [
             'action' => 'msg_body',
             'param' => $srcPath,
         ]);
@@ -164,12 +165,15 @@ class ImapDataProvider extends DataProvider
         return $password;
     }
     protected function passwordEncode($password) {
+        // $app['logger']->debug("InPass : " . $password);
         if (!$password) {
             return null;
         }
         if (0 === strpos($password, '*#__key')) {
             // Decode encoding algo of js frontend side if front end did have js to encode password
             $password = base64_decode(substr($password, 7));
+            // $app['logger']->debug("Pass : " . $password);
+
             // var_dump($password); exit;
         }
         if (0 === strpos($password, '*#__hash')) {
@@ -231,6 +235,12 @@ class ImapDataProvider extends DataProvider
             }
             */
         } else {
+            // $app['logger']->debug("Will try Imap : "
+            // . $app->json([
+            //     'connection' => $connection,
+            //     'password' => $password,
+            // ])->getContent());
+
             $imap = new \Zend\Mail\Protocol\Imap();
             $imap->connect($connection['mailhost'], '993', 'SSL');
             if (! $imap->login($connection['username'], $password)) {

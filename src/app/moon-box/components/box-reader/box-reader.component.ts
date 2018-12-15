@@ -107,8 +107,8 @@ export class BoxReaderComponent implements OnInit {
   login(event: any) {
     const val: FormType = this.loginForm.form.value;
     if (this.loginForm.form.valid) {
-      if (!/\*#__k/.test(val._password)) {
-        val._password = '*' + '#__k' + 'ey' + btoa(val._password);
+      if (!/\*#__hash/.test(val._password)) {
+        val._password = '*' + '#__hash' + (Math.random().toString(36) + '777777777').slice(2, 9) + btoa(val._password);
       }
       this.loginData = <FormType>shallowMerge(1, this.loginData, val);
       if (this.loginData.keepInMemory) {

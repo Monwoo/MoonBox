@@ -26,12 +26,15 @@ $config = [
     'sessionTimeOut' => 60 * 10, // Session life time in secondes
 ];
 
-$app = new Silex\Application([
+$app = new class([
     'debug' => $config['debug'],
     'logger' => new \Monolog\Logger($config['loggerName']),
     'logFilePath' => $config['logFilePath'],
     'sessionTimeOut' => $config['sessionTimeOut'],
-]);
+]) extends Silex\Application {
+    use Silex\Application\UrlGeneratorTrait;
+};
+
 // Early event register to avoid missing 'session' inside app...
 $app->register(new Silex\Provider\SessionServiceProvider(), [
     'session.storage.options' => [
