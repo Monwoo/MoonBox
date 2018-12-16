@@ -84,6 +84,22 @@
 - https://angular.io/api/forms/AbstractControl#get
 - https://github.com/softvar/secure-ls
 
+- https://github.com/angular/angular-cli/issues/4318
+- https://blogs.msdn.microsoft.com/premier_developer/2018/03/01/angular-how-to-editable-config-files/
+- https://blog.jayway.com/2014/03/28/running-scripts-with-npm/
+- https://medium.freecodecamp.org/introduction-to-npm-scripts-1dbb2ae01633
+- https://michael-kuehnel.de/tooling/2018/03/22/helpers-and-tips-for-npm-run-scripts.html
+- https://www.npmjs.com/package/gulp-typescript
+- https://www.typescriptlang.org/docs/handbook/gulp.html
+- https://www.npmjs.com/package/ts-node
+
+- https://code-maven.com/reading-a-file-with-nodejs
+- https://nodejs.org/dist/latest-v6.x/docs/api/fs.html
+- https://stackoverflow.com/questions/2496710/writing-files-in-node-js
+- https://nodejs.org/dist/latest-v6.x/docs/api/fs.html#fs_fs_writefilesync_file_data_options
+- https://stackoverflow.com/questions/39329831/typescript-source-parsing-get-class-decorator-names
+- https://medium.com/@fwouts/parsing-javascript-in-javascript-89c9dc45f961
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

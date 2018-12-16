@@ -83,6 +83,7 @@ import 'core-js/es7/reflect';
 // https://github.com/chase-moskal/webp-hero/blob/master/source/webp-hero.ts
 // https://github.com/spite/ccapture.js/blob/master/src/CCapture.js
 // if(typeof HTMLCanvasElement.prototype.filter !== "function") {
+/*
 var _testCanvas = document.createElement('canvas');
 // // src/platform/polyfills/weppy-master/weppy.js => done via angular js, webp-hero is not injecting any ref...
 import 'platform/polyfills/canvas/modernizr-custom.js';
@@ -96,7 +97,7 @@ if (_testCanvas.toDataURL('image/webp').substr(5, 10) !== 'image/webp') {
     return parentToDataUrl.call(this, type, quality);
   };
 }
-
+*/
 /***************************************************************************************************
  * Zone JS is required by default for Angular itself.
  */

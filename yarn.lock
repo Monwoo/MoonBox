@@ -6611,6 +6611,10 @@ ramda@^0.25.0:
   version "0.25.0"
   resolved "https://registry.yarnpkg.com/ramda/-/ramda-0.25.0.tgz#8fdf68231cffa90bc2f9460390a0cb74a29b29a9"
 
+random-key-generator@^1.2.3:
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/random-key-generator/-/random-key-generator-1.2.3.tgz#00c370d1f2f5f334a15f8e13f0b19c80874d227b"
+
 randomatic@^3.0.0:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/randomatic/-/randomatic-3.1.1.tgz#b776efc59375984e36c537b2f51a1f0aff0da1ed"
