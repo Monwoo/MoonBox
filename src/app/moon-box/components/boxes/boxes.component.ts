@@ -1,6 +1,6 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 
-import { Component, OnInit, ViewChild, NgZone } from '@angular/core';
+import { Component, OnInit, ViewChild, NgZone, ViewContainerRef } from '@angular/core';
 import { NgForm, FormArray, Validators, FormBuilder } from '@angular/forms';
 import { FormType, FORM_LAYOUT, formModel, formDefaults, ContextType, contextDefaults } from './filters-form.model';
 import { I18nService } from '@app/core';
@@ -30,12 +30,14 @@ export class BoxesComponent implements OnInit {
     private formService: DynamicFormService,
     private storage: SecuStorageService,
     private ngZone: NgZone,
-    private notif: NotificationsService
+    private notif: NotificationsService,
+    public eltRef: ViewContainerRef
   ) {
     (async () => {
       this.filters = await contextDefaults(this);
       this.updateForm();
     })();
+    this.storage.setLockContainer(this.eltRef);
   }
 
   errorHandler(err: any) {

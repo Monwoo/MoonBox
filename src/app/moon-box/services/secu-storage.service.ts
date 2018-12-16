@@ -1,11 +1,11 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 
-import { Injectable } from '@angular/core';
+import { Injectable, ViewContainerRef } from '@angular/core';
 import { environment } from '@env/environment';
 import { forkJoin, of, interval } from 'rxjs';
 import { Md5 } from 'ts-md5/dist/md5';
 import { LocalStorage } from '@ngx-pwa/local-storage';
-import { MatDialog } from '@angular/material';
+import { MatDialog, MatDialogRef } from '@angular/material';
 import { LockScreenComponent } from '@moon-box/components/lock-screen/lock-screen.component';
 
 // https://github.com/softvar/secure-ls
@@ -21,6 +21,8 @@ export class SecuStorageService {
   private passCode: string = ''; // TODO : param guard for pass code to block UI, and if bad guessed, can only wipeout prevous logged user datas...
   public lockDownTimeInMs: number = 5 * 60 * 1000; // 5 minutes en millisecondes
   private lastLockCheckTime: Date;
+  public lockTargetContainer: ViewContainerRef = null;
+  private lockDialogRef: MatDialogRef<LockScreenComponent> = null;
 
   constructor(private localStorage: LocalStorage, private dialog: MatDialog) {
     // TODO : may have a mode without encryptionSecret: environment.clientSecret + this.passCode ?
@@ -36,17 +38,40 @@ export class SecuStorageService {
     this.checkLockScreen();
   }
 
+  public setLockContainer(lockContainer: ViewContainerRef) {
+    // TODO : do not seem to map lockModal to boxes component => hacked via SCSS for now...
+    this.lockTargetContainer = lockContainer;
+    this.checkLockScreen();
+  }
+
+  public dismissLockScreen() {
+    if (this.lockDialogRef) {
+      this.lockDialogRef.close();
+    }
+  }
+
   public checkLockScreen() {
+    if (this.lockDialogRef) {
+      // this.lockDialogRef.close();
+      return; // Lock screen is already displayed, avoid touchy side effect of quick dev algo...
+    }
     // TODO : if lastLockCheckTime + lockDownTime > now => ask password again
     // + monitor activity => one activity should postpone the lock...
     let pC = this.storage.get('pC');
-    const dialogRef = this.dialog.open(LockScreenComponent, {
+    // https://material.angular.io/components/dialog/api
+    this.lockDialogRef = this.dialog.open(LockScreenComponent, {
       width: '250px',
-      data: { passHash: pC }
+      data: { passHash: pC },
+      backdropClass: 'lock-backdrop',
+      panelClass: 'lock-overlay',
+      autoFocus: true,
+      disableClose: true
+      // viewContainerRef: this.lockTargetContainer,
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    this.lockDialogRef.afterClosed().subscribe(result => {
       console.log('The dialog was closed');
+      this.lockDialogRef = null;
       // this.lockReport = result;
     });
   }

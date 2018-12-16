@@ -3,6 +3,7 @@ import { I18nService } from '@app/core';
 import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
 import { LoadingLoaderService } from '@moon-manager/services/loading-loader.service';
+import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 
 @Component({
   selector: 'app-parameters',
@@ -14,10 +15,13 @@ export class ParametersComponent implements OnInit {
   constructor(
     private i18nService: I18nService,
     private notif: NotificationsService,
-    private ll: LoadingLoaderService
+    private ll: LoadingLoaderService,
+    private storage: SecuStorageService
   ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.storage.dismissLockScreen();
+  }
 
   resetConfigAction(e: any) {
     // this.ll.showLoader();

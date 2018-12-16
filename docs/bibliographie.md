@@ -108,6 +108,9 @@
 - https://material.angular.io/components/dialog/api
 - https://blog.thoughtram.io/angular/2017/11/13/easy-dialogs-with-angular-material.html
 
+- https://stackoverflow.com/questions/34970778/get-root-component-elementref-or-componentref-angular-2
+-
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
