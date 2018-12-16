@@ -5,6 +5,8 @@ import { environment } from '@env/environment';
 import { forkJoin, of, interval } from 'rxjs';
 import { Md5 } from 'ts-md5/dist/md5';
 import { LocalStorage } from '@ngx-pwa/local-storage';
+import { MatDialog } from '@angular/material';
+import { LockScreenComponent } from '@moon-box/components/lock-screen/lock-screen.component';
 
 // https://github.com/softvar/secure-ls
 declare const require: any; // To avoid typeScript error about require that don't exist since it's webpack level
@@ -18,8 +20,9 @@ export class SecuStorageService {
   private secuStorage: any = null;
   private passCode: string = ''; // TODO : param guard for pass code to block UI, and if bad guessed, can only wipeout prevous logged user datas...
   public lockDownTimeInMs: number = 5 * 60 * 1000; // 5 minutes en millisecondes
+  private lastLockCheckTime: Date;
 
-  constructor(private localStorage: LocalStorage) {
+  constructor(private localStorage: LocalStorage, private dialog: MatDialog) {
     // TODO : may have a mode without encryptionSecret: environment.clientSecret + this.passCode ?
     // what if update application in prod => will wipe out all conneted user datas...
     // well : add warning msg about BACKUP their data, since may diseapear on Demo Version upgrades
@@ -30,6 +33,22 @@ export class SecuStorageService {
     } else {
       this.secuStorage = this.storage;
     }
+    this.checkLockScreen();
+  }
+
+  public checkLockScreen() {
+    // TODO : if lastLockCheckTime + lockDownTime > now => ask password again
+    // + monitor activity => one activity should postpone the lock...
+    let pC = this.storage.get('pC');
+    const dialogRef = this.dialog.open(LockScreenComponent, {
+      width: '250px',
+      data: { passHash: pC }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('The dialog was closed');
+      // this.lockReport = result;
+    });
   }
 
   public openDataKey = ['access_token', 'language'];

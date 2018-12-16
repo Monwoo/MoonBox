@@ -34,13 +34,17 @@ import {
   customAsyncFormGroupValidator
 } from './moon-box.validators';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
+// import { LockScreenModule, LockScreenComponent } from 'ionic-simple-lockscreen';
+import { MatDialogModule } from '@angular/material/dialog';
+import { LockScreenComponent } from './components/lock-screen/lock-screen.component';
 
 @NgModule({
-  declarations: [BoxReaderComponent, ParametersComponent, BoxesComponent, SafeHtmlPipe],
+  declarations: [BoxReaderComponent, ParametersComponent, BoxesComponent, LockScreenComponent, SafeHtmlPipe],
   imports: [
     CommonModule,
     TranslateModule,
     MoonBoxRoutingModule,
+    MatDialogModule,
     CalendarModule.forRoot({
       provide: DateAdapter,
       useFactory: adapterFactory
@@ -65,6 +69,7 @@ import { SafeHtmlPipe } from './pipes/safe-html.pipe';
     MonwooMoonManagerWrapModule,
     MonwooMoonBoxWrapModule
   ],
+  entryComponents: [LockScreenComponent],
   providers: [
     {
       provide: NG_VALIDATORS,

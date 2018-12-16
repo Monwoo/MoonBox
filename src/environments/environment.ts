@@ -13,7 +13,7 @@ export const environment = {
   moonBoxBackendUrl: 'http://localhost:6901/',
   defaultLanguage: 'fr-FR',
   supportedLanguages: ['fr-FR', 'en-US'],
-  clientSecret: '4hplvk1etxc078z'
+  clientSecret: 'cpff9cddcwe843j'
 };
 /*
  * For easier debugging in development mode, you can import the following file

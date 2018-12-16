@@ -100,11 +100,21 @@
 - https://stackoverflow.com/questions/39329831/typescript-source-parsing-get-class-decorator-names
 - https://medium.com/@fwouts/parsing-javascript-in-javascript-89c9dc45f961
 
+- https://github.com/saimon24/Ionic-Lock-Screen-Component
+- https://www.npmjs.com/package/react-native-lock-screen?activeTab=readme
+- https://blog.angular-university.io/angular-material-dialog/
+- https://hackernoon.com/its-a-focus-trap-699a04d66fb5
+- https://material.angular.io/components/dialog/overview
+- https://material.angular.io/components/dialog/api
+- https://blog.thoughtram.io/angular/2017/11/13/easy-dialogs-with-angular-material.html
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
-yarn add @auth0/angular-jwt secure-ls
+yarn add @auth0/angular-jwt secure-ls ionic-simple-lockscreen
 
+# experimental : try to combine with ionic :
+yarn add ionic-simple-lockscreen ionic-angular rxjs-compat
 
 # Backend side (Warning : will need Internet to connect to your client...)
 mkdir backend && cd backend

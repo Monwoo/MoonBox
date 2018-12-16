@@ -108,13 +108,17 @@ export class BoxesComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.mbegKeyTransformerControl = this.filters.group.get(
-      'params.moonBoxEmailsGrouping.mbegKeyTransformer'
-    ) as FormArray;
-    this.mbegKeyTransformerModel = this.formService.findById(
-      'mbegKeyTransformer',
-      this.filters.model
-    ) as DynamicFormArrayModel;
+    if (this.filters) {
+      // TODO : do on filters did change event...
+      this.mbegKeyTransformerControl = this.filters.group.get(
+        'params.moonBoxEmailsGrouping.mbegKeyTransformer'
+      ) as FormArray;
+      this.mbegKeyTransformerModel = this.formService.findById(
+        'mbegKeyTransformer',
+        this.filters.model
+      ) as DynamicFormArrayModel;
+    }
+    this.storage.checkLockScreen();
   }
 
   addItem() {
