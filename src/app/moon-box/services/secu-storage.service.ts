@@ -53,6 +53,8 @@ export class SecuStorageService {
         this.secuStorage = new SecureLS({ encodingType: 'aes', encryptionSecret: eS });
         Object.keys(secuData).forEach((k: string) => {
           this.secuStorage.set(k, secuData[k]);
+          // TODO : better design to keep regular storage datas ? (lang etc ... ?)
+          // if (k === 'locale') ??
         });
       } else {
         this.secuStorage = this.storage;
