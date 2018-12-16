@@ -12,6 +12,7 @@ import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 })
 export class ParametersComponent implements OnInit {
   langPlaceholder: string = extract('Langue');
+  passCode: string;
   constructor(
     private i18nService: I18nService,
     private notif: NotificationsService,
@@ -19,8 +20,10 @@ export class ParametersComponent implements OnInit {
     private storage: SecuStorageService
   ) {}
 
-  ngOnInit() {
-    this.storage.dismissLockScreen();
+  ngOnInit() {}
+  // https://angular.io/guide/lifecycle-hooks
+  ngAfterViewChecked() {
+    this.storage.dismissLockScreenForPreventScreen();
   }
 
   resetConfigAction(e: any) {
@@ -58,5 +61,9 @@ export class ParametersComponent implements OnInit {
 
   get languages(): string[] {
     return this.i18nService.supportedLanguages;
+  }
+
+  setSecurityCode(e: any) {
+    this.storage.setPassCode(this.passCode);
   }
 }

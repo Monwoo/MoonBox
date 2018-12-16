@@ -109,7 +109,9 @@
 - https://blog.thoughtram.io/angular/2017/11/13/easy-dialogs-with-angular-material.html
 
 - https://stackoverflow.com/questions/34970778/get-root-component-elementref-or-componentref-angular-2
--
+- https://stackoverflow.com/questions/36366375/onchange-equivalent-in-angular2
+
+- https://www.chromium.org/developers/design-documents/create-amazing-password-forms
 
 ```bash
 # Added packages :

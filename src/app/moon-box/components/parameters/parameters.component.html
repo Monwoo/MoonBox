@@ -1,5 +1,5 @@
 <!-- Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com -->
-<div>
+<mat-card>
   <div>
     <button
       mat-button
@@ -17,7 +17,31 @@
       </mat-select>
     </mat-form-field>
   </div>
-</div>
+</mat-card>
+
+<mat-card *ngIf="!this.storage.isLocked">
+  <form>
+    <mat-form-field class="">
+      <input
+        name="passCode"
+        [(ngModel)]="passCode"
+        [ngModelOptions]="{ standalone: true }"
+        autocomplete="new-password"
+        matInput
+        [placeholder]="'Code de vérouillage' | translate"
+        type="password"
+      />
+    </mat-form-field>
+  </form>
+  <button
+    mat-button
+    color="primary"
+    matTooltip="{{'Définir le code de sécurité'|translate}}"
+    (click)="setSecurityCode($event)"
+  >
+    <i class="fas fa-unlock"></i> {{ 'Définir' | translate }}
+  </button>
+</mat-card>
 
 <mat-card>
   <a href="https://github.com/Monwoo/MoonBox">

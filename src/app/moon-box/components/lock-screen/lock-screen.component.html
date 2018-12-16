@@ -1,2 +1,27 @@
 <h1 mat-dialog-title>{{ 'Lock screen' | translate }}</h1>
-<div mat-dialog-content>{{ 'Votre code :' | translate }} // TODO : input</div>
+<div mat-dialog-content>
+  <form>
+    <mat-form-field class="">
+      <input
+        [(ngModel)]="passCode"
+        [ngModelOptions]="{ standalone: true }"
+        name="passCode"
+        autocomplete="password"
+        matInput
+        [placeholder]="'Votre code' | translate"
+        (ngModelChange)="unlockScreen($event)"
+        type="password"
+      />
+    </mat-form-field>
+  </form>
+  <!--
+    <button
+    mat-button
+    color="primary"
+    matTooltip="{{'Dévérouiller Moon Box'|translate}}"
+    (click)="unlockScreen($event)"
+    >
+      <i class="fas fa-login"></i> {{ 'Acceder' | translate }}
+    </button>
+  -->
+</div>
