@@ -25,7 +25,8 @@ $root_dir = __DIR__;
 $config = [
     'debug' => true,
     'loggerName' => "MoonBoxLog",
-    'sessionTimeOut' => 60 * 10, // Session life time in secondes
+    'sessionTimeOut' => 21 * 24 * 60, // Session life time in secondes
+    'authTimeOut' => 21 * 60, // Session life time in secondes
 ];
 
 $app = new class([
@@ -40,6 +41,7 @@ $app = new class([
         }
     },
     'sessionTimeOut' => $config['sessionTimeOut'],
+    'authTimeOut' => $config['authTimeOut'],
     'root_dir' => $root_dir,
     'cache_dir' => $root_dir . '/cache/' . ($config['debug'] ? 'dev' : 'prod'),
     'accessor' => PropertyAccess::createPropertyAccessor(),
@@ -176,7 +178,7 @@ $app->register(new Moust\Silex\Provider\CacheServiceProvider(), array(
 
 $app['security.jwt'] = [
   'secret_key' => 'Very_secret_key',
-  'life_time'  => 86400,
+  'life_time'  => $app['authTimeOut'],
   'options'    => [
       'username_claim' => 'name', // default name, option specifying claim containing username
       'header_name' => 'Authorization', // default null, option for usage normal oauth2 header
