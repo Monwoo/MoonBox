@@ -1,6 +1,6 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 
-import { Component, OnInit, ViewChild, Input, NgZone } from '@angular/core';
+import { Component, OnInit, ViewChild, Input, NgZone, Renderer2, RendererFactory2 } from '@angular/core';
 import { NgForm, FormGroup, Validators, FormBuilder } from '@angular/forms';
 // import { LocalStorage } from '@ngx-pwa/local-storage';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
@@ -12,6 +12,8 @@ import { FormType, FORM_LAYOUT, formModel, formDefaults } from './login-form.mod
 import { NotificationsService } from 'angular2-notifications';
 import { extract } from '@app/core';
 import { FormType as FiltersFormType } from '@moon-box/components/boxes/filters-form.model';
+import { pluck, delay, debounceTime, tap } from 'rxjs/operators';
+import { forkJoin, of, interval } from 'rxjs';
 
 @Component({
   selector: 'moon-box-reader',
@@ -41,6 +43,8 @@ export class BoxReaderComponent implements OnInit {
 
   messages: any = null;
 
+  renderer: Renderer2 = null;
+
   constructor(
     private fb: FormBuilder,
     public backend: BackendService,
@@ -48,12 +52,15 @@ export class BoxReaderComponent implements OnInit {
     private storage: SecuStorageService,
     private formService: DynamicFormService,
     private ngZone: NgZone,
-    private notif: NotificationsService
+    private notif: NotificationsService,
+    private rendererFactory: RendererFactory2
   ) {
-    formDefaults(this).then(d => {
-      this.loginData = d;
-      this.updateForm();
-    });
+    this.renderer = rendererFactory.createRenderer(null, null);
+    // formDefaults(this).then(d => {
+    //   this.loginData = d;
+    //   this.updateForm();
+    // });
+    this.updateForm();
   }
 
   errorHandler(err: any) {
@@ -64,10 +71,7 @@ export class BoxReaderComponent implements OnInit {
     // const imapProvider = this.imapProviders[this.defaultProvider];
     const ctx = {};
 
-    this.backend.fetchMsg(ctx).subscribe((messages: any) => {
-      console.log(messages);
-      this.messages = messages;
-    }, this.errorHandler);
+    this.readMessages();
   }
 
   selectProvider(id: ProviderID) {
@@ -89,7 +93,7 @@ export class BoxReaderComponent implements OnInit {
             (async () => {
               // Called if data is valid or null
               let freshDefaults = shallowMerge(1, await formDefaults(this), loginData);
-              this.loginData = <FormType>shallowMerge(1, this.loginData, freshDefaults);
+              this.loginData = <FormType>shallowMerge(1, freshDefaults, this.loginData);
               // transforms... ?
               this.loginData.keepInMemory = true;
               let transforms = this.loginData;
@@ -108,6 +112,25 @@ export class BoxReaderComponent implements OnInit {
         this.formGroup.patchValue(this.loginData);
       }
     });
+  }
+
+  readMessages() {
+    const ctx = {};
+
+    this.backend.fetchMsg(ctx).subscribe((messages: any) => {
+      console.log(messages);
+      this.messages = messages;
+
+      of(() => {
+        let iframes = document.querySelectorAll('iframe[data-didload="0"]');
+        iframes.forEach(f => {
+          // this.renderer.setAttribute(f, 'src', f.getAttribute('data-src'));
+          f.setAttribute('src', f.getAttribute('data-src'));
+        });
+      })
+        .pipe(delay(300))
+        .subscribe((callback: any) => callback());
+    }, this.errorHandler);
   }
 
   login(event: any) {
@@ -132,13 +155,7 @@ export class BoxReaderComponent implements OnInit {
       this.backend.login(this.loginData).subscribe(() => {
         console.log('User is logged in');
 
-        const ctx = {};
-
-        this.backend.fetchMsg(ctx).subscribe((messages: any) => {
-          console.log(messages);
-          this.messages = messages;
-        }, this.errorHandler);
-
+        this.readMessages();
         // this.router.navigateByUrl('/');
       });
     } else {

@@ -24,7 +24,7 @@ export class HeaderComponent implements OnInit {
     // TODO : param page + link to it...
   }
 
-  lockScreen() {
+  lockScreen(e: any) {
     this.storage.showLockScreen();
   }
 }

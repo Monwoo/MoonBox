@@ -112,6 +112,8 @@
 - https://stackoverflow.com/questions/36366375/onchange-equivalent-in-angular2
 
 - https://www.chromium.org/developers/design-documents/create-amazing-password-forms
+- https://dzone.com/articles/understanding-ngzone
+- https://stackoverflow.com/questions/32051273/angular-and-debounce
 
 ```bash
 # Added packages :
@@ -147,6 +149,7 @@ cd -
 (cd backend && composer require monolog/monolog symfony/yaml \
 symfony/monolog-bridge symfony/filesystem
 symfony/translation zendframework/zend-mail
+moust/silex-cache silex/web-profiler
 )
 
 # clean all and rebuild :

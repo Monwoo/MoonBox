@@ -28,7 +28,7 @@ export class LockScreenComponent implements OnInit {
 
   ngOnInit() {}
 
-  unlockScreen() {
+  unlockScreen(e: any) {
     this.hashCode = <string>Md5.hashStr(this.passCode);
     if (!this.data.passHash || '' === this.data.passHash || this.hashCode === this.data.passHash) {
       this.i18nService.get(extract('mb.lock-screen.unlock.success')).subscribe(t => {

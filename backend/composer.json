@@ -20,12 +20,14 @@
   },
   "require": {
     "cnam/security-jwt-service-provider": "2.*",
-    "silex/silex": "^2.0",
     "monolog/monolog": "^1.19",
-    "symfony/monolog-bridge": "^4.3",
-    "symfony/yaml": "^4.3",
-    "symfony/filesystem": "^4.3",
-    "symfony/translation": "^4.3",
+    "moust/silex-cache": "^2.0",
+    "silex/silex": "^2.0",
+    "silex/web-profiler": "^2.0",
+    "symfony/filesystem": "^4.2",
+    "symfony/monolog-bridge": "^4.2",
+    "symfony/translation": "^4.2",
+    "symfony/yaml": "^4.2",
     "zendframework/zend-mail": "^2.10"
   }
 }

@@ -7,5 +7,5 @@ export const environment = {
   moonBoxBackendUrl: '/MoonBox/Demo/backend/',
   defaultLanguage: 'fr-FR',
   supportedLanguages: ['fr-FR', 'en-US'],
-  clientSecret: 'ecfo5c3zh8g0f78'
+  clientSecret: '2an2tce45fy82o3'
 };

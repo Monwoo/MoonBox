@@ -28,7 +28,7 @@ export class BoxesComponent implements OnInit {
   constructor(
     private i18nService: I18nService,
     private formService: DynamicFormService,
-    private storage: SecuStorageService,
+    public storage: SecuStorageService,
     private ngZone: NgZone,
     private notif: NotificationsService,
     public eltRef: ViewContainerRef

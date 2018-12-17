@@ -18,7 +18,7 @@ export class ParametersComponent implements OnInit {
     private i18nService: I18nService,
     private notif: NotificationsService,
     private ll: LoadingLoaderService,
-    private storage: SecuStorageService,
+    public storage: SecuStorageService,
     private localStorage: LocalStorage
   ) {}
 

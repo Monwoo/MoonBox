@@ -16,23 +16,90 @@ use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Filesystem\Filesystem;
 use Monolog\Handler\AbstractProcessingHandler as AbstractMonologHandler;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Bridge\Monolog\Processor\DebugProcessor;
 use Psr\Log\LogLevel;
+
+$root_dir = dirname(__DIR__);
 
 $config = [
     'debug' => true,
     'loggerName' => "MoonBoxLog",
-    'logFilePath' => __DIR__  . '/logs.txt',
     'sessionTimeOut' => 60 * 10, // Session life time in secondes
 ];
 
 $app = new class([
     'debug' => $config['debug'],
-    'logger' => new \Monolog\Logger($config['loggerName']),
-    'logFilePath' => $config['logFilePath'],
+    'logger' => new class($config['loggerName']) extends \Monolog\Logger {
+        public function assert($ok, $msg, $extra = null) {
+            // TODO psySh => could break there ? XDebug ?
+            $self = $this;
+            if (!$ok) {
+                $self->error($msg, $extra);
+            }
+        }
+    },
     'sessionTimeOut' => $config['sessionTimeOut'],
+    'root_dir' => $root_dir,
+    'cache_dir' => $root_dir . '/cache/' . ($config['debug'] ? 'dev' : 'prod'),
+    'accessor' => PropertyAccess::createPropertyAccessor(),
 ]) extends Silex\Application {
     use Silex\Application\UrlGeneratorTrait;
+
+    public function fetchByPath($fetchSrc, $path, $default = null) {
+        $path = $this->applyPathTransformers($path);
+        $val = $default;
+        // isReadable will be true if array without key...
+        // TODO : isWritable return true on array even if value is not in path...
+        // var_dump($fetchSrc['accessor']->isReadable($fetchSrc, $path));
+        if ($this['accessor']->isWritable($fetchSrc, $path)) {
+            $val = $this['accessor']->getValue($fetchSrc, $path);
+            // var_dump($path);
+            // var_dump($val);
+            if ($val === null) { // TODO : find bug of isWritable/isReadable, fixing null for now to make v1 works
+                $val = $default;
+            }
+        }
+        return $val;
+    }
+
+    public function updateByPath(&$fetchSrc, $path, $value, $forceAsArray = false) {
+        $path = $this->applyPathTransformers($path);
+        // TODO : isWritable return true on array even if value is not in path...
+        // var_dump($fetchSrc['accessor']->isReadable($fetchSrc, $path));
+        if ($this['accessor']->isWritable($fetchSrc, $path)) {
+            $this['accessor']->setValue($fetchSrc, $path, $value);
+            return $fetchSrc;
+        } else if ($forceAsArray) {
+            // TODO : Build path structure...
+            // Quick hack since in our case, path is only Array path :
+            $pathProps = new PropertyPath($path);
+            $target = $fetchSrc;
+            foreach ($pathProps->getElements() as $idx => $path_item) {
+                if (!array_key_exists($path_item, $target)) {
+                    $target[$path_item] = [];
+                }
+                $target = $target[$path_item];
+            }
+            $this['accessor']->setValue($fetchSrc, $path, $value);
+            return $fetchSrc;
+        }
+        return null;
+    }
+
+    public function applyPathTransformers($path) {
+        if (!$path) return null;
+        $app = $this;
+        $hexPattern = "/\[__HEX(.*)\]/";
+        // $matches = [];
+        // // handle __HEX transforms => replace by decoded hex
+        // $matches = array_map(function($match) use ($self) {
+        //     return $self->hexToStr($match);
+        // }, $matches);
+        return preg_replace_callback($hexPattern, function($matchs) use ($app) {
+            return $app->hexToStr($matchs[1]);
+        }, $path);
+    }
 };
 
 // Early event register to avoid missing 'session' inside app...
@@ -65,7 +132,7 @@ $mySaveToFileHandler = new class ($app, $logLvl) extends AbstractMonologHandler 
     protected function write(array $record): void {
         $self = $this;
         $app = $self->app;
-        $logPath = $app['logFilePath'];
+        $logPath = $app['cache_dir'] . '/logs.yml';
         $logs = [];
         $logs[] = $record;
         $fs = new Filesystem();
@@ -94,6 +161,18 @@ if ($app['debug']) {
     $app['consoleLogger'] = new ConsoleLogger(LogLevel::DEBUG);
 }
 $app['logger']->debug("Backend {Action}", ['Action' => "Init"]);
+
+$appCacheDir = $app['cache_dir'] . '/app';
+if (!is_dir($appCacheDir)) {
+    $fs = new Filesystem();
+    $fs->mkdir($appCacheDir);
+}
+$app->register(new Moust\Silex\Provider\CacheServiceProvider(), array(
+    'cache.options' => array(
+        'driver' => 'file',
+        'cache_dir' => $appCacheDir
+    )
+));
 
 $app['security.jwt'] = [
   'secret_key' => 'Very_secret_key',
@@ -172,6 +251,14 @@ $app->register(new Silex\Provider\SecurityJWTServiceProvider());
 $app->register(new Silex\Provider\LocaleServiceProvider());
 $app->register(new Silex\Provider\TranslationServiceProvider());
 $app->register(new Monwoo\Provider\ImapDataProvider());
+
+if ($app['debug']) {
+    $app['profiler.cache_dir'] = $app['cache_dir'] . '/profiler';
+    $app->register(new Silex\Provider\VarDumperServiceProvider());
+    $app->register(new Silex\Provider\ServiceControllerServiceProvider());
+    $app->register(new Silex\Provider\TwigServiceProvider());
+    $app->register(new Silex\Provider\WebProfilerServiceProvider());
+}
 
 // $app->post('/api/login', function(Request $request) use ($app){
 $ctlrs->match('/api/login', function(Request $request) use ($app){

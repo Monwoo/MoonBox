@@ -1,0 +1,11 @@
+# AddHandler php71 .php
+
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+  # allow credentials redirects
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+	RewriteCond %{REQUEST_URI} !index.php
+	RewriteCond %{REQUEST_URI} !/
+	RewriteRule .* - public [F]
+</IfModule>

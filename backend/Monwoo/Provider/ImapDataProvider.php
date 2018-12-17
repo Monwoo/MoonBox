@@ -47,6 +47,14 @@ class ImapDataProvider extends DataProvider
         $app['cache']->store($key, $data, self::cacheLifetime);
         return $this;
     }
+
+    protected function getUserDataStoreKey() {
+        $self = $this;
+        $app = $self->app;
+        $sessionId = $app['session']->getId();
+        return $sessionId . "." . $self->dataset_id;
+    }
+
     /**
     * {@inheritdoc}
     */
@@ -80,7 +88,7 @@ class ImapDataProvider extends DataProvider
         // $loadingPictPath = $assetManager
         // ->getUrl('assets/img/LoadingIndicator.png');
         $loadingPictPath = "assets/simple-pre-loader/images/loader-128x/Preloader_3.gif";
-        $iframePath = $app->path($self->actionRouteName(), [
+        $iframePath = $app->url($self->actionRouteName(), [
             'action' => 'msg_body',
             'param' => $srcPath,
         ]);
@@ -539,6 +547,7 @@ class ImapDataProvider extends DataProvider
                 }
             }
 
+            $self->storeInCache($self->getUserDataStoreKey(), $msgsOrderedByExpeditors);
             // TODO : refactor saved data model to be extendable object ?
             // $msgsOrderedByExpeditors->numResults = $numResults;
             $self->actionResponse = $app->json([
@@ -554,17 +563,11 @@ class ImapDataProvider extends DataProvider
             // TODO : realy slow for each iframe rendering.
             // May be store needed data in session to speed up iframe load ?
             // May be it load each frame with debug info system (can see multiple call for each frames)
-            $editData = $app['cache']->fetch($self->getEditFormStoreKey());
+            $editData = $app['cache']->fetch($self->getUserDataStoreKey());
             $msgBody = quoted_printable_decode(
                 $app->fetchByPath($editData, $bodyPath)
             );
             if (!$msgBody) {
-                if (!$accessToken) { // TODO : factorize code
-                    // Need re-auth action to get access token OK
-                    $authUrl = $client->createAuthUrl();
-                    $self->actionResponse = $app->redirect($authUrl);
-                    return true; // We did consume the required action, need G Api access
-                }
                 $bodyText = null;
                 $bodyHTML = null;
                 $self->startImapProtocole($connection, $accessToken);
@@ -615,7 +618,7 @@ class ImapDataProvider extends DataProvider
                 $msgBody = quoted_printable_decode($body);
                 $app->updateByPath($editData, $bodyPath, $body);
                 // TODO : edit store lock ?? what if multiple save same time ?
-                $self->storeInCache($self->getEditFormStoreKey(), $editData);
+                $self->storeInCache($self->getUserDataStoreKey(), $editData);
             }
             // $msgBody = preg_replace([
             //     '/<html*>/', '/<\/html>/'
