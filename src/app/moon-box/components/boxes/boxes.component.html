@@ -1,4 +1,4 @@
-<div>
+<div *ngIf="!this.storage.isLocked">
   <form *ngIf="filters" [formGroup]="filters.group" #filtersForm="ngForm">
     <dynamic-material-form
       [group]="filters.group"
