@@ -9,4 +9,4 @@ node_modules/
 bower_components/
 var/*
 **.DS_Store
-cache
+cache/

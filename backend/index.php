@@ -20,7 +20,7 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Bridge\Monolog\Processor\DebugProcessor;
 use Psr\Log\LogLevel;
 
-$root_dir = dirname(__DIR__);
+$root_dir = __DIR__;
 
 $config = [
     'debug' => true,
