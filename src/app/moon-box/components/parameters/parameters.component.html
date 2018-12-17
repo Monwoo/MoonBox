@@ -19,6 +19,13 @@
   </div>
 </mat-card>
 
+<mat-card *ngIf="this.storage.isLocked">
+  <p>{{ 'Stockage verouillé, vous pouvez reset tout le stockage ou essayer de le déverouiller :' }}</p>
+  <button mat-button color="primary" matTooltip="{{'Déverouiller Moon Box'|translate}}" (click)="lockScreen($event)">
+    <i class="fas fa-unlock"></i> {{ 'Déverouiller' | translate }}
+  </button>
+</mat-card>
+
 <mat-card *ngIf="!this.storage.isLocked">
   <form>
     <mat-form-field class="">

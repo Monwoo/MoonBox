@@ -40,6 +40,10 @@ export class BoxesComponent implements OnInit {
     this.storage.setLockContainer(this.eltRef);
   }
 
+  ngAfterViewChecked() {
+    this.storage.ensureLockIsNotClosable();
+  }
+
   errorHandler(err: any) {
     console.error(err);
     this.storage.setItem('moon-box-filters', this.filters.data).subscribe(() => {

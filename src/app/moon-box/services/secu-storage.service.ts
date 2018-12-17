@@ -7,6 +7,9 @@ import { Md5 } from 'ts-md5/dist/md5';
 import { LocalStorage } from '@ngx-pwa/local-storage';
 import { MatDialog, MatDialogRef } from '@angular/material';
 import { LockScreenComponent } from '@moon-box/components/lock-screen/lock-screen.component';
+import { I18nService } from '@app/core';
+import { extract } from '@app/core';
+import { NotificationsService } from 'angular2-notifications';
 
 // https://github.com/softvar/secure-ls
 declare const require: any; // To avoid typeScript error about require that don't exist since it's webpack level
@@ -16,29 +19,72 @@ const SecureLS = require('secure-ls');
   providedIn: 'root'
 })
 export class SecuStorageService {
-  private storage: any;
-  private secuStorage: any = null;
-  private passCode: string = null;
+  private storage: any = null;
   public lockDownTimeInMs: number = 5 * 1000; // 5 minutes en millisecondes
   private lastLockCheckDate: Date = null;
   public lockTargetContainer: ViewContainerRef = null;
   public isLocked: boolean = false;
   private lockDialogRef: MatDialogRef<LockScreenComponent> = null;
 
-  constructor(private localStorage: LocalStorage, private dialog: MatDialog, private ngZone: NgZone) {
+  private eS: string = null;
+  private lastEs: string = null;
+  private pC: string = null;
+  private cS: string = null;
+  private debugStorage = false;
+  constructor(
+    private localStorage: LocalStorage,
+    private dialog: MatDialog,
+    private ngZone: NgZone,
+    private i18nService: I18nService,
+    private notif: NotificationsService
+  ) {
     // TODO : may have a mode without encryptionSecret: environment.clientSecret + this.passCode ?
     // what if update application in prod => will wipe out all conneted user datas...
     // well : add warning msg about BACKUP their data, since may diseapear on Demo Version upgrades
-    this.storage = new SecureLS({ encodingType: 'aes' });
-    let eS = this.storage.get('eS');
-    if (!!eS && '' !== eS) {
-      this.secuStorage = new SecureLS({ encodingType: 'aes', encryptionSecret: eS });
-    } else {
-      this.secuStorage = this.storage;
+    this.setupStorage('lvl1');
+    try {
+      this.eS = this.storage.get('eS');
+      this.pC = this.storage.get('pC');
+      this.cS = this.storage.get('cS');
+    } catch (error) {
+      console.error(error);
     }
-    this.passCode = this.storage.get('pC');
-    // this.setPassCode('dd');
+    this.setupStorage('lvl2');
     this.checkLockScreen();
+  }
+
+  protected setupStorage(secuLvl: 'lvl1' | 'lvl2' | 'lastEs') {
+    if (this.debugStorage) {
+      this.storage = new SecureLS({ encodingType: '', isCompression: false });
+      return;
+    }
+    switch (secuLvl) {
+      case 'lvl1':
+        {
+          this.storage = new SecureLS({ encodingType: 'aes' });
+        }
+        break;
+      case 'lvl2':
+        {
+          if (!!this.eS && '' !== this.eS) {
+            this.storage = new SecureLS({ encodingType: 'aes', encryptionSecret: this.eS });
+          } else {
+            this.storage = new SecureLS({ encodingType: 'aes' });
+          }
+        }
+        break;
+      case 'lastEs':
+        {
+          if (!!this.lastEs && '' !== this.lastEs) {
+            this.storage = new SecureLS({ encodingType: 'aes', encryptionSecret: this.lastEs });
+          } else {
+            this.storage = new SecureLS({ encodingType: 'aes' });
+          }
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   public setLockContainer(lockContainer: ViewContainerRef) {
@@ -54,6 +100,12 @@ export class SecuStorageService {
   }
 
   preventDialogRef: MatDialogRef<LockScreenComponent> = null;
+
+  public ensureLockIsNotClosable() {
+    if (this.lockDialogRef) {
+      this.lockDialogRef.disableClose = true;
+    }
+  }
 
   public dismissLockScreenForPreventScreen() {
     if (this.lockDialogRef) {
@@ -92,7 +144,7 @@ export class SecuStorageService {
     // https://material.angular.io/components/dialog/api
     this.lockDialogRef = this.dialog.open(LockScreenComponent, {
       width: '250px',
-      data: { passHash: this.passCode },
+      data: { passHash: this.pC },
       backdropClass: disableClose ? 'lock-backdrop' : '',
       panelClass: 'lock-overlay',
       autoFocus: true,
@@ -115,7 +167,7 @@ export class SecuStorageService {
 
   public checkLockScreen() {
     this.isLocked = false;
-    if (!this.passCode || this.passCode === '') {
+    if (!this.pC || this.pC === '') {
       return; // No need of lock screen since no PassCode defined
     }
     const currentDate = new Date();
@@ -151,46 +203,48 @@ export class SecuStorageService {
 
   // Add a pass code feature to secu storage.
   public setPassCode(rawCode: string) {
-    this.passCode = rawCode && '' !== rawCode ? <string>Md5.hashStr(rawCode) : null;
-    const lastPc = this.storage.get('pC', this.passCode);
-    let lastCs = this.storage.get('cS', this.passCode);
-    if (!lastCs) lastCs = environment.clientSecret;
-    this.storage.set('pC', this.passCode);
-    this.storage.set('cS', lastCs);
-    if (lastPc !== this.passCode) {
-      let secuData = {};
-      if (this.secuStorage) {
-        this.secuStorage.getAllKeys().forEach((k: string) => {
-          if (!this.openDataKey.includes(k) && !this.lvl1SecuDataKey.includes(k)) {
-            secuData[k] = this.secuStorage.get(k);
-          }
-        });
-        this.secuStorage.removeAll();
-        this.secuStorage = null;
-      }
-      let eS = null;
-      if (this.passCode && '' !== this.passCode) {
-        eS = lastCs + this.passCode;
-        this.secuStorage = new SecureLS({ encodingType: 'aes', encryptionSecret: eS });
-        Object.keys(secuData).forEach((k: string) => {
-          this.secuStorage.set(k, secuData[k]);
-        });
-      } else {
-        this.secuStorage = this.storage;
-      }
-      this.storage.set('eS', eS);
+    this.pC = rawCode && '' !== rawCode ? <string>Md5.hashStr(rawCode) : null;
+    if (!this.cS) this.cS = environment.clientSecret;
+    this.setupStorage('lvl1');
+    this.storage.set('pC', this.pC);
+    this.storage.set('cS', this.cS);
+    this.lastEs = this.eS;
+    if (this.pC && '' !== this.pC) {
+      this.eS = this.cS + this.pC;
+    } else {
+      this.eS = null;
     }
+    this.storage.set('eS', this.eS);
+    if (this.lastEs !== this.eS) {
+      let secuData = {};
+      this.setupStorage('lastEs');
+      this.storage.getAllKeys().forEach((k: string) => {
+        if (!this.openDataKey.includes(k) && !this.lvl1SecuDataKey.includes(k)) {
+          secuData[k] = this.storage.get(k);
+          this.storage.remove(k);
+        }
+      });
+      this.setupStorage('lvl2');
+      Object.keys(secuData).forEach((k: string) => {
+        this.storage.set(k, secuData[k]);
+      });
+    }
+    this.setupStorage('lvl2');
+
+    this.i18nService.get(extract('mb.secu-storage.setPassCode.success')).subscribe(t => {
+      this.notif.success(t);
+    });
 
     return of(true);
   }
   public getItem<T>(key: string, failback: any = null) {
-    const i = this.secuStorage.get(key);
+    const i = this.storage.get(key);
     return of<T>(null === i ? failback : i);
   }
   public setItem<T>(key: string, value: any) {
-    return of<T>(this.secuStorage.set(key, value));
+    return of<T>(this.storage.set(key, value));
   }
   public removeItem<T>(key: string) {
-    return of<T>(this.secuStorage.remove(key));
+    return of<T>(this.storage.remove(key));
   }
 }

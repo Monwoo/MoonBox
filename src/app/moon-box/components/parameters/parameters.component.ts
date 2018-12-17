@@ -4,6 +4,7 @@ import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
 import { LoadingLoaderService } from '@moon-manager/services/loading-loader.service';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
+import { LocalStorage } from '@ngx-pwa/local-storage';
 
 @Component({
   selector: 'app-parameters',
@@ -17,7 +18,8 @@ export class ParametersComponent implements OnInit {
     private i18nService: I18nService,
     private notif: NotificationsService,
     private ll: LoadingLoaderService,
-    private storage: SecuStorageService
+    private storage: SecuStorageService,
+    private localStorage: LocalStorage
   ) {}
 
   ngOnInit() {}
@@ -26,17 +28,29 @@ export class ParametersComponent implements OnInit {
     this.storage.dismissLockScreenForPreventScreen();
   }
 
+  errorHandler = (error: any) => {
+    console.log(error);
+    this.i18nService
+      .get(extract('mm.param.notif.errorHasOccured'), {
+        errMsg: error.message
+      })
+      .subscribe(t => {
+        this.notif.error(t);
+        this.ll.hideLoader();
+      });
+  };
+
   resetConfigAction(e: any) {
     // this.ll.showLoader();
     // // let changes = this.paramsForm.form.value;
-    // (async () => {
-    //   this.storage.clear().subscribe(() => {
-    //     this.i18nService.get(extract('mm.param.notif.cleaningParametersOk')).subscribe(t => {
-    //       this.notif.success(t);
-    //       this.ll.hideLoader();
-    //     });
-    //   }, this.errorHandler);
-    // })();
+    (async () => {
+      this.localStorage.clear().subscribe(() => {
+        this.i18nService.get(extract('mm.param.notif.cleaningParametersOk')).subscribe(t => {
+          this.notif.success(t);
+          this.ll.hideLoader();
+        });
+      }, this.errorHandler);
+    })();
     // TODO : reset secuStorage + ask for jwt server side token wipeout...
   }
 
@@ -65,5 +79,9 @@ export class ParametersComponent implements OnInit {
 
   setSecurityCode(e: any) {
     this.storage.setPassCode(this.passCode);
+  }
+
+  lockScreen() {
+    this.storage.showLockScreen(false);
   }
 }

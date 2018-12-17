@@ -47,7 +47,7 @@ export const formDefaults = async (caller: any) => {
         _username: await fetchTrans(extract('JohnDoe@yopmail.com')),
         _password: '',
         selectedProvider: 'Unknown',
-        keepInMemory: false,
+        keepInMemory: true,
         params: {
           mailhost: '',
           mailport: '',
