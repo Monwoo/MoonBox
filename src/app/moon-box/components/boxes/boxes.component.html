@@ -1,30 +1,41 @@
 <div *ngIf="!this.storage.isLocked">
-  <form *ngIf="filters" [formGroup]="filters.group" #filtersForm="ngForm">
-    <dynamic-material-form
-      [group]="filters.group"
-      [model]="filters.model"
-      [layout]="filters.layout"
-      (change)="onFiltersChange($event)"
-    >
-      <!--
-        ng-template modelId="_password">
-            <show-hide-password size="lg" icon="entypo" btnStyle="primary" [btnOutline]="false">
-              <ng-content></ng-content>
-              <ng-container *ngTemplateOutlet="_password"></ng-container>
+  <mat-card [ngClass]="{ sticky: isSticky }">
+    <form *ngIf="filters" class="condensed" [formGroup]="filters.group" #filtersFormRef #filtersForm="ngForm">
+      <dynamic-material-form
+        [group]="filters.group"
+        [model]="filters.model"
+        [layout]="filters.layout"
+        (change)="onFiltersChange($event)"
+      >
+        <!--
+          ng-template modelId="_password">
+              <show-hide-password size="lg" icon="entypo" btnStyle="primary" [btnOutline]="false">
+                <ng-content></ng-content>
+                <ng-container *ngTemplateOutlet="_password"></ng-container>
 
-            </show-hide-password>
-        </ng-template
-      -->
+              </show-hide-password>
+          </ng-template
+        -->
+        <ng-template modelId="fetchEnd">
+          <!-- <pre>{{  index  | json }}</pre> -->
 
-      <ng-template modelId="mbegKeyTransformer" let-context="context" let-index="index">
-        <!-- <pre>{{  index  | json }}</pre> -->
+          <button mat-button color="primary" type="button" (click)="toggleFilters($event)">...</button>
+        </ng-template>
 
-        <button mat-button color="primary" type="button" (click)="clear($event, context, index)">Remove</button>
-      </ng-template>
-    </dynamic-material-form>
+        <ng-template modelId="mbegKeyTransformer" let-context="context" let-index="index">
+          <!-- <pre>{{  index  | json }}</pre> -->
 
-    <button mat-button color="primary" type="button" (click)="addItem()">Add item</button>
-  </form>
+          <button mat-button color="primary" type="button" (click)="clear($event, context, index)">
+            {{ 'Remove' | translate }}
+          </button>
+        </ng-template>
+      </dynamic-material-form>
+
+      <button class="condensable" mat-button color="primary" type="button" (click)="addItem()">
+        {{ 'Add item' | translate }}
+      </button>
+    </form>
+  </mat-card>
 
   <moon-box-reader id="0" [filters]="filters.data"></moon-box-reader>
 </div>

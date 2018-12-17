@@ -74,6 +74,8 @@ $indicatorBlue: #11589a;
 $indicatorYellow: #c3c11c;
 $indicatorRed: #d11232;
 
+$monwooSecondary: #33096b;
+
 @include setupColor("green", #146601, "indicator");
 @include setupColor("blue", #11589a, "indicator");
 @include setupColor("yellow", #c3c11c, "indicator");

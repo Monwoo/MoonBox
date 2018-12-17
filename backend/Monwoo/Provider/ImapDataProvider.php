@@ -92,7 +92,7 @@ class ImapDataProvider extends DataProvider
             'action' => 'msg_body',
             'param' => $srcPath,
         ]);
-        $iframeStyle = 'min-height:500px;max-height:800px;width:100%';
+        $iframeStyle = 'min-height:250px;max-height:800px;width:100%';
         return "<iframe
         src='$loadingPictPath'
         data-didLoad='0'

@@ -1,6 +1,6 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 
-import { Component, OnInit, ViewChild, Input, NgZone, Renderer2, RendererFactory2 } from '@angular/core';
+import { Component, OnInit, ViewChild, Input, NgZone, Renderer2, RendererFactory2, ElementRef } from '@angular/core';
 import { NgForm, FormGroup, Validators, FormBuilder } from '@angular/forms';
 // import { LocalStorage } from '@ngx-pwa/local-storage';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
@@ -29,7 +29,8 @@ export class BoxReaderComponent implements OnInit {
     this.updateForm();
   }
 
-  @ViewChild('loginForm') loginForm: NgForm = null; // TODO : fail to use for now
+  @ViewChild('loginForm') loginForm: NgForm = null;
+  @ViewChild('eltRef') eltRef: ElementRef = null;
 
   // formModel: Promise<DynamicFormModel> = configFormModel(this);
   formModel: DynamicFormModel = null;
@@ -55,12 +56,21 @@ export class BoxReaderComponent implements OnInit {
     private notif: NotificationsService,
     private rendererFactory: RendererFactory2
   ) {
-    this.renderer = rendererFactory.createRenderer(null, null);
+    this.renderer = this.rendererFactory.createRenderer(null, null);
     // formDefaults(this).then(d => {
     //   this.loginData = d;
     //   this.updateForm();
     // });
     this.updateForm();
+  }
+
+  toggleConfigs() {
+    //if (this.filtersForm.classList (this.filtersForm, 'src'))
+    if (this.eltRef.nativeElement.classList.contains('condensed')) {
+      this.renderer.removeClass(this.eltRef.nativeElement, 'condensed');
+    } else {
+      this.renderer.addClass(this.eltRef.nativeElement, 'condensed');
+    }
   }
 
   errorHandler(err: any) {

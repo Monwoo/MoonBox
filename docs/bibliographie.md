@@ -115,6 +115,15 @@
 - https://dzone.com/articles/understanding-ngzone
 - https://stackoverflow.com/questions/32051273/angular-and-debounce
 
+- https://stackoverflow.com/questions/42444570/change-element-class-on-viewchild-in-angular-2
+- https://medium.com/@tkssharma/understanding-viewchildren-viewchild-contentchildren-and-contentchild-b16c9e0358e
+- https://blog.angular-university.io/angular-viewchild/
+- https://codetogo.io/how-to-check-if-element-has-class-in-javascript/
+
+- https://netbasal.com/reactive-sticky-header-in-angular-12dbffb3f1d3
+- https://medium.com/@EliaPalme/angular2-sticky-header-scroll-then-fix-ab4c54fada1f
+- https://stackoverflow.com/questions/52634838/angular-6-css-sticky-header
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

@@ -1,7 +1,10 @@
-<div class="bs box-reader">
+<div class="bs box-reader condensed" #eltRef>
   <div class="container-fluid">
-    <div class="row">
-      <div class="col-12 col-md-6 text-md-left">
+    <mat-card class="row">
+      <div class="col-12 text-right">
+        <button mat-button color="primary" type="button" (click)="toggleConfigs($event)">...</button>
+      </div>
+      <div class="col-12 col-md-6 text-md-left condensable">
         <mat-form-field class="float-right">
           <mat-select placeholder="{{'mb.box-reader.provider.plhdr'|translate}}" [value]="loginData.selectedProvider">
             <mat-option
@@ -14,7 +17,7 @@
           </mat-select>
         </mat-form-field>
       </div>
-      <div class="col-12 col-md-6 text-md-left">
+      <div class="col-12 col-md-6 text-md-left condensable">
         <form *ngIf="formGroup" [formGroup]="formGroup" #loginForm="ngForm">
           <dynamic-material-form [group]="formGroup" [model]="formModel" [layout]="formLayout">
             <!--
@@ -37,6 +40,8 @@
           <i class="fas fa-login"></i> {{ 'mb.box-reader.btn.Login' | translate }}
         </button>
       </div>
+    </mat-card>
+    <mat-card class="row">
       <div *ngIf="messages" class="col-12 text-md-left">
         <mat-card *ngFor="let groupMsgs of (messages.msgsByMoonBoxGroup | keyvalue)" class="bs box-reader">
           <mat-card-subtitle>{{ groupMsgs.key }}</mat-card-subtitle>
@@ -49,9 +54,11 @@
                   <mat-card-subtitle>{{ msg.expeditorFullName }}</mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
-                  <ng-template #msgBody> <div [innerHTML]="msg.iframeBody | safeHtml"></div> </ng-template>
+                  <pre class="msg-header condensable">{{ msg.headers }}</pre>
+                  <ng-template #msgBody>
+                    <div class="condensable" [innerHTML]="msg.iframeBody | safeHtml"></div>
+                  </ng-template>
                   <ng-container *ngTemplateOutlet="msgBody"> </ng-container>
-                  <pre class="msg-header">{{ msg.headers }}</pre>
                 </mat-card-content>
               </mat-card-content>
             </mat-card>
@@ -68,6 +75,6 @@
           <i class="fas fa-add"></i> {{ 'mb.box-reader.btn.LoadMore' | translate }}
         </button>
       </div>
-    </div>
+    </mat-card>
   </div>
 </div>

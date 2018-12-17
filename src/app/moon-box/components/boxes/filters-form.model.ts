@@ -115,6 +115,16 @@ export const FORM_LAYOUT = {
     //     control: "col-sm-9",
     //     label: "col-sm-3"
     // }
+  },
+  keepInMemory: {
+    element: {
+      container: 'condensable'
+    }
+  },
+  params: {
+    element: {
+      container: 'condensable'
+    }
   }
 };
 

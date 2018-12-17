@@ -2,3 +2,9 @@
  * Global application theme.
  * Framework overrides and customization goes here.
  */
+@import "src/theme/theme-variables";
+
+.mat-card {
+  margin: 15px 0px;
+  border-top: solid 1px $monwooSecondary;
+}

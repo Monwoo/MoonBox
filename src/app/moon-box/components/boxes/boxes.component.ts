@@ -1,6 +1,16 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 
-import { Component, OnInit, ViewChild, NgZone, ViewContainerRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  NgZone,
+  ViewContainerRef,
+  ElementRef,
+  Renderer2,
+  RendererFactory2,
+  HostListener
+} from '@angular/core';
 import { NgForm, FormArray, Validators, FormBuilder } from '@angular/forms';
 import { FormType, FORM_LAYOUT, formModel, formDefaults, ContextType, contextDefaults } from './filters-form.model';
 import { I18nService } from '@app/core';
@@ -18,12 +28,31 @@ import { extract } from '@app/core';
   styleUrls: ['./boxes.component.scss']
 })
 export class BoxesComponent implements OnInit {
+  // @ViewChild('filtersForm') filtersForm: ElementRef<NgForm> = null;
+  @ViewChild('filtersFormRef') filtersFormRef: ElementRef<HTMLFormElement> = null;
   @ViewChild('filtersForm') filtersForm: NgForm = null;
+
+  isSticky: boolean = false;
+
+  @HostListener('window:scroll', ['$event'])
+  checkScroll() {
+    this.isSticky =
+      window.pageYOffset >=
+      this.filtersFormRef.nativeElement.offsetTop + 10 + this.filtersFormRef.nativeElement.getClientRects()[0].height;
+    // this.filtersFormRef.nativeElement.getBoundingClientRect().bottom;
+    if (this.isSticky) {
+      this.filtersFormRef.nativeElement.parentElement.parentElement.style.marginTop =
+        this.filtersFormRef.nativeElement.getClientRects()[0].height + 'px';
+    } else {
+      this.filtersFormRef.nativeElement.parentElement.style.marginTop = '10px';
+    }
+  }
 
   filters: ContextType = null;
 
   mbegKeyTransformerControl: FormArray;
   mbegKeyTransformerModel: DynamicFormArrayModel;
+  renderer: Renderer2 = null;
 
   constructor(
     private i18nService: I18nService,
@@ -31,12 +60,14 @@ export class BoxesComponent implements OnInit {
     public storage: SecuStorageService,
     private ngZone: NgZone,
     private notif: NotificationsService,
-    public eltRef: ViewContainerRef
+    public eltRef: ViewContainerRef,
+    private rendererFactory: RendererFactory2
   ) {
     (async () => {
       this.filters = await contextDefaults(this);
       this.updateForm();
     })();
+    this.renderer = this.rendererFactory.createRenderer(null, null);
     this.storage.setLockContainer(this.eltRef);
   }
 
@@ -52,6 +83,15 @@ export class BoxesComponent implements OnInit {
         // this.ll.hideLoader();
       });
     }, this.errorHandler);
+  }
+
+  toggleFilters() {
+    //if (this.filtersForm.classList (this.filtersForm, 'src'))
+    if (this.filtersFormRef.nativeElement.classList.contains('condensed')) {
+      this.renderer.removeClass(this.filtersFormRef.nativeElement, 'condensed');
+    } else {
+      this.renderer.addClass(this.filtersFormRef.nativeElement, 'condensed');
+    }
   }
 
   onFiltersChange() {
@@ -114,6 +154,7 @@ export class BoxesComponent implements OnInit {
   }
 
   ngOnInit() {
+    // this.filtersForm = this.filtersFormRef.nativeElement;
     if (this.filters) {
       // TODO : do on filters did change event...
       this.mbegKeyTransformerControl = this.filters.group.get(
