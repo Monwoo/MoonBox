@@ -33,18 +33,18 @@ export class BoxesComponent implements OnInit {
   @ViewChild('filtersForm') filtersForm: NgForm = null;
 
   isSticky: boolean = false;
+  initialOffset: number = 0;
 
   @HostListener('window:scroll', ['$event'])
   checkScroll() {
     this.isSticky =
-      window.pageYOffset >=
-      this.filtersFormRef.nativeElement.offsetTop + 10 + this.filtersFormRef.nativeElement.getClientRects()[0].height;
+      window.pageYOffset >= this.initialOffset + 21 + this.filtersFormRef.nativeElement.getClientRects()[0].height;
     // this.filtersFormRef.nativeElement.getBoundingClientRect().bottom;
     if (this.isSticky) {
       this.filtersFormRef.nativeElement.parentElement.parentElement.style.marginTop =
         this.filtersFormRef.nativeElement.getClientRects()[0].height + 'px';
     } else {
-      this.filtersFormRef.nativeElement.parentElement.style.marginTop = '10px';
+      this.filtersFormRef.nativeElement.parentElement.parentElement.style.marginTop = '10px';
     }
   }
 
@@ -83,6 +83,10 @@ export class BoxesComponent implements OnInit {
         // this.ll.hideLoader();
       });
     }, this.errorHandler);
+  }
+
+  ngAfterViewInit() {
+    this.initialOffset = this.filtersFormRef.nativeElement.offsetTop;
   }
 
   toggleFilters() {
