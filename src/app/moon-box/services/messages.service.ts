@@ -7,8 +7,8 @@ export type MsgsStateType = {
   [key: string]: {
     numResults: number;
     totalCount: number;
-    pages: {
-      [key: number]: any;
+    data: {
+      [key: string]: any[];
     };
   };
 };
@@ -25,23 +25,27 @@ export class MessagesService {
   public totalCount: number = 0;
   constructor() {}
 
-  pushMessages(mailBoxId: string, messages: any) {
-    if (this.msgs[messages.moonBoxGroup]) {
-      this.msgs[messages.moonBoxGroup].numResults += messages.numResults;
-      this.msgs[messages.moonBoxGroup].totalCount += messages.totalCount;
-      this.msgs[messages.moonBoxGroup][messages.currentPage] = messages;
-    } else {
-      this.msgs[messages.moonBoxGroup] = {
-        numResults: messages.numResults,
-        totalCount: messages.totalCount,
-        pages: {
-          [messages.currentPage]: messages
-        }
-      };
-    }
-    this.numResults += messages.numResults;
-    this.totalCount += messages.totalCount;
-    this.service.next(this.msgs);
+  pushMessages(messages: any) {
+    let alreadyCounted = 0;
+    messages.msgsOrderedByDate.forEach((msg: any) => {
+      if (!this.msgs[msg.moonBoxGroup]) {
+        this.msgs[msg.moonBoxGroup] = {
+          numResults: 0,
+          totalCount: 0,
+          data: {}
+        };
+      }
+      const dataKey = msg.localTime + msg.msgId;
+      if (this.msgs[msg.moonBoxGroup].data[dataKey]) {
+        alreadyCounted++;
+      } else {
+        this.msgs[msg.moonBoxGroup].numResults += 1;
+        this.msgs[msg.moonBoxGroup].totalCount += 1; // TODO : not accurate enough for now....
+      }
+      this.msgs[msg.moonBoxGroup].data[dataKey] = msg;
+    });
+    this.numResults += messages.numResults - alreadyCounted;
+    this.totalCount += messages.totalCount - alreadyCounted; // Accuracy ok
   }
 
   clearMessages() {

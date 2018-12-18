@@ -1,5 +1,7 @@
 <div *ngIf="!this.storage.isLocked">
   <mat-card [ngClass]="{ sticky: isSticky }">
+    <div class="global-count">{{ msgs.numResults }} / {{ msgs.totalCount }}</div>
+
     <form *ngIf="filters" class="condensed" [formGroup]="filters.group" #filtersFormRef #filtersForm="ngForm">
       <dynamic-material-form
         [group]="filters.group"
@@ -55,35 +57,31 @@
 
   <moon-box-reader id="0" [filters]="filters.group.value"></moon-box-reader>
 
-  <div *ngFor="let messages of (msgs.service | async | keyvalue); let index = index" class="container-fluid">
+  <div *ngFor="let messages of (msgs.service | async | keyvalue); let groupIndex = index" class="container-fluid">
     <mat-card class="row">
-      <div class="col-12 text-left" (click)="expandMessages($event, messages.key, index)">
-        <strong>{{ messages.key }}</strong> ({{ messages.value.numResults }}/{{ messages.value.totalCount }})
+      <div class="col-12 text-left" (click)="expandMessages($event, messages.key, groupIndex)">
+        <strong>{{ messages.key }}</strong> ({{ messages.value.numResults }})
+        <!-- : not accurate enouth yet : /{{ messages.value.totalCount }}) -->
       </div>
       <div class="col-12 text-md-left condensed">
-        <ng-container *ngFor="let page of messages.value.pages">
-          <mat-card *ngFor="let msg of page.msgsOrderedByDate" class="bs box-reader">
-            <mat-card-header>
-              <div mat-card-avatar>{{ msg.localTime }}</div>
-              <mat-card-title>{{ msg.subject }}</mat-card-title>
-              <mat-card-subtitle class="container-fluid d-flex">
-                <div class="col-3 text-right">{{ msg.expeditorFullName + '=>' + msg.connectionUser }}</div>
-                <div class="col-3 text-right">
-                  <button mat-button color="primary" type="button" (click)="expandMessage($event, messages.key, index)">
-                    ...
-                  </button>
-                </div>
-              </mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-              <span> {{ '[' + msg.expeditor + '] => ' + msg.to + ' | ' + msg.cc + ' | ' + msg.bcc }} </span>
-              <ng-template #msgBody>
-                <div class="condensable" [innerHTML]="msg.iframeBody | safeHtml"></div>
-              </ng-template>
-              <ng-container *ngTemplateOutlet="msgBody"> </ng-container>
-            </mat-card-content>
-          </mat-card>
-        </ng-container>
+        <mat-card *ngFor="let msg of (messages.value.data | keyvalue); let index = index" class="bs box-reader">
+          <mat-card-header (click)="expandMessage($event, messages.key, index)">
+            <div mat-card-avatar>{{ msg.value.localTime }}</div>
+            <mat-card-title>{{ msg.value.subject }}</mat-card-title>
+            <mat-card-subtitle class="container-fluid d-flex">
+              {{ msg.value.expeditorFullName + '=>' + msg.value.connectionUser }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <span>
+              {{ '[' + msg.value.expeditor + '] => ' + msg.value.to + ' | ' + msg.value.cc + ' | ' + msg.value.bcc }}
+            </span>
+            <ng-template #msgBody>
+              <div class="condensable" [innerHTML]="msg.value.iframeBody | safeHtml"></div>
+            </ng-template>
+            <ng-container *ngTemplateOutlet="msgBody"> </ng-container>
+          </mat-card-content>
+        </mat-card>
       </div>
       <div class="col-12 text-md-right">
         <button

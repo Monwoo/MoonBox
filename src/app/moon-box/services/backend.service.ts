@@ -91,14 +91,14 @@ export class BackendService {
     );
   }
 
-  fetchMsg(ctx: any) {
+  fetchMsg(page: number = 1, limit: number = 42) {
     return this.http.get(this.apiBaseUrl + 'api/moon-box/data_imap/submit_refresh', {
       ...httpOptions,
       ...{
         params: new HttpParams()
-          .set('ctx', JSON.stringify(ctx))
-          .set('limit', '10')
-          .set('page', '1')
+          // .set('ctx', JSON.stringify(ctx))
+          .set('limit', limit.toString())
+          .set('page', page.toString())
       }
     });
 

@@ -135,12 +135,10 @@ export class BoxReaderComponent implements OnInit {
   }
 
   readMessages() {
-    const ctx = {};
-
-    this.backend.fetchMsg(ctx).subscribe((messages: any) => {
+    this.backend.fetchMsg().subscribe((messages: any) => {
       console.log(messages);
       this.messages = messages;
-      this.msgs.pushMessages(this.loginData._username, messages);
+      this.msgs.pushMessages(messages);
 
       of(() => {
         // Backend is configured to allow only One access to email content
