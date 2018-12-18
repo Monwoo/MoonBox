@@ -1,7 +1,12 @@
 <div class="bs box-reader condensed" #eltRef>
   <div class="container-fluid">
     <mat-card class="row">
-      <div class="col-12 text-right">
+      <div class="col-8 text-left">
+        <strong>{{ formGroup.value?._username }}</strong> ({{ this.messages.numResults }}/{{
+          this.messages.totalCount
+        }})
+      </div>
+      <div class="col-4 text-right">
         <button mat-button color="primary" type="button" (click)="toggleConfigs($event)">...</button>
       </div>
       <div class="col-12 col-md-6 text-md-left condensable">
@@ -37,12 +42,11 @@
           matTooltip="{{'mb.box-reader.btn.Login.tooltip'|translate}}"
           (click)="login($event)"
         >
-          <i class="fas fa-login"></i> {{ 'mb.box-reader.btn.Login' | translate }}
+          <i class="fas fa-envelope"></i> {{ 'mb.box-reader.btn.Login' | translate }}
         </button>
       </div>
-    </mat-card>
-    <mat-card class="row">
-      <div *ngIf="messages" class="col-12 text-md-left">
+
+      <div *ngIf="messages && !isCondensed" class="col-12 text-md-left">
         <mat-card *ngFor="let groupMsgs of (messages.msgsByMoonBoxGroup | keyvalue)" class="bs box-reader">
           <mat-card-subtitle>{{ groupMsgs.key }}</mat-card-subtitle>
           <mat-card-content class="container-fluid">
@@ -67,12 +71,13 @@
       </div>
       <div class="col-12 text-md-right">
         <button
+          *ngIf="hasMoreMsgs"
           mat-button
           color="primary"
           matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
-          (click)="login($event)"
+          (click)="loadNext($event)"
         >
-          <i class="fas fa-add"></i> {{ 'mb.box-reader.btn.LoadMore' | translate }}
+          <i class="fas fa-download"></i> {{ 'mb.box-reader.btn.LoadMore' | translate }}
         </button>
       </div>
     </mat-card>

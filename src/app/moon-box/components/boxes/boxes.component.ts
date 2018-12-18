@@ -219,4 +219,13 @@ export class BoxesComponent implements OnInit {
     // this.formService.clearFormArray(this.mbegKeyTransformerControl, this.mbegKeyTransformerModel);
     this.formService.removeFormArrayGroup(index, this.mbegKeyTransformerControl, context);
   }
+
+  login(event: any) {
+    // TODO : call login on all boxes child components
+    console.log('TODO');
+  }
+  loadNext(e: any) {
+    // TODO: paginantion
+    console.log('TODO');
+  }
 }

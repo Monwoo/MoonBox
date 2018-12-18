@@ -147,7 +147,7 @@
 
 * https://github.com/udos86/ng-dynamic-forms/issues/498
 * https://material.angular.io/components/datepicker/overview#internationalization
-*
+* http://fr.learnlayout.com/clearfix.html
 
 ```bash
 # Added packages :

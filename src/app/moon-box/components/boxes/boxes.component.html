@@ -20,6 +20,22 @@
           <!-- <pre>{{  index  | json }}</pre> -->
 
           <button mat-button color="primary" type="button" (click)="toggleFilters($event)">...</button>
+          <button
+            mat-button
+            color="primary"
+            matTooltip="{{'mb.boxes.btn.Login.tooltip'|translate}}"
+            (click)="login($event)"
+          >
+            <i class="fas fa-envelope"></i> {{ 'mb.boxes.btn.Login' | translate }}
+          </button>
+          <button
+            mat-button
+            color="primary"
+            matTooltip="{{'mb.boxes.btn.LoadMore.tooltip'|translate}}"
+            (click)="loadNext($event)"
+          >
+            <i class="fas fa-download"></i> {{ 'mb.boxes.btn.LoadMore' | translate }}
+          </button>
         </ng-template>
 
         <ng-template modelId="mbegKeyTransformer" let-context="context" let-index="index">

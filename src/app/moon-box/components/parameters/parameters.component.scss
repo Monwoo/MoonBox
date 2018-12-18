@@ -1,0 +1,21 @@
+// Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
+
+:host ::ng-deep {
+  .toolbox {
+    padding-bottom: 0px;
+    // http://fr.learnlayout.com/clearfix.html
+    // overflow: auto;
+    // zoom: 1;
+    // https://www.w3schools.com/howto/howto_css_clearfix.asp
+    ::after {
+      content: "";
+      clear: both;
+      display: table;
+    }
+    .lang-field {
+      .mat-form-field-wrapper {
+        // padding-bottom: 0px;
+      }
+    }
+  }
+}

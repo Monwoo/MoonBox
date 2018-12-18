@@ -1,3 +1,5 @@
+// Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
+
 import { Component, OnInit } from '@angular/core';
 import { I18nService } from '@app/core';
 import { extract } from '@app/core';

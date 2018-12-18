@@ -46,6 +46,10 @@ export class BoxReaderComponent implements OnInit {
 
   renderer: Renderer2 = null;
 
+  hasMoreMsgs: boolean = false;
+
+  isCondensed: boolean = true;
+
   constructor(
     private fb: FormBuilder,
     public backend: BackendService,
@@ -66,11 +70,14 @@ export class BoxReaderComponent implements OnInit {
 
   toggleConfigs() {
     //if (this.filtersForm.classList (this.filtersForm, 'src'))
-    if (this.eltRef.nativeElement.classList.contains('condensed')) {
+    // TODO refactor : do it more angular ways with class directives ... :
+    this.isCondensed = this.eltRef.nativeElement.classList.contains('condensed');
+    if (this.isCondensed) {
       this.renderer.removeClass(this.eltRef.nativeElement, 'condensed');
     } else {
       this.renderer.addClass(this.eltRef.nativeElement, 'condensed');
     }
+    this.isCondensed = !this.isCondensed;
   }
 
   errorHandler(err: any) {
@@ -166,7 +173,7 @@ export class BoxReaderComponent implements OnInit {
         console.log('User is logged in');
 
         this.readMessages();
-        // this.router.navigateByUrl('/');
+        this.hasMoreMsgs = true; // TODO : pagination etc...
       });
     } else {
       this.i18nService
@@ -177,5 +184,9 @@ export class BoxReaderComponent implements OnInit {
           this.notif.error('', t);
         });
     }
+  }
+  loadNext(e: any) {
+    // TODO: paginantion
+    console.log('TODO');
   }
 }

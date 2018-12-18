@@ -625,6 +625,7 @@ class ImapDataProvider extends DataProvider
                 'numResults' => $numResults,
                 'msgsOrderedByDate' => $msgsOrderedByDate,
                 'msgsByMoonBoxGroup' => $msgsByMoonBoxGroup,
+                'totalCount' => $numResults, // TODO : real total count + request paginations
             ]);
         } else if ('msg_body' === $action) {
             $param = explode('<|>', $param);

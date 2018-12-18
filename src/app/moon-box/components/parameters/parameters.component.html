@@ -1,5 +1,5 @@
 <!-- Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com -->
-<mat-card>
+<mat-card class="toolbox">
   <div>
     <button
       mat-button
@@ -9,7 +9,7 @@
     >
       <i class="fas fa-power-off"></i> {{ 'Reset' | translate }}
     </button>
-    <mat-form-field class="float-right">
+    <mat-form-field class="float-right lang-field">
       <mat-select placeholder="{{langPlaceholder|translate}}" [value]="currentLanguage">
         <mat-option *ngFor="let language of languages" (click)="setLanguage(language)" [value]="language">
           {{ language | translate }}
