@@ -552,6 +552,7 @@ class ImapDataProvider extends DataProvider
                                 'imapId' => $i, // NOT usable without linked query ?
                                 // Configure minimal body summary lenght to get all generated data from auto-mailing
                                 'connectionName' => $connectionName, // used connection, without password,
+                                'connectionUser' => $connection['username'],
                             ];
                         } catch (\Throwable $e) {
                             $errMsg = 'Exception '.get_class($e).': '.$e->getMessage();
@@ -603,28 +604,27 @@ class ImapDataProvider extends DataProvider
             $defaultGroup = "_";
             $msgsByMoonBoxGroup = [];
             foreach ($msgsOrderedByDate as &$msg) {
+                $moonBoxGroup = $defaultGroup;
                 if (isset($moonBoxEmailsGrouping[
                     $msg['expeditorMainAnswerBox']
                 ])) {
-                    $msg['haveMoonBoxGroupping'] = true;
-                    if (isset($msgsByMoonBoxGroup[$moonBoxEmailsGrouping[
+                    $moonBoxGroup = $moonBoxEmailsGrouping[
                         $msg['expeditorMainAnswerBox']
-                    ]])) {
-                        $msgsByMoonBoxGroup[$moonBoxEmailsGrouping[
-                            $msg['expeditorMainAnswerBox']
-                        ]][] = $msg;
+                    ];
+                    $msg['haveMoonBoxGroupping'] = true;
+                    if (isset($msgsByMoonBoxGroup[$moonBoxGroup])) {
+                        $msgsByMoonBoxGroup[$moonBoxGroup][] = $msg;
                     } else {
-                        $msgsByMoonBoxGroup[$moonBoxEmailsGrouping[
-                            $msg['expeditorMainAnswerBox']
-                        ]] = [ $msg ];      
+                        $msgsByMoonBoxGroup[$moonBoxGroup] = [ $msg ];      
                     }
                 } else {
                     if (isset($msgsByMoonBoxGroup[$defaultGroup])) {
                         $msgsByMoonBoxGroup[$defaultGroup][] = $msg;
                     } else {
-                        $msgsByMoonBoxGroup[$defaultGroup] = [$msg];
+                        $msgsByMoonBoxGroup[$defaultGroup] = [ $msg ];
                     }
                 }
+                $msg['moonBoxGroup'] = $moonBoxGroup;
             }
 
             $self->storeInCache($self->getUserDataStoreKey(), $msgsOrderedByDate);
@@ -638,6 +638,7 @@ class ImapDataProvider extends DataProvider
                 'totalCount' => $totalCount,
                 'offsetStart' => $self->offsetStart,
                 'offsetLimit' => $self->offsetLimit,
+                'currentPage' => $page,
                 'nextPage' => ($self->offsetStart + $numResults < $totalCount) ? $page + 1 : null,
             ]);
         } else if ('msg_body' === $action) {

@@ -54,4 +54,48 @@
   </mat-card>
 
   <moon-box-reader id="0" [filters]="filters.group.value"></moon-box-reader>
+
+  <div *ngFor="let messages of (msgs.service | async | keyvalue); let index = index" class="container-fluid">
+    <mat-card class="row">
+      <div class="col-12 text-left" (click)="expandMessages($event, messages.key, index)">
+        <strong>{{ messages.key }}</strong> ({{ messages.value.numResults }}/{{ messages.value.totalCount }})
+      </div>
+      <div class="col-12 text-md-left condensed">
+        <ng-container *ngFor="let page of messages.value.pages">
+          <mat-card *ngFor="let msg of page.msgsOrderedByDate" class="bs box-reader">
+            <mat-card-header>
+              <div mat-card-avatar>{{ msg.localTime }}</div>
+              <mat-card-title>{{ msg.subject }}</mat-card-title>
+              <mat-card-subtitle class="container-fluid d-flex">
+                <div class="col-3 text-right">{{ msg.expeditorFullName + '=>' + msg.connectionUser }}</div>
+                <div class="col-3 text-right">
+                  <button mat-button color="primary" type="button" (click)="expandMessage($event, messages.key, index)">
+                    ...
+                  </button>
+                </div>
+              </mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <span> {{ '[' + msg.expeditor + '] => ' + msg.to + ' | ' + msg.cc + ' | ' + msg.bcc }} </span>
+              <ng-template #msgBody>
+                <div class="condensable" [innerHTML]="msg.iframeBody | safeHtml"></div>
+              </ng-template>
+              <ng-container *ngTemplateOutlet="msgBody"> </ng-container>
+            </mat-card-content>
+          </mat-card>
+        </ng-container>
+      </div>
+      <div class="col-12 text-md-right">
+        <button
+          *ngIf="hasMoreMsgs"
+          mat-button
+          color="primary"
+          matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
+          (click)="loadNext($event)"
+        >
+          <i class="fas fa-download"></i> {{ 'mb.box-reader.btn.LoadMore' | translate }}
+        </button>
+      </div>
+    </mat-card>
+  </div>
 </div>

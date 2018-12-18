@@ -17,6 +17,7 @@ import { I18nService } from '@app/core';
 import { DynamicFormArrayModel, DynamicFormLayout, DynamicFormService, validate } from '@ng-dynamic-forms/core';
 // import { LocalStorage } from '@ngx-pwa/local-storage';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
+import { MessagesService } from '@moon-box/services/messages.service';
 
 import { shallowMerge } from '@moon-manager/tools';
 import { NotificationsService } from 'angular2-notifications';
@@ -89,7 +90,8 @@ export class BoxesComponent implements OnInit {
     private ngZone: NgZone,
     private notif: NotificationsService,
     public eltRef: ViewContainerRef,
-    private rendererFactory: RendererFactory2
+    private rendererFactory: RendererFactory2,
+    public msgs: MessagesService
   ) {
     (async () => {
       this.filters = await contextDefaults(this);
@@ -97,6 +99,8 @@ export class BoxesComponent implements OnInit {
     })();
     this.renderer = this.rendererFactory.createRenderer(null, null);
     this.storage.setLockContainer(this.eltRef);
+    // this.msgs.service.subscribe((messages) => {
+    // });
   }
 
   ngAfterViewChecked() {
@@ -226,6 +230,13 @@ export class BoxesComponent implements OnInit {
   }
   loadNext(e: any) {
     // TODO: paginantion
+    console.log('TODO');
+  }
+
+  expandMessages(e: any, k: string, idx: number) {
+    console.log('TODO');
+  }
+  expandMessage(e: any, k: string, idx: number) {
     console.log('TODO');
   }
 }

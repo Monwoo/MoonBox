@@ -5,6 +5,8 @@ import { NgForm, FormGroup, Validators, FormBuilder } from '@angular/forms';
 // import { LocalStorage } from '@ngx-pwa/local-storage';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { BackendService, ProviderID } from '@moon-box/services/backend.service';
+import { MessagesService } from '@moon-box/services/messages.service';
+
 import { DynamicFormModel, DynamicFormLayout, DynamicFormService, validate } from '@ng-dynamic-forms/core';
 import { I18nService } from '@app/core';
 import { shallowMerge } from '@moon-manager/tools';
@@ -58,7 +60,8 @@ export class BoxReaderComponent implements OnInit {
     private formService: DynamicFormService,
     private ngZone: NgZone,
     private notif: NotificationsService,
-    private rendererFactory: RendererFactory2
+    private rendererFactory: RendererFactory2,
+    private msgs: MessagesService
   ) {
     this.renderer = this.rendererFactory.createRenderer(null, null);
     // formDefaults(this).then(d => {
@@ -137,8 +140,11 @@ export class BoxReaderComponent implements OnInit {
     this.backend.fetchMsg(ctx).subscribe((messages: any) => {
       console.log(messages);
       this.messages = messages;
+      this.msgs.pushMessages(this.loginData._username, messages);
 
       of(() => {
+        // Backend is configured to allow only One access to email content
+        // Show only if needed, otherwise user will have to connect back to get the content
         let iframes = document.querySelectorAll('iframe[data-didload="0"]');
         iframes.forEach(f => {
           // this.renderer.setAttribute(f, 'src', f.getAttribute('data-src'));
