@@ -149,6 +149,15 @@
 * https://material.angular.io/components/datepicker/overview#internationalization
 * http://fr.learnlayout.com/clearfix.html
 
+* https://stackoverflow.com/questions/32692825/encrypt-the-data-using-silex-framework?rq=1
+* https://paragonie.com/book/pecl-libsodium/read/00-intro.md#installing-libsodium
+* https://github.com/zendframework/zend-crypt
+* https://github.com/moust/silex-cache-service-provider
+* https://github.com/defuse/php-encryption
+* https://github.com/defuse/php-encryption/blob/master/docs/Tutorial.md
+* https://paragonie.com/blog/2016/02/how-safely-store-password-in-2016
+* => well, no safety if key can be found from server, same as for cache files, so encrypt is over-security...
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

@@ -1,12 +1,12 @@
 <div class="bs box-reader condensed" #eltRef>
   <div class="container-fluid">
     <mat-card class="row">
-      <div class="col-8 text-left">
+      <div class="col-9 text-left" (click)="toggleConfigs($event)">
         <strong>{{ formGroup?.value._username }}</strong> ({{ this.messages?.numResults }}/{{
           this.messages?.totalCount
         }})
       </div>
-      <div class="col-4 text-right">
+      <div class="col-3 text-right">
         <button mat-button color="primary" type="button" (click)="toggleConfigs($event)">...</button>
       </div>
       <div class="col-12 col-md-6 text-md-left condensable">

@@ -44,8 +44,13 @@ class ImapDataProvider extends DataProvider
     }
     protected function storeInCache($key, $data) {
         $app = $this->app;
-        $app['cache']->store($key, $data, self::cacheLifetime);
+        $app['cache']->store($key, base64_encode(json_encode($data)), self::cacheLifetime);
         return $this;
+    }
+    protected function fetchFromCache($key) {
+        $app = $this->app;
+        // var_dump(json_decode(base64_decode($app['cache']->fetch($key)))); exit;
+        return json_decode(base64_decode($app['cache']->fetch($key)), true);
     }
 
     protected function getUserDataStoreKey() {
@@ -635,7 +640,7 @@ class ImapDataProvider extends DataProvider
             // TODO : realy slow for each iframe rendering.
             // May be store needed data in session to speed up iframe load ?
             // May be it load each frame with debug info system (can see multiple call for each frames)
-            $editData = $app['cache']->fetch($self->getUserDataStoreKey());
+            $editData = $self->fetchFromCache($self->getUserDataStoreKey());
             $msgBody = quoted_printable_decode(
                 $app->fetchByPath($editData, $bodyPath)
             );
