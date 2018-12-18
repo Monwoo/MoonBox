@@ -37,6 +37,8 @@ export class BoxesComponent implements OnInit {
 
   @HostListener('window:scroll', ['$event'])
   checkScroll() {
+    if (!this.filtersFormRef) return; // will waith for filters to be displayed
+
     this.isSticky =
       window.pageYOffset >= this.initialOffset + 21 + this.filtersFormRef.nativeElement.getClientRects()[0].height;
     // this.filtersFormRef.nativeElement.getBoundingClientRect().bottom;
@@ -73,6 +75,9 @@ export class BoxesComponent implements OnInit {
 
   ngAfterViewChecked() {
     this.storage.ensureLockIsNotClosable();
+    if (this.filtersFormRef && !this.initialOffset) {
+      this.initialOffset = this.filtersFormRef.nativeElement.offsetTop;
+    }
   }
 
   errorHandler(err: any) {
@@ -86,7 +91,8 @@ export class BoxesComponent implements OnInit {
   }
 
   ngAfterViewInit() {
-    this.initialOffset = this.filtersFormRef.nativeElement.offsetTop;
+    // filtersFormRef might be null if lockscreen activated...
+    // this.initialOffset = this.filtersFormRef.nativeElement.offsetTop;
   }
 
   toggleFilters() {
