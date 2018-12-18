@@ -124,6 +124,24 @@
 - https://medium.com/@EliaPalme/angular2-sticky-header-scroll-then-fix-ab4c54fada1f
 - https://stackoverflow.com/questions/52634838/angular-6-css-sticky-header
 
+* https://marketplace.visualstudio.com/items?itemName=felixfbecker.php-intellisense
+* https://blogs.msdn.microsoft.com/nicktrog/2016/02/11/configuring-visual-studio-code-for-php-development/
+* https://code.visualstudio.com/docs/languages/php
+* https://github.com/HvyIndustries/crane/issues
+* https://github.com/bmewburn/vscode-intelephense
+* https://github.com/felixfbecker/php-language-server
+* https://code.visualstudio.com/docs/editor/variables-reference
+  => to Use felixfbecker.php-intellisense, add in your visual studio code configs :
+  {
+  "window.zoomLevel": 0,
+  "editor.tabSize": 2,
+  "php.suggest.basic": false,
+  "php.executablePath": "/Applications/MAMP/bin/php/php7.1.8/bin/php",
+  "php.validate.executablePath": "/Applications/MAMP/bin/php/php7.1.8/bin/php",
+  "[php]": {
+  }
+  }
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
