@@ -19,16 +19,21 @@ export type FormType = {
   periode: {
     fetchStart: Date;
     fetchEnd: Date;
+    fetchStartStr: string;
+    fetchEndStr: string;
   };
   keepInMemory: boolean;
   params: {
     moonBoxEmailsGrouping: {
-      // [key: string]: string;
+      // [key: string]: string,
       mbegKeyTransformer: {
         key: string;
         value: string;
       }[];
     };
+    keywordsSubject: string[];
+    keywordsBody: string[];
+    avoidwords: string[]; // TODO : not reflected by backend API for now
   };
 };
 
@@ -49,13 +54,18 @@ export const formDefaults = async (caller: any) => {
       resolve({
         periode: {
           fetchStart: null,
-          fetchEnd: null
+          fetchEnd: null,
+          fetchStartStr: null,
+          fetchEndStr: null
         },
         keepInMemory: false,
         params: {
           moonBoxEmailsGrouping: {
             mbegKeyTransformer: []
-          }
+          },
+          keywordsSubject: [],
+          keywordsBody: [],
+          avoidwords: []
         }
       });
     })();
@@ -106,15 +116,15 @@ export const FORM_LAYOUT = {
   // https://github.com/udos86/ng-dynamic-forms/blob/bfea1d8b/packages/core/src/model/misc/dynamic-form-control-layout.model.ts#L8
   //
 
-  _username: {
-    // TODO : better id Unique system for whole app...
+  keywordsSubject: {
     element: {
-      container: 'w-100'
+      host: 'w-100'
     }
-    // grid: {
-    //     control: "col-sm-9",
-    //     label: "col-sm-3"
-    // }
+  },
+  keywordsBody: {
+    element: {
+      host: 'w-100'
+    }
   },
   keepInMemory: {
     element: {
@@ -145,17 +155,20 @@ export const formModel = async (caller: any) => {
       const d = await formDefaults(caller);
       resolve([
         new DynamicFormGroupModel({
+          // https://material.angular.io/components/datepicker/overview#internationalization
           id: 'periode',
           group: [
             new DynamicDatePickerModel({
               id: 'fetchStart',
               inline: false,
+              // validators: { required: null },
               placeholder: await fetchTrans(extract('mb.boxes.filter.start.plhdr'))
             }),
 
             new DynamicDatePickerModel({
               id: 'fetchEnd',
               inline: false,
+              // validators: { required: null },
               placeholder: await fetchTrans(extract('mb.boxes.filter.end.plhdr'))
             })
           ],
@@ -175,6 +188,19 @@ export const formModel = async (caller: any) => {
           id: 'params',
           legend: await fetchTrans(extract('Paramètres')),
           group: [
+            new DynamicInputModel({
+              id: 'keywordsSubject',
+              placeholder: await fetchTrans(extract('Recherche dans les sujets')),
+              multiple: true,
+              value: d.params.keywordsSubject
+            }),
+            new DynamicInputModel({
+              id: 'keywordsBody',
+              placeholder: await fetchTrans(extract('Recherche dans les contenus')),
+              multiple: true,
+              // validators: { required: null },
+              value: d.params.keywordsBody
+            }),
             new DynamicFormGroupModel({
               id: 'moonBoxEmailsGrouping',
               legend: await fetchTrans(extract("Associations d'adresses")),

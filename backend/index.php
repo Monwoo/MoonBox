@@ -281,11 +281,24 @@ $ctlrs->match('/api/login', function(Request $request) use ($app){
         'enabled' => true,
         'username' => $vars['_username'],
         'password' => $vars['_password'],
-        'mailhost' => $vars['params']['mailhost'],
-        'mailport' => $vars['params']['mailport'],
-        'connector' => $vars['connector'] ?? 'Unknow',
-        'moonBoxEmailsGrouping' => $vars['params']['moonBoxEmailsGrouping'],
+        'params' => $vars['params'],
+        'periode' => $vars['periode'],
+        'connector' => $vars['selectedProvider'] ?? 'Unknow',
       ];
+      // transforming moonBoxEmailsGrouping
+      $users[$userName]['params']['moonBoxEmailsGrouping'] = array_reduce(
+        $users[$userName]['params']['moonBoxEmailsGrouping']['mbegKeyTransformer'],
+          function ($acc, $tuple) {
+            // if (isset($acc[$tuple['key']])) {
+            //     $acc[$tuple['key']][] = $tuple['value'];
+            // } else {
+            //     $acc[$tuple['key']] = [$tuple['value']];
+            // }
+            $acc[$tuple['key']] = $tuple['value'];
+            return $acc;
+        }, []
+      );
+
       $app['logger']->debug("Having User : " . $app->json($users[$userName])->getContent());
       $app['session']->set('users', $users);
 

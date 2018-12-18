@@ -297,8 +297,8 @@ class ImapDataProvider extends DataProvider
               'serviceEmail' => [
                   'username' => $localUser['username'],
                   'authtype' => '',
-                  'mailhost' => $localUser['mailhost'],
-                  'mailport' => $localUser['mailport'],
+                  'mailhost' => $localUser['params']['mailhost'],
+                  'mailport' => $localUser['params']['mailport'],
                   'password' => $localUser['password'], // Do not put your passwords in default config, will be cached online...
               ],
           ],
@@ -356,9 +356,12 @@ class ImapDataProvider extends DataProvider
             );
         } else if ('submit_refresh' === $action) {
             // $self->context['admin_result_form'] = $self->buildAdminForm();
+            $status = [
+                'errors' => [],
+            ];
             $connections = $self->defaultConfig["connections"];
             $numResults = 0;
-            $msgsOrderedByExpeditors = [
+            $msgsOrderedByDate = [
             /* Data model to be able to filter on expeditor|timestamp|tags
                |keywords in tags|connection source name :
                 [
@@ -394,7 +397,7 @@ class ImapDataProvider extends DataProvider
             ];
             // TODO : load from DB : MoonShopEvent regroup on client email ?
             // + append custom client email from spreadsheet ?
-            $moonBoxEmailsGrouping = $localUser['moonBoxEmailsGrouping'] ?? [];
+            $moonBoxEmailsGrouping = $localUser['params']['moonBoxEmailsGrouping'] ?? [];
             // [
             //     'xxx@yopmail.com' => 'xxx@yopmail.com',
             //     'aaa@yopmail.com' => 'aaa@yopmail.com',
@@ -420,11 +423,62 @@ class ImapDataProvider extends DataProvider
                         $folders[] = $loadedFolder;
                     }
                     // Build IMAP search query
-                    $startDate = \DateTime::createFromFormat('Y/m/d',
-                    '2017/12/01')->format('d-M-Y'); // TODO : date from params
-                    $msgIds = $this->imap->search([
-                        "SINCE $startDate",
-                    ]); // SE_UID option like in http://www.php.net/manual/en/function.imap-search.php ?
+                    // http://php.net/manual/fr/function.imap-search.php
+                    $imapQuery = [];
+                    if (isset($localUser['periode'])
+                    && isset($localUser['periode']['fetchStartStr'])
+                    && $localUser['periode']['fetchStartStr']) {
+                        $startDate = \DateTime::createFromFormat('Y/m/d',
+                        $localUser['periode']['fetchStartStr'])
+                        ->format('d-M-Y');
+                        $imapQuery[] = "SINCE \"$startDate\"";
+                    }
+                    if (isset($localUser['periode'])
+                    && isset($localUser['periode']['fetchEndStr'])
+                    && $localUser['periode']['fetchEndStr']) {
+                        $endDate = \DateTime::createFromFormat('Y/m/d',
+                        $localUser['periode']['fetchEndStr'])
+                        ->format('d-M-Y');
+                        $imapQuery[] = "BEFORE \"$endDate\"";
+                    }
+                    if (isset($localUser['params'])
+                    && isset($localUser['params']['keywordsSubject'])) {
+                        foreach ($localUser['params']['keywordsSubject'] as $keyword) {
+                            $imapQuery[] = "SUBJECT \"$keyword\"";
+                            // TODO : need to multiple fetch with other possible keyword position
+                            // $imapQuery[] = "TEXT \"$keyword\"";
+                            // Will only search in subject for v1
+                            // $imapQuery[] = "FROM \"$keyword\"";
+                            // $imapQuery[] = "TO \"$keyword\"";
+                            // $imapQuery[] = "CC \"$keyword\"";
+                            // $imapQuery[] = "BCC \"$keyword\"";
+                            // $imapQuery[] = "BODY \"$keyword\"";
+                            // $imapQuery[] = "KEYWORD \"$keyword\"";
+                        }
+                    }
+                    if (isset($localUser['params'])
+                    && isset($localUser['params']['keywordsBody'])) {
+                        foreach ($localUser['params']['keywordsBody'] as $keyword) {
+                            $imapQuery[] = "TEXT \"$keyword\"";
+                        }
+                    }
+                    if (isset($localUser['params'])
+                    && isset($localUser['params']['avoidwords'])) {
+                        // TODO : not realy working... well, do not check body or part words :
+                        foreach ($localUser['params']['avoidwords'] as $avoidword) {
+                            $imapQuery[] = "UNKEYWORD \"$avoidword\"";
+                        }
+                    }
+                    if (!count($imapQuery)) {
+                        $imapQuery[] = "ALL";
+                    }
+                    // TODO : http://php.net/manual/en/function.imap-listscan.php ?
+                    // https://github.com/HvyIndustries/crane-php-stubs/blob/master/imap.php
+                    // http://www.csi.sssup.it/docs/php4/en-html-manual/ref.imap.html
+                    // http://php.net/manual/en/function.imap-fetchstructure.php
+
+                    // SE_UID option like in http://www.php.net/manual/en/function.imap-search.php ?
+                    $msgIds = $this->imap->search($imapQuery);
                     $totalCountOfMsg = count($msgIds);
                     // $numResults = max($totalCountOfMsg, $numResults);
                     $numResults += $totalCountOfMsg; // max($totalCountOfMsg, $numResults);
@@ -432,89 +486,105 @@ class ImapDataProvider extends DataProvider
                     // $it > 0 && $it > $totalCountOfMsg - $offset - $limit; $it-- ) {
                     //     $i = $msgIds[$it - 1];
                     foreach ($msgIds as $i) {
-                        // https://docs.zendframework.com/zend-mail/read/
-                        // https://framework.zend.com/manual/2.4/en/modules/zend.mail.message.html
-                        // Zend\Mail\Storage\Message instance
-                  			$msgStore = $this->storage->getMessage($i);
-                        // https://framework.zend.com/manual/2.1/en/modules/zend.mail.read.html
-                        $msg = $msgStore;
-                        $headers = [];
-                        foreach ($msg->getHeaders() as $header) {
-                            // $headers[] = $header->toString();
-                            // or grab values: $header->getFieldName(), $header->getFieldValue()
-                            $headers[$header->getFieldName()] = $header->getFieldValue();
+                        try {
+                            // https://docs.zendframework.com/zend-mail/read/
+                            // https://framework.zend.com/manual/2.4/en/modules/zend.mail.message.html
+                            // Zend\Mail\Storage\Message instance
+                            $msgStore = $this->storage->getMessage($i);
+                            // https://framework.zend.com/manual/2.1/en/modules/zend.mail.read.html
+                            $msg = $msgStore;
+                            $headers = [];
+                            foreach ($msg->getHeaders() as $header) {
+                                // $headers[] = $header->toString();
+                                // or grab values: $header->getFieldName(), $header->getFieldValue()
+                                $headers[$header->getFieldName()] = $header->getFieldValue();
+                            }
+                            $subject = $msg->subject;//htmlentities($msg->subject);
+                            $msgFlags = $msg->getFlags();
+                            // $body = $msg->mail->getBody(); // or get raw message and instanciate imap msg with it...;
+                            $msgDateTime = new \DateTime($headers['Date']);
+                            $timestamp = $msgDateTime->getTimestamp();
+                            $localTime = $msgDateTime->format('Y/m/d H:i');
+                            // $msgsSummary[] = [
+                            //     'headers' => $headers,
+                            //     'subject' => $subject,
+                            // ];
+                            $expeditorFullName = $headers['From'];
+                            $expeditor = $self->extratSimpleContactAdress($expeditorFullName);
+                            $expeditorMainAnswerBox =
+                            isset($mainAnswerBoxByExpeditor[$expeditor])
+                            ? $mainAnswerBoxByExpeditor[$expeditor] : $expeditor;
+                            $msgId = $headers['Message-ID']; // TODO What if missing ? need auto-gen id on save or combine keys (name + src + time) ?
+                            $msgsOrderedByDate[] = [
+                                'expeditorFullName' => $expeditorFullName,
+                                'expeditorMainAnswerBox' => $expeditorMainAnswerBox,
+                                'subject' => $subject,
+                                'msgFlags' => $msgFlags,
+                                // Computed on demand with next action :
+                                // 'body' => $body, // htmlentities($msg->getBody()),
+                                'localTime' => $localTime, //$msgHeaders->getInternalDate(), // will be used for timeline ordering
+                                'headers' => Yaml::dump($headers, 4),
+                                'expeditor' => $expeditor,
+                                'haveMoonShopEvent' => false, // TODO : grouped hash table extract from MoonShopEvents DB + check key exist for this value
+                                'timestamp' => $timestamp, //$msgHeaders->getInternalDate(), // will be used for timeline ordering
+                                // 'to' => $msg->getTo(),
+                                // 'replyTo' => $msg->getReplyTo(), // TODO getReplyTo
+                                'to' => isset($headers['To']) ? $headers['To'] : '',
+                                // : (isset($headers['Reply-To']) ? $headers['Reply-To'] : ''),
+                                // 'cc' => $msg->getCc(), // isset($headers['Cc']) ? $headers['Cc'] : '',
+                                // 'bcc' => $msg->getBcc(), // isset($headers['Bcc']) ? $headers['Bcc'] : '',
+                                'cc' => isset($headers['Cc']) ? $headers['Cc'] : '',
+                                'bcc' => isset($headers['Bcc']) ? $headers['Bcc'] : '',
+                                'tags' => '', // [], // : TODO : load from cache, build with key index as : "$expeditor.$msgId"
+                                // 'msg' => $msgPayload, // TODO : Normalized Mail message to display summary in ui + id for fetching
+                                'msgId' => $msgId,
+                                'msgUniqueId' => $this->storage->getUniqueId($i), // Bounded to wich query ? not foud id for now...
+                                'imapId' => $i, // NOT usable without linked query ?
+                                // Configure minimal body summary lenght to get all generated data from auto-mailing
+                                'connectionName' => $connectionName, // used connection, without password,
+                            ];
+                        } catch (\Throwable $e) {
+                            $errMsg = 'Exception '.get_class($e).': '.$e->getMessage();
+                            $errPos = $e->getFile().':'.$e->getLine();
+                            $errTrace = $e->getTrace();
+                            // $app['session']->getFlashBag()->add('error'
+                            // , "Faild to load MSG $i for {$connection['username']}");
+                            $app['logger']->error("Fail to load Imap {$connection['username']}"
+                            , [$errMsg, $errPos, $errTrace]);
+                            array_push($status['errors'], $errMsg);
                         }
-                        $subject = $msg->subject;//htmlentities($msg->subject);
-                        $msgFlags = $msg->getFlags();
-                        // $body = $msg->mail->getBody(); // or get raw message and instanciate imap msg with it...;
-                        $msgDateTime = new \DateTime($headers['Date']);
-                        $timestamp = $msgDateTime->getTimestamp();
-                        $localTime = $msgDateTime->format('Y/m/d H:i');
-                        // $msgsSummary[] = [
-                        //     'headers' => $headers,
-                        //     'subject' => $subject,
-                        // ];
-                        $expeditorFullName = $headers['From'];
-                        $expeditor = $self->extratSimpleContactAdress($expeditorFullName);
-                        $expeditorMainAnswerBox =
-                        isset($mainAnswerBoxByExpeditor[$expeditor])
-                        ? $mainAnswerBoxByExpeditor[$expeditor] : $expeditor;
-                        $msgId = $headers['Message-ID']; // TODO What if missing ? need auto-gen id on save or combine keys (name + src + time) ?
-                        $msgsOrderedByExpeditors[] = [
-                            'expeditorFullName' => $expeditorFullName,
-                            'expeditorMainAnswerBox' => $expeditorMainAnswerBox,
-                            'subject' => $subject,
-                            'msgFlags' => $msgFlags,
-                            // Computed on demand with next action :
-                            // 'body' => $body, // htmlentities($msg->getBody()),
-                            'localTime' => $localTime, //$msgHeaders->getInternalDate(), // will be used for timeline ordering
-                            'headers' => Yaml::dump($headers, 4),
-                            'expeditor' => $expeditor,
-                            'haveMoonShopEvent' => false, // TODO : grouped hash table extract from MoonShopEvents DB + check key exist for this value
-                            'timestamp' => $timestamp, //$msgHeaders->getInternalDate(), // will be used for timeline ordering
-                            // 'to' => $msg->getTo(),
-                            // 'replyTo' => $msg->getReplyTo(), // TODO getReplyTo
-                            'to' => isset($headers['To']) ? $headers['To'] : '',
-                            // : (isset($headers['Reply-To']) ? $headers['Reply-To'] : ''),
-                            // 'cc' => $msg->getCc(), // isset($headers['Cc']) ? $headers['Cc'] : '',
-                            // 'bcc' => $msg->getBcc(), // isset($headers['Bcc']) ? $headers['Bcc'] : '',
-                            'cc' => isset($headers['Cc']) ? $headers['Cc'] : '',
-                            'bcc' => isset($headers['Bcc']) ? $headers['Bcc'] : '',
-                            'tags' => '', // [], // : TODO : load from cache, build with key index as : "$expeditor.$msgId"
-                            // 'msg' => $msgPayload, // TODO : Normalized Mail message to display summary in ui + id for fetching
-                            'msgId' => $msgId,
-                            'msgUniqueId' => $this->storage->getUniqueId($i), // Bounded to wich query ? not foud id for now...
-                            'imapId' => $i, // NOT usable without linked query ?
-                            // Configure minimal body summary lenght to get all generated data from auto-mailing
-                            'connectionName' => $connectionName, // used connection, without password,
-                        ];
-                		}
+                    }
+                    $status['folders'] = $folders;
                     // * DEBUG
-                    $app['logger']->debug("Did open MailBox {$connection['username']}", [
+                    $app['logger']->debug("Did open MailBox {$connection['username']}" . json_encode([
                         'mailBoxFolders' => $folders,
                         'totalCountOfMsg' => $totalCountOfMsg,
-                        'msgsOrderedByExpeditors' => $msgsOrderedByExpeditors,
-                    ]);
+                        // 'msgsOrderedByDate' => $msgsOrderedByDate,
+                        'imapQuery' => $imapQuery,
+                    ]));
                     // */
                 } catch (\Throwable $e) {
                     $errMsg = 'Exception '.get_class($e).': '.$e->getMessage();
                     $errPos = $e->getFile().':'.$e->getLine();
                     $errTrace = $e->getTrace();
-                    $app['session']->getFlashBag()->add('error'
-                    , "Faild to load Imap {$connection['username']}");
-                    $app['logger']->error("Fail to load Imap {$connection['username']}"
+                    $errTitle = "Fail to load Imap {$connection['username']}";
+                    // $app['session']->getFlashBag()->add('error'
+                    // , "Faild to load Imap {$connection['username']}");
+                    $app['logger']->error($errTitle
                     , [$errMsg, $errPos, $errTrace]);
+                    array_push($status['errors'], [$errTitle, $errMsg]);
                 }
             }
             $msgComparator = function ($a, $b) {
-                $cmp = strtolower($a['expeditorMainAnswerBox'])
-                <=> strtolower($b['expeditorMainAnswerBox']);
-                return $cmp ? $cmp : $b['timestamp'] <=> $a['timestamp'];
+                // $cmp = strtolower($a['expeditorMainAnswerBox'])
+                // <=> strtolower($b['expeditorMainAnswerBox']);
+                // return $cmp ? $cmp : $b['timestamp'] <=> $a['timestamp'];
+                return $b['timestamp'] <=> $a['timestamp'];
             };
-            usort($msgsOrderedByExpeditors, $msgComparator);
+            usort($msgsOrderedByDate, $msgComparator);
             // Transform data based on previously ordered messages
-            foreach ($msgsOrderedByExpeditors as $it => $msg) {
-                $msgsOrderedByExpeditors[$it]
+            foreach ($msgsOrderedByDate as $it => $msg) {
+                $msgsOrderedByDate[$it]
                 ['iframeBody'] = $self->ifameBuilder(
                     "{$msg['connectionName']}<|>[$it][body]"
                 );
@@ -522,7 +592,7 @@ class ImapDataProvider extends DataProvider
 
             $defaultGroup = "_";
             $msgsByMoonBoxGroup = [];
-            foreach ($msgsOrderedByExpeditors as &$msg) {
+            foreach ($msgsOrderedByDate as &$msg) {
                 if (isset($moonBoxEmailsGrouping[
                     $msg['expeditorMainAnswerBox']
                 ])) {
@@ -547,13 +617,14 @@ class ImapDataProvider extends DataProvider
                 }
             }
 
-            $self->storeInCache($self->getUserDataStoreKey(), $msgsOrderedByExpeditors);
+            $self->storeInCache($self->getUserDataStoreKey(), $msgsOrderedByDate);
             // TODO : refactor saved data model to be extendable object ?
-            // $msgsOrderedByExpeditors->numResults = $numResults;
+            // $msgsOrderedByDate->numResults = $numResults;
             $self->actionResponse = $app->json([
-              'numResults' => $numResults,
-              'msgsOrderedByExpeditors' => $msgsOrderedByExpeditors,
-              'msgsByMoonBoxGroup' => $msgsByMoonBoxGroup,
+                'status' => $status,
+                'numResults' => $numResults,
+                'msgsOrderedByDate' => $msgsOrderedByDate,
+                'msgsByMoonBoxGroup' => $msgsByMoonBoxGroup,
             ]);
         } else if ('msg_body' === $action) {
             $param = explode('<|>', $param);

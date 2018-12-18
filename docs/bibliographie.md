@@ -130,6 +130,7 @@
 * https://github.com/HvyIndustries/crane/issues
 * https://github.com/bmewburn/vscode-intelephense
 * https://github.com/felixfbecker/php-language-server
+* https://github.com/felixfbecker/vscode-php-intellisense/issues/25
 * https://code.visualstudio.com/docs/editor/variables-reference
   => to Use felixfbecker.php-intellisense, add in your visual studio code configs :
   {
@@ -141,6 +142,12 @@
   "[php]": {
   }
   }
+
+* https://stackoverflow.com/questions/30365346/what-is-the-spaceship-operator-in-php-7
+
+* https://github.com/udos86/ng-dynamic-forms/issues/498
+* https://material.angular.io/components/datepicker/overview#internationalization
+*
 
 ```bash
 # Added packages :

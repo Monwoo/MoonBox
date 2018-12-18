@@ -1,6 +1,6 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 
-import { NgModule } from '@angular/core';
+import { NgModule, LOCALE_ID } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MoonBoxRoutingModule } from './moon-box-routing.module';
 import { MonwooMoonManagerWrapModule } from '@moon-manager/monwoo-moon-manager-wrap.module';
@@ -22,8 +22,12 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { MAT_CHIPS_DEFAULT_OPTIONS, MatCardModule, MatNativeDateModule } from '@angular/material';
-
+import {
+  MAT_CHIPS_DEFAULT_OPTIONS,
+  MatCardModule,
+  MatDatepickerModule /*, MatNativeDateModule*/
+} from '@angular/material';
+import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import { DYNAMIC_VALIDATORS, DynamicFormsCoreModule, Validator, ValidatorFactory } from '@ng-dynamic-forms/core';
 import { DynamicFormsMaterialUIModule } from '@ng-dynamic-forms/ui-material';
 import { ShowHidePasswordModule } from 'ngx-show-hide-password';
@@ -37,6 +41,8 @@ import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 // import { LockScreenModule, LockScreenComponent } from 'ionic-simple-lockscreen';
 import { MatDialogModule } from '@angular/material/dialog';
 import { LockScreenComponent } from './components/lock-screen/lock-screen.component';
+import { I18nService } from '@app/core';
+import { MAT_DATE_LOCALE } from '@angular/material/core';
 
 @NgModule({
   declarations: [BoxReaderComponent, ParametersComponent, BoxesComponent, LockScreenComponent, SafeHtmlPipe],
@@ -55,7 +61,9 @@ import { LockScreenComponent } from './components/lock-screen/lock-screen.compon
     MatButtonModule,
     MatCheckboxModule,
     MatTooltipModule,
-    MatNativeDateModule,
+    MatDatepickerModule,
+    // MatNativeDateModule,
+    MatMomentDateModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -71,6 +79,23 @@ import { LockScreenComponent } from './components/lock-screen/lock-screen.compon
   ],
   entryComponents: [LockScreenComponent],
   providers: [
+    // https://material.angular.io/components/datepicker/overview#setting-the-locale-code
+    // { provide: MAT_DATE_LOCALE, useValue: 'en-GB'},
+    {
+      provide: LOCALE_ID,
+      useFactory: (translateService: I18nService) => {
+        return translateService.language;
+      },
+      deps: [I18nService]
+    },
+    // { // Need to be defined with factory to refresh on changed language :
+    //   // + need to be defined in component's providers for it to reflect live language changes
+    //   provide: MAT_DATE_LOCALE,
+    //   useFactory: (translateService: I18nService) => {
+    //     return translateService.language;
+    //   },
+    //   deps: [I18nService]
+    // },
     {
       provide: NG_VALIDATORS,
       useValue: customValidator,

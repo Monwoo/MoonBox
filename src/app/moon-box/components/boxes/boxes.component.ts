@@ -21,11 +21,37 @@ import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { shallowMerge } from '@moon-manager/tools';
 import { NotificationsService } from 'angular2-notifications';
 import { extract } from '@app/core';
+import { MomentDateAdapter } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import * as moment from 'moment';
+
+export const MY_FORMATS = {
+  parse: {
+    dateInput: 'YYYY/MM/DD'
+  },
+  display: {
+    dateInput: 'YYYY/MM/DD',
+    monthYearLabel: 'YYYY MMM',
+    dateA11yLabel: 'YYYY/MM/DD',
+    monthYearA11yLabel: 'YYYY MMMM'
+  }
+};
 
 @Component({
   selector: 'moon-boxes',
   templateUrl: './boxes.component.html',
-  styleUrls: ['./boxes.component.scss']
+  styleUrls: ['./boxes.component.scss'],
+  providers: [
+    {
+      provide: MAT_DATE_LOCALE,
+      useFactory: (translateService: I18nService) => {
+        return translateService.language;
+      },
+      deps: [I18nService]
+    },
+    { provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE] },
+    { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS }
+  ]
 })
 export class BoxesComponent implements OnInit {
   // @ViewChild('filtersForm') filtersForm: ElementRef<NgForm> = null;
@@ -112,6 +138,12 @@ export class BoxesComponent implements OnInit {
           let freshDefaults = await formDefaults(this);
           let transforms = <FormType>shallowMerge(1, freshDefaults, filtersData);
           this.filters.data = <FormType>shallowMerge(1, transforms, this.filters.group.value);
+          this.filters.data.periode.fetchStartStr = this.filters.data.periode.fetchStart
+            ? moment(this.filters.data.periode.fetchStart).format('YYYY/MM/DD')
+            : null;
+          this.filters.data.periode.fetchEndStr = this.filters.data.periode.fetchEnd
+            ? moment(this.filters.data.periode.fetchEnd).format('YYYY/MM/DD')
+            : null;
 
           this.storage.setItem('moon-box-filters', this.filters.data).subscribe(() => {
             this.i18nService.get(extract('mb.boxes.notif.changeRegistred')).subscribe(t => {

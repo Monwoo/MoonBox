@@ -9,9 +9,10 @@ import {
 import { extract } from '@app/core';
 import { ProviderID } from '@moon-box/services/backend.service';
 import { Logger } from '@app/core/logger.service';
+import { FormType as FiltersFormType } from '@moon-box/components/boxes/filters-form.model';
 const MonwooReview = new Logger('MonwooReview');
 
-export type FormType = {
+export interface FormType extends FiltersFormType {
   _username: string;
   _password: string;
   selectedProvider: ProviderID;
@@ -20,14 +21,17 @@ export type FormType = {
     mailhost: string;
     mailport: string;
     moonBoxEmailsGrouping: {
-      // [key: string]: string;
+      // [key: string]: string,
       mbegKeyTransformer: {
         key: string;
         value: string;
       }[];
     };
+    keywordsSubject: string[];
+    keywordsBody: string[];
+    avoidwords: string[];
   };
-};
+}
 
 export const formDefaults = async (caller: any) => {
   const translate = caller.i18nService;
@@ -59,7 +63,16 @@ export const formDefaults = async (caller: any) => {
                 value: await fetchTrans(extract('JohnDoe@yopmail.com'))
               }
             ]
-          }
+          },
+          keywordsSubject: [],
+          keywordsBody: [],
+          avoidwords: []
+        },
+        periode: {
+          fetchStart: null,
+          fetchEnd: null,
+          fetchStartStr: null,
+          fetchEndStr: null
         }
       });
     })();
