@@ -366,6 +366,7 @@ class ImapDataProvider extends DataProvider
             ];
             $connections = $self->defaultConfig["connections"];
             $numResults = 0;
+            $totalCount = 0;
             $msgsOrderedByDate = [
             /* Data model to be able to filter on expeditor|timestamp|tags
                |keywords in tags|connection source name :
@@ -429,6 +430,7 @@ class ImapDataProvider extends DataProvider
                     }
                     // Build IMAP search query
                     // http://php.net/manual/fr/function.imap-search.php
+                    // https://framework.zend.com/apidoc/2.1/classes/Zend.Mail.Storage.Imap.html
                     $imapQuery = [];
                     if (isset($localUser['periode'])
                     && isset($localUser['periode']['fetchStartStr'])
@@ -485,8 +487,11 @@ class ImapDataProvider extends DataProvider
                     // SE_UID option like in http://www.php.net/manual/en/function.imap-search.php ?
                     $msgIds = $this->imap->search($imapQuery);
                     $totalCountOfMsg = count($msgIds);
+                    $totalCount += $totalCountOfMsg;
+                    $msgIds = array_slice($msgIds, $self->offsetStart, $self->offsetLimit);
+                    $numResultsOfMsg = count($msgIds);
                     // $numResults = max($totalCountOfMsg, $numResults);
-                    $numResults += $totalCountOfMsg; // max($totalCountOfMsg, $numResults);
+                    $numResults += $numResultsOfMsg; // max($totalCountOfMsg, $numResults);
                     // for ($it = $totalCountOfMsg - $offset;
                     // $it > 0 && $it > $totalCountOfMsg - $offset - $limit; $it-- ) {
                     //     $i = $msgIds[$it - 1];
@@ -630,7 +635,10 @@ class ImapDataProvider extends DataProvider
                 'numResults' => $numResults,
                 'msgsOrderedByDate' => $msgsOrderedByDate,
                 'msgsByMoonBoxGroup' => $msgsByMoonBoxGroup,
-                'totalCount' => $numResults, // TODO : real total count + request paginations
+                'totalCount' => $totalCount,
+                'offsetStart' => $self->offsetStart,
+                'offsetLimit' => $self->offsetLimit,
+                'nextPage' => ($self->offsetStart + $numResults < $totalCount) ? $page + 1 : null,
             ]);
         } else if ('msg_body' === $action) {
             $param = explode('<|>', $param);
