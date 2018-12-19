@@ -178,6 +178,8 @@
 * https://github.com/php-ds/ext-ds
 * https://github.com/php-ds/polyfill
 
+* https://angular.io/guide/component-interaction
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

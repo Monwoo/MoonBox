@@ -27,6 +27,8 @@ import { extract } from '@app/core';
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { BoxReaderComponent } from '@moon-box/components/box-reader/box-reader.component';
+import { Logger } from '@app/core/logger.service';
+const logReview = new Logger('MonwooReview');
 
 import * as moment from 'moment';
 
@@ -106,6 +108,9 @@ export class BoxesComponent implements OnInit {
     this.storage.setLockContainer(this.eltRef);
     // this.msgs.service.subscribe((messages) => {
     // });
+    this.storage.getItem('boxesIdxs').subscribe((bIdxs: number[]) => {
+      this.boxesIdxs = bIdxs ? bIdxs : this.boxesIdxs;
+    }, this.errorHandler);
   }
 
   ngAfterViewChecked() {
@@ -148,6 +153,7 @@ export class BoxesComponent implements OnInit {
 
   addBox() {
     this.boxesIdxs.push(this.boxesIdxs.length);
+    this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: number[]) => {}, this.errorHandler);
   }
 
   toggleFilters() {
@@ -181,7 +187,7 @@ export class BoxesComponent implements OnInit {
             });
           }, this.errorHandler);
 
-          console.log('Patching Filters : ', this.filters.data);
+          logReview.debug('Patching Filters : ', this.filters.data);
           this.ngZone.run(() => {
             this.filters.group.patchValue(this.filters.data);
           });
@@ -209,14 +215,14 @@ export class BoxesComponent implements OnInit {
             // transforms... ?
             let transforms = this.filters.data;
             this.filters.data = <FormType>shallowMerge(1, this.filters.data, transforms);
-            console.log('Patching form : ', this.filters.data);
+            logReview.debug('Patching form : ', this.filters.data);
             this.ngZone.run(() => {
               this.filters.group.patchValue(this.filters.data);
             });
           })();
         },
         error => {
-          console.error('Fail to fetch config');
+          logReview.error('Fail to fetch config');
         }
       );
     } else {
@@ -259,23 +265,32 @@ export class BoxesComponent implements OnInit {
       box.loadNext(e);
     });
   }
-  removeBox(e: any, idx: number) {
-    const targetBox = this.boxViews.find((item, boxViewIdx, src) => {
-      return idx === boxViewIdx;
-    });
-    this.boxViews.forEach((box: BoxReaderComponent, boxIdx: number) => {
-      if (idx === this.boxViews.length) {
-        box.removeSelfStorage();
-      } else if (idx >= boxIdx) {
-        box.moveSelfStorage('down');
+  async removeBox(e: any, idxToRemove: number) {
+    let boxIds = this.boxesIdxs;
+    this.boxesIdxs = []; // Remove all first, to reset component ui and avoid refresh issue box not changed
+
+    // const targetBox = this.boxViews.find((item, boxViewIdx, src) => {
+    //   return idxToRemove === boxViewIdx;
+    // });
+    // this.boxViews.forEach((box: BoxReaderComponent, boxIdx: number) => {
+    const boxes = this.boxViews.map(b => b);
+    for (let boxIdx = 0; boxIdx < boxes.length; boxIdx++) {
+      const box = boxes[boxIdx];
+      if (boxIdx === boxes.length - 1) {
+        await box.removeSelfStorage();
+      } else if (boxIdx >= idxToRemove) {
+        await box.moveSelfStorage('stepTowardEnd');
       }
-    });
-    this.boxesIdxs.pop();
+    }
+
+    boxIds.pop();
+    this.boxesIdxs = boxIds;
+    await this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: number[]) => {}, this.errorHandler);
   }
   expandMessages(e: any, k: string, idx: number) {
-    console.log('TODO');
+    logReview.debug('TODO');
   }
   expandMessage(e: any, k: string, idx: number) {
-    console.log('TODO');
+    logReview.debug('TODO');
   }
 }

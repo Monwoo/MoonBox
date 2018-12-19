@@ -1,6 +1,17 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 
-import { Component, OnInit, ViewChild, Input, NgZone, Renderer2, RendererFactory2, ElementRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  Input,
+  NgZone,
+  Renderer2,
+  RendererFactory2,
+  ElementRef,
+  Output,
+  EventEmitter
+} from '@angular/core';
 import { NgForm, FormGroup, Validators, FormBuilder } from '@angular/forms';
 // import { LocalStorage } from '@ngx-pwa/local-storage';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
@@ -26,12 +37,12 @@ const logReview = new Logger('MonwooReview');
 })
 export class BoxReaderComponent implements OnInit {
   @Input() id: string;
-
   @Input()
   set filters(filters: FiltersFormType) {
     this.loginData = <FormType>shallowMerge(1, this.loginData, filters);
     this.updateForm();
   }
+  @Output() onIdChange = new EventEmitter<[string, string]>();
 
   @ViewChild('loginForm') loginForm: NgForm = null;
   @ViewChild('eltRef') eltRef: ElementRef = null;
@@ -141,8 +152,8 @@ export class BoxReaderComponent implements OnInit {
     if (this.formGroup) {
       this.backend.fetchMsg(this.formGroup.value._username).subscribe((messages: any) => {
         logReview.debug('BoxReader did fetch msgs ', this.messages);
-        if (messages.status.errors.length) {
-          logReview.warn('BoxReader fetch errors ', messages.status.errors);
+        if (!messages.status || messages.status.errors.length) {
+          logReview.warn('BoxReader fetch errors ', messages.status ? messages.status.errors : messages);
           this.i18nService.get(extract('mm.box-reader.notif.fetchFail')).subscribe(t => {
             this.notif.warn(t);
             // this.ll.hideLoader();
@@ -219,21 +230,39 @@ export class BoxReaderComponent implements OnInit {
     // TODO: paginantion
     logReview.warn('TODO');
   }
-  moveSelfStorage(direction: 'up' | 'down') {
-    this.storage.getItem('moon-box-' + this.id).subscribe(selfBox => {
-      const swapId = 'moon-box-' + (direction === 'up' ? 1 : -1);
-      this.storage.getItem('moon-box-' + swapId).subscribe(swapBox => {
-        this.storage.setItem('moon-box-' + swapId, selfBox).subscribe(swapBox => {
-          this.storage.setItem('moon-box-' + this.id, swapBox).subscribe(swapBox => {
-            logReview.debug('Succed to swipe storage of moon-box-' + this.id + ' ' + direction);
-          }, this.errorHandler);
-        }, this.errorHandler);
-      }, this.errorHandler);
-    }, this.errorHandler);
+  moveSelfStorage(direction: 'stepTowardStart' | 'stepTowardEnd') {
+    const self = this;
+    return new Promise<boolean>(function(resolve, reject) {
+      const errHandler = (e: any) => {
+        self.errorHandler(e);
+        reject('Storage error');
+      };
+      self.storage.getItem('moon-box-' + self.id).subscribe((selfBox: any) => {
+        const swapId = 'moon-box-' + (direction === 'stepTowardStart' ? -1 : 1);
+        self.storage.getItem('moon-box-' + swapId).subscribe((swapBox: any) => {
+          self.storage.setItem('moon-box-' + swapId, selfBox).subscribe(() => {
+            self.storage.setItem('moon-box-' + self.id, swapBox).subscribe(() => {
+              logReview.debug('Succed to swipe storage of moon-box-' + self.id + ' ' + direction);
+              self.onIdChange.emit([self.id, swapId]);
+              resolve(true);
+            }, errHandler);
+          }, errHandler);
+        }, errHandler);
+      }, errHandler);
+    });
   }
   removeSelfStorage() {
-    this.storage.removeItem('moon-box-' + this.id).subscribe(() => {
-      logReview.debug('Succed to Removing moon-box-' + this.id);
-    }, this.errorHandler);
+    const self = this;
+    return new Promise<boolean>(function(resolve, reject) {
+      const errHandler = (e: any) => {
+        self.errorHandler(e);
+        reject('Storage error');
+      };
+      self.storage.removeItem('moon-box-' + self.id).subscribe(() => {
+        logReview.debug('Succed to Removing moon-box-' + self.id);
+        self.onIdChange.emit([self.id, null]);
+        resolve(true);
+      }, errHandler);
+    });
   }
 }
