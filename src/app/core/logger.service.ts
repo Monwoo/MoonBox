@@ -1,3 +1,9 @@
+// Copyright Monwoo 2018, improved by Miguel Monwoo, service@monwoo.com
+// Inspired from Monwoo CVVideo and :
+// https://developer.mozilla.org/en-US/docs/Web/API/Console/table
+// https://developers.google.com/web/tools/chrome-devtools/console/console-write
+// import { environment } from '@env/environment';
+
 /**
  * Simple logger system with the possibility of registering custom outputs.
  *
@@ -47,6 +53,8 @@ export enum LogLevel {
  */
 export type LogOutput = (source: string, level: LogLevel, ...objects: any[]) => void;
 
+let _isProduction = false;
+
 export class Logger {
   /**
    * Current logging level.
@@ -65,6 +73,7 @@ export class Logger {
    */
   static enableProductionMode() {
     Logger.level = LogLevel.Warning;
+    _isProduction = true;
   }
 
   constructor(private source?: string) {}
@@ -105,6 +114,12 @@ export class Logger {
     if (level <= Logger.level) {
       const log = this.source ? ['[' + this.source + ']'].concat(objects) : objects;
       func.apply(console, log);
+      if (!_isProduction) {
+        console.groupCollapsed('%c Trace', 'color: #000000; font-size: 6pt;');
+        console.trace();
+        console.groupEnd();
+      }
+
       Logger.outputs.forEach(output => output.apply(output, [this.source, level].concat(objects)));
     }
   }
