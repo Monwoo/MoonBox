@@ -16,6 +16,8 @@ import { extract } from '@app/core';
 import { FormType as FiltersFormType } from '@moon-box/components/boxes/filters-form.model';
 import { pluck, delay, debounceTime, tap } from 'rxjs/operators';
 import { forkJoin, of, interval } from 'rxjs';
+import { Logger } from '@app/core/logger.service';
+const logReview = new Logger('MonwooReview');
 
 @Component({
   selector: 'moon-box-reader',
@@ -85,14 +87,14 @@ export class BoxReaderComponent implements OnInit {
   }
 
   errorHandler(err: any) {
-    console.error(err);
+    logReview.warn('BoxReader error', err);
   }
 
   ngOnInit() {
     // const imapProvider = this.imapProviders[this.defaultProvider];
     const ctx = {};
 
-    this.readMessages();
+    // this.readMessages();
   }
 
   selectProvider(id: ProviderID) {
@@ -119,14 +121,14 @@ export class BoxReaderComponent implements OnInit {
               this.loginData.keepInMemory = true;
               let transforms = this.loginData;
               this.loginData = <FormType>shallowMerge(1, this.loginData, transforms);
-              console.log('Patching form : ', this.loginData);
+              logReview.debug('Patching form : ', this.loginData);
               this.ngZone.run(() => {
                 this.formGroup.patchValue(this.loginData);
               });
             })();
           },
           error => {
-            console.error('Fail to fetch config');
+            logReview.warn('Fail to fetch config for ', this.loginData);
           }
         );
       } else {
@@ -136,12 +138,24 @@ export class BoxReaderComponent implements OnInit {
   }
 
   readMessages() {
-    this.backend.fetchMsg(this.formGroup.value._username).subscribe((messages: any) => {
-      console.log(messages);
-      this.messages = messages;
-      this.msgs.pushMessages(messages);
-      this.updateIFrames();
-    }, this.errorHandler);
+    if (this.formGroup) {
+      this.backend.fetchMsg(this.formGroup.value._username).subscribe((messages: any) => {
+        logReview.debug('BoxReader did fetch msgs ', this.messages);
+        if (messages.status.errors.length) {
+          logReview.warn('BoxReader fetch errors ', messages.status.errors);
+          this.i18nService.get(extract('mm.box-reader.notif.fetchFail')).subscribe(t => {
+            this.notif.warn(t);
+            // this.ll.hideLoader();
+          });
+        } else {
+          this.messages = messages;
+          this.msgs.pushMessages(messages);
+          this.updateIFrames();
+        }
+      }, this.errorHandler);
+    } else {
+      logReview.warn('Algo issue, trying to read msg when form is not yet ready');
+    }
   }
 
   updateIFrames() {
@@ -170,18 +184,23 @@ export class BoxReaderComponent implements OnInit {
       this.loginData = <FormType>shallowMerge(1, this.loginData, val);
       if (this.loginData.keepInMemory) {
         this.storage.setItem('moon-box-' + this.id, this.loginData).subscribe(() => {
-          this.i18nService.get(extract('mm.param.notif.saveSucced')).subscribe(t => {
-            this.notif.success(t);
-            // this.ll.hideLoader();
-          });
+          // TODO : fluent design review : do not show useless msg, if it works, data
+          // showing up is enough...
+
+          // TODO : may be rewrite all in ngx-storage state system ?
+          logReview.warn('Algo issue ? form refresh and storage sync....');
+          // this.i18nService.get(extract('mm.param.notif.saveSucced')).subscribe(t => {
+          //   this.notif.success(t);
+          //   // this.ll.hideLoader();
+          // });
         }, this.errorHandler);
       } else {
         this.storage.removeItem('moon-box-' + this.id).subscribe(() => {
-          console.log('No save required for moon-box-' + this.id);
+          logReview.debug("'No save required for moon-box-' + this.id");
         }, this.errorHandler);
       }
       this.backend.login(this.loginData).subscribe(() => {
-        console.log('User is logged in');
+        logReview.debug('User is logged in');
 
         this.readMessages();
         this.hasMoreMsgs = true; // TODO : pagination etc...
@@ -198,6 +217,23 @@ export class BoxReaderComponent implements OnInit {
   }
   loadNext(e: any) {
     // TODO: paginantion
-    console.log('TODO');
+    logReview.warn('TODO');
+  }
+  moveSelfStorage(direction: 'up' | 'down') {
+    this.storage.getItem('moon-box-' + this.id).subscribe(selfBox => {
+      const swapId = 'moon-box-' + (direction === 'up' ? 1 : -1);
+      this.storage.getItem('moon-box-' + swapId).subscribe(swapBox => {
+        this.storage.setItem('moon-box-' + swapId, selfBox).subscribe(swapBox => {
+          this.storage.setItem('moon-box-' + this.id, swapBox).subscribe(swapBox => {
+            logReview.debug('Succed to swipe storage of moon-box-' + this.id + ' ' + direction);
+          }, this.errorHandler);
+        }, this.errorHandler);
+      }, this.errorHandler);
+    }, this.errorHandler);
+  }
+  removeSelfStorage() {
+    this.storage.removeItem('moon-box-' + this.id).subscribe(() => {
+      logReview.debug('Succed to Removing moon-box-' + this.id);
+    }, this.errorHandler);
   }
 }

@@ -65,20 +65,19 @@ export class BoxesComponent implements OnInit {
   @ViewChildren(BoxReaderComponent) boxViews!: QueryList<BoxReaderComponent>;
 
   isSticky: boolean = false;
-  initialOffset: number = 0;
+  initialStickyOffset: number = 0;
+  initialStickyHeight: number = 0;
 
   @HostListener('window:scroll', ['$event'])
   checkScroll() {
     if (!this.filtersFormRef) return; // will waith for filters to be displayed
 
-    this.isSticky =
-      window.pageYOffset >= this.initialOffset + 21 + this.filtersFormRef.nativeElement.getClientRects()[0].height;
+    this.isSticky = window.pageYOffset >= this.initialStickyOffset;
     // this.filtersFormRef.nativeElement.getBoundingClientRect().bottom;
     if (this.isSticky) {
-      this.filtersFormRef.nativeElement.parentElement.parentElement.style.marginTop =
-        this.filtersFormRef.nativeElement.getClientRects()[0].height + 'px';
+      this.filtersFormRef.nativeElement.parentElement.parentElement.style.marginTop = this.initialStickyHeight + 'px';
     } else {
-      this.filtersFormRef.nativeElement.parentElement.parentElement.style.marginTop = '10px';
+      this.filtersFormRef.nativeElement.parentElement.parentElement.style.marginTop = '0px';
     }
   }
 
@@ -111,8 +110,21 @@ export class BoxesComponent implements OnInit {
 
   ngAfterViewChecked() {
     this.storage.ensureLockIsNotClosable();
-    if (this.filtersFormRef && !this.initialOffset) {
-      this.initialOffset = this.filtersFormRef.nativeElement.offsetTop;
+    if (this.filtersFormRef && !this.initialStickyOffset) {
+      // https://stackoverflow.com/questions/5598743/finding-elements-position-relative-to-the-document
+      const getOffsetTop = (elem: any) => {
+        var offsetTop = 0;
+        do {
+          if (!isNaN(elem.offsetTop)) {
+            offsetTop += elem.offsetTop;
+          }
+        } while ((elem = elem.offsetParent));
+        return offsetTop;
+      };
+      this.initialStickyOffset = getOffsetTop(this.filtersFormRef.nativeElement);
+      // TODO : find back in Monwoo CVVideo or Ecole de la Vie how to get real div Height...
+      // This height is missing margin/padding and border size....
+      this.initialStickyHeight = this.filtersFormRef.nativeElement.getClientRects()[0].height + 15 + 16 + 1;
     }
   }
 
@@ -247,7 +259,19 @@ export class BoxesComponent implements OnInit {
       box.loadNext(e);
     });
   }
-
+  removeBox(e: any, idx: number) {
+    const targetBox = this.boxViews.find((item, boxViewIdx, src) => {
+      return idx === boxViewIdx;
+    });
+    this.boxViews.forEach((box: BoxReaderComponent, boxIdx: number) => {
+      if (idx === this.boxViews.length) {
+        box.removeSelfStorage();
+      } else if (idx >= boxIdx) {
+        box.moveSelfStorage('down');
+      }
+    });
+    this.boxesIdxs.pop();
+  }
   expandMessages(e: any, k: string, idx: number) {
     console.log('TODO');
   }

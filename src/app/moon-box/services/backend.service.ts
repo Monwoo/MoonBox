@@ -12,6 +12,8 @@ import { extract } from '@app/core';
 import { I18nService } from '@app/core';
 import { FormType as LoginFormType } from '@moon-box/components/box-reader/login-form.model';
 import * as moment from 'moment';
+import { Logger } from '@app/core/logger.service';
+const logReview = new Logger('MonwooReview');
 
 export type ProviderID = 'OVH' | 'GoDaddy' | 'LWS' | 'YopMail' | 'Yahoo' | 'Unknown';
 
@@ -124,7 +126,7 @@ export class BackendService {
               .setItem('access_token', payload.token)
               .pipe(
                 tap(_ => {
-                  console.log('Access token saved');
+                  logReview.debug('Access token saved');
                 })
               )
               .subscribe();

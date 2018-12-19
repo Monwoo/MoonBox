@@ -58,6 +58,9 @@
 
   <ng-container *ngFor="let idx of boxesIdxs">
     <moon-box-reader [id]="idx" [filters]="filters.group.value"></moon-box-reader>
+    <button class="" mat-button color="primary" type="button" (click)="removeBox($event, idx)">
+      {{ 'Déconnecter la boite' | translate }}
+    </button>
   </ng-container>
   <button class="" mat-button color="primary" type="button" (click)="addBox()">
     {{ 'Ajouter une boite' | translate }}
@@ -83,7 +86,7 @@
               {{ '[' + msg.value.expeditor + '] => ' + msg.value.to + ' | ' + msg.value.cc + ' | ' + msg.value.bcc }}
             </span>
             <ng-template #msgBody>
-              <div class="condensable" [innerHTML]="msg.value.iframeBody | safeHtml"></div>
+              <div class="condensable-lvl2" [innerHTML]="msg.value.iframeBody | safeHtml"></div>
             </ng-template>
             <ng-container *ngTemplateOutlet="msgBody"> </ng-container>
           </mat-card-content>
