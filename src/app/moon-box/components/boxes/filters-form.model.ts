@@ -58,7 +58,7 @@ export const formDefaults = async (caller: any) => {
           fetchStartStr: null,
           fetchEndStr: null
         },
-        keepInMemory: false,
+        keepInMemory: true,
         params: {
           moonBoxEmailsGrouping: {
             mbegKeyTransformer: []

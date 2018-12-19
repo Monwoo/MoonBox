@@ -313,7 +313,10 @@ class ImapDataProvider extends DataProvider
         // $localUser = $localUsers[$token->getUsername()];
         $localUser = $localUsers[$dataUsername];
         if (!$localUser) {
-            $app['logger']->debug("Unknown userData : " . $dataUsername);
+            $app['logger']->debug("Unknown userData : " . $dataUsername . ' for ' . $app->json([
+                'apiUser' => $apiUser->getUsername(),
+                'localUsers' => $localUsers,
+            ])->getContent());
             $status = [
                 'errors' => [["Unknown userData", $dataUsername]],
             ];

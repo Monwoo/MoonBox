@@ -4,17 +4,17 @@
 // https://github.com/udos86/ng-dynamic-forms/blob/master/sample/app/app.validators.ts
 
 import { AbstractControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { Logger } from '@app/core/logger.service';
+const logReview = new Logger('MonwooReview');
 
 export function customValidator(control: AbstractControl): ValidationErrors | null {
-  console.log('Custom Validator');
-
   let hasError = false; // control.value ? (control.value as string).startsWith("abc") : false;
 
+  if (hasError) logReview.debug('Custom Validator error');
   return hasError ? { customValidator: true } : null;
 }
 
 export function customDateRangeValidator(group: FormGroup): ValidationErrors | null {
-  console.log('Custom Date range');
   let hasError = false;
 
   try {
@@ -26,6 +26,7 @@ export function customDateRangeValidator(group: FormGroup): ValidationErrors | n
     }
   } catch (error) {}
 
+  if (hasError) logReview.debug('Custom Date range error');
   return hasError ? { customDateRangeValidator: true } : null;
 }
 
@@ -34,16 +35,16 @@ export function customForbiddenValidator(forbiddenValue: string): ValidatorFn {
 
   return (control: AbstractControl): ValidationErrors | null => {
     if (control && control.value === forbiddenValue) {
+      logReview.debug('Custom Forbiden validator error');
       return { forbidden: true };
     }
-
     return null;
   };
 }
 
 export function customAsyncFormGroupValidator(formGroup: FormGroup): Promise<ValidationErrors | null> {
   return new Promise((resolve, reject) => {
-    console.log('async validation');
+    logReview.debug('Custom Async validator');
     resolve(null);
   });
 }

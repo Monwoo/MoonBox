@@ -159,6 +159,8 @@ export class BoxReaderComponent implements OnInit {
             // this.ll.hideLoader();
           });
         } else {
+          this.hasMoreMsgs = messages.numResults !== messages.totalCount; // TODO : pagination etc...
+
           this.messages = messages;
           this.msgs.pushMessages(messages);
           this.updateIFrames();
@@ -214,7 +216,6 @@ export class BoxReaderComponent implements OnInit {
         logReview.debug('User is logged in');
 
         this.readMessages();
-        this.hasMoreMsgs = true; // TODO : pagination etc...
       });
     } else {
       this.i18nService
@@ -230,27 +231,29 @@ export class BoxReaderComponent implements OnInit {
     // TODO: paginantion
     logReview.warn('TODO');
   }
-  moveSelfStorage(direction: 'stepTowardStart' | 'stepTowardEnd') {
-    const self = this;
-    return new Promise<boolean>(function(resolve, reject) {
-      const errHandler = (e: any) => {
-        self.errorHandler(e);
-        reject('Storage error');
-      };
-      self.storage.getItem('moon-box-' + self.id).subscribe((selfBox: any) => {
-        const swapId = 'moon-box-' + (direction === 'stepTowardStart' ? -1 : 1);
-        self.storage.getItem('moon-box-' + swapId).subscribe((swapBox: any) => {
-          self.storage.setItem('moon-box-' + swapId, selfBox).subscribe(() => {
-            self.storage.setItem('moon-box-' + self.id, swapBox).subscribe(() => {
-              logReview.debug('Succed to swipe storage of moon-box-' + self.id + ' ' + direction);
-              self.onIdChange.emit([self.id, swapId]);
-              resolve(true);
-            }, errHandler);
-          }, errHandler);
-        }, errHandler);
-      }, errHandler);
-    });
-  }
+  // Avoid below : better to let Collection handle the position etc...
+  // => keep design at component level Max possible VS Quicks needs for current sprint
+  // moveSelfStorage(direction: 'stepTowardStart' | 'stepTowardEnd') {
+  //   const self = this;
+  //   return new Promise<boolean>(function(resolve, reject) {
+  //     const errHandler = (e: any) => {
+  //       self.errorHandler(e);
+  //       reject('Storage error');
+  //     };
+  //     self.storage.getItem('moon-box-' + self.id).subscribe((selfBox: any) => {
+  //       const swapId = 'moon-box-' + (direction === 'stepTowardStart' ? -1 : 1);
+  //       self.storage.getItem('moon-box-' + swapId).subscribe((swapBox: any) => {
+  //         self.storage.setItem('moon-box-' + swapId, selfBox).subscribe(() => {
+  //           self.storage.setItem('moon-box-' + self.id, swapBox).subscribe(() => {
+  //             logReview.debug('Succed to swipe storage of moon-box-' + self.id + ' ' + direction);
+  //             self.onIdChange.emit([self.id, swapId]);
+  //             resolve(true);
+  //           }, errHandler);
+  //         }, errHandler);
+  //       }, errHandler);
+  //     }, errHandler);
+  //   });
+  // }
   removeSelfStorage() {
     const self = this;
     return new Promise<boolean>(function(resolve, reject) {
@@ -259,7 +262,7 @@ export class BoxReaderComponent implements OnInit {
         reject('Storage error');
       };
       self.storage.removeItem('moon-box-' + self.id).subscribe(() => {
-        logReview.debug('Succed to Removing moon-box-' + self.id);
+        logReview.debug('Succed to remove moon-box-' + self.id);
         self.onIdChange.emit([self.id, null]);
         resolve(true);
       }, errHandler);

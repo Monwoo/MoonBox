@@ -73,8 +73,9 @@ export class BoxesComponent implements OnInit {
   @HostListener('window:scroll', ['$event'])
   checkScroll() {
     if (!this.filtersFormRef) return; // will waith for filters to be displayed
+    const deltaScrollAvailable = document.body.scrollHeight - document.body.clientHeight;
 
-    this.isSticky = window.pageYOffset >= this.initialStickyOffset;
+    this.isSticky = window.pageYOffset >= this.initialStickyOffset && deltaScrollAvailable > 200;
     // this.filtersFormRef.nativeElement.getBoundingClientRect().bottom;
     if (this.isSticky) {
       this.filtersFormRef.nativeElement.parentElement.parentElement.style.marginTop = this.initialStickyHeight + 'px';
@@ -88,7 +89,8 @@ export class BoxesComponent implements OnInit {
   mbegKeyTransformerControl: FormArray;
   mbegKeyTransformerModel: DynamicFormArrayModel;
   renderer: Renderer2 = null;
-  boxesIdxs: number[] = [0];
+  boxesIdxs: string[] = [];
+  boxesIdxsLookup: { [key: string]: boolean } = {};
 
   constructor(
     private i18nService: I18nService,
@@ -108,8 +110,12 @@ export class BoxesComponent implements OnInit {
     this.storage.setLockContainer(this.eltRef);
     // this.msgs.service.subscribe((messages) => {
     // });
-    this.storage.getItem('boxesIdxs').subscribe((bIdxs: number[]) => {
-      this.boxesIdxs = bIdxs ? bIdxs : this.boxesIdxs;
+    this.storage.getItem('boxesIdxs').subscribe((bIdxs: string[]) => {
+      if (bIdxs) {
+        this.boxesIdxs = bIdxs;
+      } else {
+        this.addBox();
+      }
     }, this.errorHandler);
   }
 
@@ -129,7 +135,7 @@ export class BoxesComponent implements OnInit {
       this.initialStickyOffset = getOffsetTop(this.filtersFormRef.nativeElement);
       // TODO : find back in Monwoo CVVideo or Ecole de la Vie how to get real div Height...
       // This height is missing margin/padding and border size....
-      this.initialStickyHeight = this.filtersFormRef.nativeElement.getClientRects()[0].height + 15 + 16 + 1;
+      this.initialStickyHeight = this.filtersFormRef.nativeElement.getClientRects()[0].height + 15 * 2 + 16 * 2 + 1 * 2;
     }
   }
 
@@ -151,9 +157,59 @@ export class BoxesComponent implements OnInit {
     });
   }
 
+  newRandomIndex() {
+    let $idx = null;
+    do {
+      $idx = moment().format('YYYYMMDDHHmmss') + (Math.random().toString(36) + '12121212121212').slice(2, 14);
+    } while (this.boxesIdxsLookup[$idx]);
+    return $idx;
+  }
+
+  updateBoxesLookup() {
+    this.boxesIdxsLookup = this.boxesIdxs.reduce((acc, b) => {
+      acc[b] = true;
+      return acc;
+    }, {});
+  }
+
   addBox() {
-    this.boxesIdxs.push(this.boxesIdxs.length);
-    this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: number[]) => {}, this.errorHandler);
+    this.boxesIdxs.push(this.newRandomIndex());
+    this.updateBoxesLookup();
+
+    this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: string[]) => {}, this.errorHandler);
+  }
+  async removeBox(e: any, idxToRemove: string) {
+    // let boxIds = this.boxesIdxs;
+    // this.boxesIdxs = []; // Remove all first, to reset component ui and avoid refresh issue box not changed
+
+    const targetBox = this.boxViews.find((item, index, src) => {
+      return idxToRemove === item.id;
+    });
+    // TODO : targetBox.logout(); ??
+    targetBox.removeSelfStorage();
+    // const boxesArrIdx = this.boxesIdxs.findIndex((b)=>idxToRemove===b);
+    // if (boxesArrIdx === -1) logReview.warn('Algo bug, fail to find ' + idxToRemove, this.boxesIdxs);
+    // delete this.boxesIdxs[boxesArrIdx];
+    // this.boxesIdxs = [...this.boxesIdxs]; // force self updates etc.. + avoid strange bug about null value
+    // delete(this.boxesIdxsLookup[idxToRemove]);
+    this.boxesIdxs = this.boxesIdxs.reduce((acc, b) => {
+      if (idxToRemove !== b) acc.push(b);
+      return acc;
+    }, []);
+    this.updateBoxesLookup();
+    // // this.boxViews.forEach((box: BoxReaderComponent, boxIdx: number) => {
+    // const boxes = this.boxViews.map(b => b);
+    // for (let boxIdx = 0; boxIdx < boxes.length; boxIdx++) {
+    //   const box = boxes[boxIdx];
+    //   if (boxIdx === boxes.length - 1) {
+    //     await box.removeSelfStorage();
+    //   } else if (boxIdx >= idxToRemove) {
+    //     await box.moveSelfStorage('stepTowardEnd');
+    //   }
+    // }
+    // boxIds.pop();
+    // this.boxesIdxs = boxIds;
+    await this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: number[]) => {}, this.errorHandler);
   }
 
   toggleFilters() {
@@ -264,28 +320,6 @@ export class BoxesComponent implements OnInit {
     this.boxViews.forEach((box: BoxReaderComponent) => {
       box.loadNext(e);
     });
-  }
-  async removeBox(e: any, idxToRemove: number) {
-    let boxIds = this.boxesIdxs;
-    this.boxesIdxs = []; // Remove all first, to reset component ui and avoid refresh issue box not changed
-
-    // const targetBox = this.boxViews.find((item, boxViewIdx, src) => {
-    //   return idxToRemove === boxViewIdx;
-    // });
-    // this.boxViews.forEach((box: BoxReaderComponent, boxIdx: number) => {
-    const boxes = this.boxViews.map(b => b);
-    for (let boxIdx = 0; boxIdx < boxes.length; boxIdx++) {
-      const box = boxes[boxIdx];
-      if (boxIdx === boxes.length - 1) {
-        await box.removeSelfStorage();
-      } else if (boxIdx >= idxToRemove) {
-        await box.moveSelfStorage('stepTowardEnd');
-      }
-    }
-
-    boxIds.pop();
-    this.boxesIdxs = boxIds;
-    await this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: number[]) => {}, this.errorHandler);
   }
   expandMessages(e: any, k: string, idx: number) {
     logReview.debug('TODO');
