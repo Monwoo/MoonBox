@@ -180,14 +180,15 @@ $app['security.jwt'] = [
   'secret_key' => 'Very_secret_key',
   'life_time'  => $app['authTimeOut'],
   'options'    => [
-      'username_claim' => 'name', // default name, option specifying claim containing username
+      'username_claim' => 'username', // default name, option specifying claim containing username
       'header_name' => 'Authorization', // default null, option for usage normal oauth2 header
       'token_prefix' => 'Bearer',
   ]
 ];
 
-$app['users'] = function () use ($app) {
-    //   $users = [
+// $app['apiUsers'] = function () use ($app) {
+$app['users'] = function () use ($app) { // TODO : why need to be called 'users' to enable jwt ?
+        //   $users = [
     //       'admin' => array(
     //           'roles' => array('ROLE_ADMIN'),
     //           // raw password is foo
@@ -195,8 +196,24 @@ $app['users'] = function () use ($app) {
     //           'enabled' => true
     //       ),
     //   ];
-    $users = $app['session']->get('users', []);
-    return new InMemoryUserProvider($users);
+    $users = [];
+    array_walk($app['session']->get('apiUsers', []), function(&$apiUser, &$key) use (&$users) {
+        // $key = "Change key value..." ?;
+        // $users[] = new User($key, null);
+        $users[$key] = [
+            // => one role + one password mandatory :
+            // https://silex.symfony.com/doc/2.0/providers/security.html
+            // 'ROLE_USER', null => not working with jwt...
+            'roles' => ['ROLE_USER'],
+            'enabled' => true,
+            'username' => $key,
+        ];
+    });
+    $app['logger']->debug("Loading Users : " . $app->json($users)->getContent());
+
+    return new InMemoryUserProvider(
+        $users
+    );
 };
 
 $app['security.firewalls'] = array(
@@ -214,11 +231,11 @@ $app['security.firewalls'] = array(
         'pattern' => '^/api/moon-box/.*$',
         'methods' => ['GET', 'POST'],
         // 'anonymous' => true,
-        'logout' => array('logout_path' => '/logout'),
-        'users' => $app['users'],
+        'logout' => array('logout_path' => '/api/moon-box/logout'),
+        'users' => $app['users'], // useless since check app.users inside lib ?
         'jwt' => array(
             'use_forward' => true,
-            'require_previous_session' => false,
+            'require_previous_session' => true,
             'stateless' => true,
         )
     ],
@@ -226,10 +243,10 @@ $app['security.firewalls'] = array(
         'pattern' => '^.*$',
         'methods' => ['GET', 'POST'],
         'logout' => array('logout_path' => '/logout'),
-        'users' => $app['users'],
+        'users' => $app['users'], // useless since check app.users inside lib ?
         'jwt' => array(
             'use_forward' => true,
-            'require_previous_session' => false,
+            'require_previous_session' => true,
             'stateless' => true,
         )
     ),
@@ -268,17 +285,31 @@ $ctlrs->match('/api/login', function(Request $request) use ($app){
   $vars = json_decode($request->getContent(), true);
   // var_dump($vars);exit;
   try {
-      if (empty($vars['_username']) || empty($vars['_password'])) {
-          throw new UsernameNotFoundException(sprintf('Username "%s" does not exist.', $vars['_username']));
+      if (empty($vars['apiUsername'])) { // || empty($vars['apiUsername'])) {
+          throw new UsernameNotFoundException(sprintf('Api Username "%s" does not exist.', $vars['apiUsername']));
       }
+      // $token = $app['security.token_storage']->getToken();
+      $apiUsername = $vars['apiUsername']; // $token->getUsername()
       $userName = $vars['_username'];
 
-      $users = $app['session']->get('users', []);
+      $apiUsers = $app['session']->get('apiUsers', []);
+      if (!array_key_exists($apiUsers, $apiUsername)) {
+        $apiUsers[$apiUsername] = [
+            // 'roles' => [], // array('ROLE_ADMIN'),
+            // raw password is foo
+            // 'password' => '5FZ2Z8QIkA7UTZ4BYkoC+GsReLf569mSKDsfods6LYQ8t+a8EW9oaircfMpmaLbPBh4FOBiiFyLfuZmTSUwzZg==',
+            'apiUsername' => $apiUsername,
+            // 'password' => 'NoPasswordForOpenApi',
+            // 'enabled' => true,
+            'dataUsers' => [],
+        ];
+        // Username, password, roles, enabled
+        // $apiUsers[$apiUsername] = new User($apiUsername, null, [], true);
+        // $apiUsers[$apiUsername]->users = [];
+      }
+      $apiUser = &$apiUsers[$apiUsername];
+      $users = &$apiUser['dataUsers'];
       $users[$userName] = [
-        // 'roles' => array('ROLE_ADMIN'),
-        // raw password is foo
-        // 'password' => '5FZ2Z8QIkA7UTZ4BYkoC+GsReLf569mSKDsfods6LYQ8t+a8EW9oaircfMpmaLbPBh4FOBiiFyLfuZmTSUwzZg==',
-        'enabled' => true,
         'username' => $vars['_username'],
         'password' => $vars['_password'],
         'params' => $vars['params'],
@@ -299,12 +330,12 @@ $ctlrs->match('/api/login', function(Request $request) use ($app){
         }, []
       );
 
-      $app['logger']->debug("Having User : " . $app->json($users[$userName])->getContent());
-      $app['session']->set('users', $users);
+      $app['session']->set('apiUsers', $apiUsers);
+      $app['logger']->debug($apiUsername . " Having Api Users : " . $app->json($apiUsers)->getContent());
 
       $response = [
         'success' => true,
-        'token' => $app['security.jwt.encoder']->encode(['name' => $userName]),
+        'token' => $app['security.jwt.encoder']->encode(['username' => $apiUsername]),
       ]; // Allowing all, backend is only a proxy server for IMAP and other Server side API features
     } catch (UsernameNotFoundException $e) {
       $response = [
@@ -336,13 +367,12 @@ $ctlrs->match('/api/messages', function() use ($app){
       $granted_super = 'yes';
   }
   $user = $token->getUser();
-  $localUsers = $app['session']->get('users', []);
-  $localUser = $localUsers[$token->getUsername()];
+  $localApiUsers = $app['session']->get('apiUsers', []);
+  $localUsers = $localApiUsers[$token->getUsername()];
 
   return $app->json([
       'hello' => $token->getUsername(),
-      'username' => $user->getUsername(),
-      'connector' => $localUser['connector'],
+      'users' => $localUsers,
       'auth' => $jwt,
       'granted' => $granted,
       'granted_user' => $granted_user,

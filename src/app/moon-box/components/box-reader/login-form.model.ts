@@ -50,11 +50,14 @@ export const formDefaults = async (caller: any) => {
       resolve({
         _username: await fetchTrans(extract('JohnDoe@yopmail.com')),
         _password: '',
-        selectedProvider: 'Unknown',
+        selectedProvider: 'YopMail',
         keepInMemory: true,
         params: {
-          mailhost: '',
-          mailport: '',
+          // TODO : default provider not working yet... :
+          // http://www.yopmail.com/en/
+          // =>
+          mailhost: 'imap.yopmail.com',
+          mailport: '993',
           moonBoxEmailsGrouping: {
             // [await fetchTrans(extract('JohnDoe@yopmail.com'))]: await fetchTrans(extract('JohnDoe@yopmail.com'))
             mbegKeyTransformer: [

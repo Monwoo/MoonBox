@@ -29,16 +29,22 @@ use Monwoo\Middleware\AddingCors;
 
 use Monwoo\Middleware\MonwooDataEventsMiddleware;
 use JasonGrimes\Paginator;
+use \Ds\Vector;
 
 class ImapDataProvider extends DataProvider
 {
     const cacheLifetime = 60*30; // 30 minutes
 
+    // http://php.net/manual/en/ds-sequence.contains.php
+    protected $stableConnectors = null;
     protected $imap = null;
     protected $storage = null;
     protected function init() {
         $self = $this;
         $self->dataset = [];
+        $self->stableConnectors = new Vector([
+            'OVH', 'GoDaddy', 'LWS', 'Yahoo', 'Unknown'
+        ]);
         $self->dataset_name = 'ImapData';
         $self->dataset_id = 'data_imap';
     }
@@ -86,7 +92,7 @@ class ImapDataProvider extends DataProvider
         }
         return $prefix . $self->countOfIds;
     }
-    protected function ifameBuilder($srcPath) {
+    protected function ifameBuilder($dataUsername, $srcPath) {
         $self = $this;
         $app = $self->app;
         // $assetManager = $app['assets.packages'];
@@ -96,6 +102,7 @@ class ImapDataProvider extends DataProvider
         $iframePath = $app->url($self->actionRouteName(), [
             'action' => 'msg_body',
             'param' => $srcPath,
+            'username' => $dataUsername,
         ]);
         $iframeStyle = 'min-height:250px;max-height:800px;width:100%';
         return "<iframe
@@ -294,9 +301,50 @@ class ImapDataProvider extends DataProvider
         // }
   
         $token = $app['security.token_storage']->getToken();
-        $user = $token->getUser();
-        $localUsers = $app['session']->get('users', []);
-        $localUser = $localUsers[$token->getUsername()];
+        $apiUser = $token->getUser();
+        $dataUsername = $request->get('username');
+        $apiUsers = $app['session']->get('apiUsers', []);
+        $localUsers = $apiUsers[$apiUser->getUsername()]['dataUsers'];
+        
+        // TODO : not doing check on username input, may login multiple times on user account 
+        // => may need some API Design refactoring...
+        // But may be ok for now since session based ensure secu about loaded accounts
+        // avoiding collision between multiple windows requesting the backend at same time...
+        // $localUser = $localUsers[$token->getUsername()];
+        $localUser = $localUsers[$dataUsername];
+        if (!$localUser) {
+            $app['logger']->debug("Unknown userData : " . $dataUsername);
+            $status = [
+                'errors' => [["Unknown userData", $dataUsername]],
+            ];
+            $self->actionResponse = $app->json([
+                'message' => "A Token was not found in the TokenStorage."
+                //'status' => $status,
+            ]);
+            return true;
+        }
+
+        // var_dump($self->stableConnectors->contains($localUser['connector'])); exit('dd');
+
+        if (!$self->stableConnectors->contains($localUser['connector'])) {
+            $app['logger']->debug("ImapData Connector not stable : " . $localUser['connector']);
+            $status = [
+                'errors' => [["ImapData Connector not stable", $localUser['connector']]],
+            ];
+            $self->actionResponse = $app->json([
+                'status' => $status,
+                'numResults' => 0,
+                'msgsOrderedByDate' => [],
+                'msgsByMoonBoxGroup' => [],
+                'totalCount' => 0,
+                'offsetStart' => 0,
+                'offsetLimit' => 0,
+                'currentPage' => 0,
+                'nextPage' => 0,
+            ]);
+            return true;
+        }
+
         $self->defaultConfig = [
             'connections' =>[
               'serviceEmail' => [
@@ -311,8 +359,8 @@ class ImapDataProvider extends DataProvider
         $app['logger']->debug("ImapData $action : "
         . $app->json([
             'conf' => $self->defaultConfig,
-            'userName' => $token->getUsername(),
-            'user' => $user,
+            'apiUserName' => $token->getUsername(),
+            'user' => $dataUsername,
             'localUsers' => $localUsers,
         ])->getContent());
 
@@ -597,6 +645,7 @@ class ImapDataProvider extends DataProvider
             foreach ($msgsOrderedByDate as $it => $msg) {
                 $msgsOrderedByDate[$it]
                 ['iframeBody'] = $self->ifameBuilder(
+                    $dataUsername,
                     "{$msg['connectionName']}<|>[$it][body]"
                 );
             }

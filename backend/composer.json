@@ -22,6 +22,7 @@
     "cnam/security-jwt-service-provider": "2.*",
     "monolog/monolog": "^1.19",
     "moust/silex-cache": "^2.0",
+    "php-ds/php-ds": "^1.2",
     "silex/silex": "^2.0",
     "silex/web-profiler": "^2.0",
     "symfony/filesystem": "^4.2",

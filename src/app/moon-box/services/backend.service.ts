@@ -11,8 +11,9 @@ import { NotificationsService } from 'angular2-notifications';
 import { extract } from '@app/core';
 import { I18nService } from '@app/core';
 import { FormType as LoginFormType } from '@moon-box/components/box-reader/login-form.model';
+import * as moment from 'moment';
 
-export type ProviderID = 'OVH' | 'GoDaddy' | 'LWS' | 'Unknown';
+export type ProviderID = 'OVH' | 'GoDaddy' | 'LWS' | 'YopMail' | 'Yahoo' | 'Unknown';
 
 const httpOptions = {
   headers: new HttpHeaders({
@@ -29,7 +30,10 @@ const httpOptions = {
 })
 export class BackendService {
   apiBaseUrl: string = environment.moonBoxBackendUrl;
+  apiUsername: string = null;
+
   public providers = {
+    // TODO : all https://accedinfo.com/dns-pop-imap/ ? how to keep simple then ?...
     OVH: {
       name: extract('O.V.H.'),
       serverUrl: 'SSL0.OVH.NET',
@@ -45,6 +49,16 @@ export class BackendService {
       serverUrl: 'mail07.lwspanel.com',
       serverPort: '993'
     },
+    YopMail: {
+      name: extract('YopMail'),
+      serverUrl: 'http://www.yopmail.com?{username}',
+      serverPort: '80'
+    },
+    Yahoo: {
+      name: extract('Yahoo'),
+      serverUrl: 'imap.mail.yahoo.com',
+      serverPort: '993'
+    },
     Unknown: {
       name: extract('Unknown'),
       serverUrl: '',
@@ -57,7 +71,27 @@ export class BackendService {
     private storage: LocalStorage,
     private i18nService: I18nService,
     private notif: NotificationsService
-  ) {}
+  ) {
+    this.generateApiUsername();
+  }
+
+  generateApiUsername() {
+    this.apiUsername =
+      moment().format('YYYYMMDDHHmmss') +
+      (Math.random().toString(36) + '12121212121212').slice(2, 14) +
+      '@moon-box.monwoo.com';
+  }
+
+  logout() {
+    this.generateApiUsername(); // Switching current api username, in case logout call to server did fail to reach...
+    return this.http.get(this.apiBaseUrl + 'api/moon-box/logout', {
+      ...httpOptions,
+      ...{
+        params: new HttpParams()
+        // .set('ctx', ctx)
+      }
+    });
+  }
 
   login(loginData: LoginFormType) {
     if (loginData.selectedProvider === 'Unknown') {
@@ -72,7 +106,16 @@ export class BackendService {
 
     return (
       this.http
-        .post<any>(this.apiBaseUrl + 'api/login', loginData, httpOptions)
+        .post<any>(
+          this.apiBaseUrl + 'api/login',
+          {
+            ...loginData,
+            ...{
+              apiUsername: this.apiUsername
+            }
+          },
+          httpOptions
+        )
         // this is just the HTTP call,
         // we still need to handle the reception of the token
         .pipe(
@@ -91,7 +134,7 @@ export class BackendService {
     );
   }
 
-  fetchMsg(page: number = 1, limit: number = 42) {
+  fetchMsg(username: string, page: number = 1, limit: number = 42) {
     return this.http.get(this.apiBaseUrl + 'api/moon-box/data_imap/submit_refresh', {
       ...httpOptions,
       ...{
@@ -99,6 +142,7 @@ export class BackendService {
           // .set('ctx', JSON.stringify(ctx))
           .set('limit', limit.toString())
           .set('page', page.toString())
+          .set('username', username) // TODO : may be better to submit by post ?
       }
     });
 

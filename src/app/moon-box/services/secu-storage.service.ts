@@ -11,6 +11,7 @@ import { I18nService } from '@app/core';
 import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
 import { CookieService } from 'ngx-cookie-service';
+import { BackendService } from '@moon-box/services/backend.service';
 import { Logger } from '@app/core/logger.service';
 const logReview = new Logger('MonwooReview');
 
@@ -35,7 +36,7 @@ export class SecuStorageService {
   private cS: string = null;
   private debugStorage = false;
   constructor(
-    private localStorage: LocalStorage,
+    private backend: BackendService,
     private dialog: MatDialog,
     private ngZone: NgZone,
     private i18nService: I18nService,
@@ -143,6 +144,9 @@ export class SecuStorageService {
       return; // Lock screen is already displayed, avoid touchy side effect of quick dev algo...
     }
 
+    // regular log out (may fail if network issue) :
+    this.backend.logout();
+    // System D logout in case network fails :
     // Clear session connection with the backend on frontend side :
     this.cookieService.delete('PHPSESSID');
     // Clear session connection with the backend on backend front Api side :

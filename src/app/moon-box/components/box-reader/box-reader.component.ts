@@ -136,7 +136,7 @@ export class BoxReaderComponent implements OnInit {
   }
 
   readMessages() {
-    this.backend.fetchMsg().subscribe((messages: any) => {
+    this.backend.fetchMsg(this.formGroup.value._username).subscribe((messages: any) => {
       console.log(messages);
       this.messages = messages;
       this.msgs.pushMessages(messages);

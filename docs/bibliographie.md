@@ -170,7 +170,13 @@
 * https://stackoverflow.com/questions/2144386/how-to-delete-a-cookie
 * https://www.w3schools.com/js/js_cookies.asp
 * **https://www.quirksmode.org/js/cookies.html**
-*
+* http://www.yopmail.com/en/add-domain.php
+
+* https://medium.com/@rtheunissen/efficient-data-structures-for-php-7-9dda7af674cd
+* https://stackoverflow.com/questions/3764800/does-php-have-a-set-data-structure
+* http://php.net/manual/en/book.ds.php
+* https://github.com/php-ds/ext-ds
+* https://github.com/php-ds/polyfill
 
 ```bash
 # Added packages :
