@@ -9,7 +9,9 @@ import {
   ElementRef,
   Renderer2,
   RendererFactory2,
-  HostListener
+  HostListener,
+  QueryList,
+  ViewChildren
 } from '@angular/core';
 import { NgForm, FormArray, Validators, FormBuilder } from '@angular/forms';
 import { FormType, FORM_LAYOUT, formModel, formDefaults, ContextType, contextDefaults } from './filters-form.model';
@@ -24,6 +26,8 @@ import { NotificationsService } from 'angular2-notifications';
 import { extract } from '@app/core';
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { BoxReaderComponent } from '@moon-box/components/box-reader/box-reader.component';
+
 import * as moment from 'moment';
 
 export const MY_FORMATS = {
@@ -58,6 +62,7 @@ export class BoxesComponent implements OnInit {
   // @ViewChild('filtersForm') filtersForm: ElementRef<NgForm> = null;
   @ViewChild('filtersFormRef') filtersFormRef: ElementRef<HTMLFormElement> = null;
   @ViewChild('filtersForm') filtersForm: NgForm = null;
+  @ViewChildren(BoxReaderComponent) boxViews!: QueryList<BoxReaderComponent>;
 
   isSticky: boolean = false;
   initialOffset: number = 0;
@@ -82,6 +87,7 @@ export class BoxesComponent implements OnInit {
   mbegKeyTransformerControl: FormArray;
   mbegKeyTransformerModel: DynamicFormArrayModel;
   renderer: Renderer2 = null;
+  boxesIdxs: number[] = [0];
 
   constructor(
     private i18nService: I18nService,
@@ -123,6 +129,13 @@ export class BoxesComponent implements OnInit {
   ngAfterViewInit() {
     // filtersFormRef might be null if lockscreen activated...
     // this.initialOffset = this.filtersFormRef.nativeElement.offsetTop;
+    this.boxViews.changes.subscribe((box: BoxReaderComponent) => {
+      // Box did changes event (some boxes gets added to the page...)
+    });
+  }
+
+  addBox() {
+    this.boxesIdxs.push(this.boxesIdxs.length);
   }
 
   toggleFilters() {
@@ -225,12 +238,14 @@ export class BoxesComponent implements OnInit {
   }
 
   login(event: any) {
-    // TODO : call login on all boxes child components
-    console.log('TODO');
+    this.boxViews.forEach((box: BoxReaderComponent) => {
+      box.login(event);
+    });
   }
   loadNext(e: any) {
-    // TODO: paginantion
-    console.log('TODO');
+    this.boxViews.forEach((box: BoxReaderComponent) => {
+      box.loadNext(e);
+    });
   }
 
   expandMessages(e: any, k: string, idx: number) {

@@ -81,6 +81,7 @@ export class BoxReaderComponent implements OnInit {
       this.renderer.addClass(this.eltRef.nativeElement, 'condensed');
     }
     this.isCondensed = !this.isCondensed;
+    this.updateIFrames();
   }
 
   errorHandler(err: any) {
@@ -139,19 +140,25 @@ export class BoxReaderComponent implements OnInit {
       console.log(messages);
       this.messages = messages;
       this.msgs.pushMessages(messages);
-
-      of(() => {
-        // Backend is configured to allow only One access to email content
-        // Show only if needed, otherwise user will have to connect back to get the content
-        let iframes = document.querySelectorAll('iframe[data-didload="0"]');
-        iframes.forEach(f => {
-          // this.renderer.setAttribute(f, 'src', f.getAttribute('data-src'));
-          f.setAttribute('src', f.getAttribute('data-src'));
-        });
-      })
-        .pipe(delay(300))
-        .subscribe((callback: any) => callback());
+      this.updateIFrames();
     }, this.errorHandler);
+  }
+
+  updateIFrames() {
+    of(() => {
+      // Backend is configured to allow only One access to email content
+      // Show only if needed, otherwise user will have to connect back to get the content
+      let iframes = document.querySelectorAll('iframe[data-didload="0"]');
+      iframes.forEach(f => {
+        // this.renderer.setAttribute(f, 'src', f.getAttribute('data-src'));
+        if (!parseInt(f.getAttribute('data-didLoad'))) {
+          f.setAttribute('src', f.getAttribute('data-src'));
+          f.setAttribute('data-didLoad', '1');
+        }
+      });
+    })
+      .pipe(delay(300))
+      .subscribe((callback: any) => callback());
   }
 
   login(event: any) {

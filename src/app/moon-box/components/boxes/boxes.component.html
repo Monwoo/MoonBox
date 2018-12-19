@@ -32,6 +32,7 @@
           </button>
           <button
             mat-button
+            *ngIf="msgs.numResults !== msgs.totalCount"
             color="primary"
             matTooltip="{{'mb.boxes.btn.LoadMore.tooltip'|translate}}"
             (click)="loadNext($event)"
@@ -55,7 +56,12 @@
     </form>
   </mat-card>
 
-  <moon-box-reader id="0" [filters]="filters.group.value"></moon-box-reader>
+  <ng-container *ngFor="let idx of boxesIdxs">
+    <moon-box-reader [id]="idx" [filters]="filters.group.value"></moon-box-reader>
+  </ng-container>
+  <button class="" mat-button color="primary" type="button" (click)="addBox()">
+    {{ 'Ajouter une boite' | translate }}
+  </button>
 
   <div *ngFor="let messages of (msgs.service | async | keyvalue); let groupIndex = index" class="container-fluid">
     <mat-card class="row">

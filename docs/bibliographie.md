@@ -158,6 +158,11 @@
 * https://paragonie.com/blog/2016/02/how-safely-store-password-in-2016
 * => well, no safety if key can be found from server, same as for cache files, so encrypt is over-security...
 
+* https://stackoverflow.com/questions/37635404/angular-2-how-to-trigger-a-method-on-a-child-from-the-parent
+* https://angular.io/guide/component-interaction#parent-interacts-with-child-via-local-variable
+* https://angular.io/guide/component-interaction#parent-calls-an-viewchild
+* https://angular.io/api/core/ViewChildren
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

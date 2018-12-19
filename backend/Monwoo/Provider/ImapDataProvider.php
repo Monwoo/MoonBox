@@ -641,7 +641,7 @@ class ImapDataProvider extends DataProvider
                 'currentPage' => $page,
                 'nextPage' => ($self->offsetStart + $numResults < $totalCount) ? $page + 1 : null,
             ]);
-        } else if ('msg_body' === $action) {
+        } else if ('msg_body' === $action) { // TODO: why not protected by JWT ? Only by php session id for now...
             $param = explode('<|>', $param);
             $connections = $self->defaultConfig["connections"];
             $connection = $connections[$param[0]];
