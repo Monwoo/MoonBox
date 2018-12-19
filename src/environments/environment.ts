@@ -10,7 +10,9 @@ export const environment = {
   version: env.npm_package_version + '-dev',
   // serverUrl: '/api',
   serverUrl: '/',
-  moonBoxBackendUrl: 'http://localhost:6901/',
+  moonBoxBackendUrl: 'http://localhost:6901/', // TODO : refactor : redondency of below props ? :
+  moonBoxBackendDomain: 'localhost',
+  moonBoxBackendBasePath: '/',
   defaultLanguage: 'fr-FR',
   supportedLanguages: ['fr-FR', 'en-US'],
   clientSecret: 'c08g746n3jeobcw'

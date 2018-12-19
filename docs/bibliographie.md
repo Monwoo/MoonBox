@@ -163,10 +163,20 @@
 * https://angular.io/guide/component-interaction#parent-calls-an-viewchild
 * https://angular.io/api/core/ViewChildren
 
+* https://www.npmjs.com/package/ngx-cookie-service
+* https://blog.liplex.de/cookies-across-paths-and-subdomains/
+* https://stackoverflow.com/questions/17776975/how-do-i-delete-a-cookie-from-a-specific-domain-using-javascript
+* https://stackoverflow.com/questions/43235640/how-to-delete-ngcookie-angular-cookies
+* https://stackoverflow.com/questions/2144386/how-to-delete-a-cookie
+* https://www.w3schools.com/js/js_cookies.asp
+* **https://www.quirksmode.org/js/cookies.html**
+*
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
 yarn add @auth0/angular-jwt secure-ls ionic-simple-lockscreen
+yarn add ngx-cookie-service
 
 # experimental : try to combine with ionic :
 yarn add ionic-simple-lockscreen ionic-angular rxjs-compat

@@ -78,6 +78,7 @@
     "moment": "^2.22.2",
     "net-browserify": "^0.2.4",
     "ngx-clipboard": "^11.1.9",
+    "ngx-cookie-service": "^2.1.0",
     "ngx-dropzone-wrapper": "^7.1.0",
     "ngx-papaparse": "3",
     "ngx-quill": "^4.3.0",

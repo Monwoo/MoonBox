@@ -43,6 +43,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { LockScreenComponent } from './components/lock-screen/lock-screen.component';
 import { I18nService } from '@app/core';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
+import { CookieService } from 'ngx-cookie-service';
 
 @NgModule({
   declarations: [BoxReaderComponent, ParametersComponent, BoxesComponent, LockScreenComponent, SafeHtmlPipe],
@@ -79,6 +80,7 @@ import { MAT_DATE_LOCALE } from '@angular/material/core';
   ],
   entryComponents: [LockScreenComponent],
   providers: [
+    CookieService,
     // https://material.angular.io/components/datepicker/overview#setting-the-locale-code
     // { provide: MAT_DATE_LOCALE, useValue: 'en-GB'},
     {

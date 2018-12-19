@@ -10,6 +10,9 @@ import { LockScreenComponent } from '@moon-box/components/lock-screen/lock-scree
 import { I18nService } from '@app/core';
 import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
+import { CookieService } from 'ngx-cookie-service';
+import { Logger } from '@app/core/logger.service';
+const logReview = new Logger('MonwooReview');
 
 // https://github.com/softvar/secure-ls
 declare const require: any; // To avoid typeScript error about require that don't exist since it's webpack level
@@ -36,7 +39,8 @@ export class SecuStorageService {
     private dialog: MatDialog,
     private ngZone: NgZone,
     private i18nService: I18nService,
-    private notif: NotificationsService
+    private notif: NotificationsService,
+    private cookieService: CookieService
   ) {
     // TODO : may have a mode without encryptionSecret: environment.clientSecret + this.passCode ?
     // what if update application in prod => will wipe out all conneted user datas...
@@ -138,6 +142,25 @@ export class SecuStorageService {
       // this.lockDialogRef.close();
       return; // Lock screen is already displayed, avoid touchy side effect of quick dev algo...
     }
+
+    // Clear session connection with the backend on frontend side :
+    this.cookieService.delete('PHPSESSID');
+    // Clear session connection with the backend on backend front Api side :
+    // Inspired from :
+    // https://stackoverflow.com/questions/2144386/how-to-delete-a-cookie/2138471#2138471
+    let expDate = new Date();
+    expDate.setTime(0);
+    let cookie = 'PHPSESSID=;';
+    if (environment.moonBoxBackendDomain) {
+      cookie += ' domain=' + environment.moonBoxBackendDomain + ';';
+    }
+    if (environment.moonBoxBackendBasePath) {
+      cookie += ' path=' + environment.moonBoxBackendBasePath + ';';
+    }
+    cookie += ' expires=' + expDate.toUTCString() + '; Max-Age=-99999999;';
+    logReview.debug('Removing Cookie with : ', cookie);
+    document.cookie = cookie;
+
     this.isLocked = true;
 
     this.lastLockCheckDate = null;

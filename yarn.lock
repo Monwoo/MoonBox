@@ -5430,6 +5430,10 @@ ngx-clipboard@^11.1.9:
     ngx-window-token "^1.0.2"
     tslib "^1.9.0"
 
+ngx-cookie-service@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/ngx-cookie-service/-/ngx-cookie-service-2.1.0.tgz#8023f9edfcd8bd4f0b299b1f0c263112dbb0e261"
+
 ngx-dropzone-wrapper@^7.1.0:
   version "7.1.0"
   resolved "https://registry.yarnpkg.com/ngx-dropzone-wrapper/-/ngx-dropzone-wrapper-7.1.0.tgz#8c4897f42b71b217491dd35871c03e40eb0f3a1f"
