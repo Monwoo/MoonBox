@@ -46,7 +46,7 @@
         </button>
       </div>
 
-      <div *ngIf="messages && !isCondensed" class="col-12 text-md-left">
+      <div *ngIf="messages && !isCondensed && 'TODO Auto inline expand' && false" class="col-12 text-md-left">
         <mat-card *ngFor="let groupMsgs of (messages.msgsByMoonBoxGroup | keyvalue)" class="bs box-reader">
           <mat-card-subtitle>{{ groupMsgs.key }}</mat-card-subtitle>
           <mat-card-content class="container-fluid">

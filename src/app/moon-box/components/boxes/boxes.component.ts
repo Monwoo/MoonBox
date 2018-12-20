@@ -315,10 +315,22 @@ export class BoxesComponent implements OnInit {
       box.loadNext(e);
     });
   }
+  msgOpenedIdx = {};
   expandMessages(e: any, k: string, idx: number) {
     logReview.debug('TODO');
   }
   expandMessage(e: any, k: string, idx: number) {
-    logReview.debug('TODO');
+    if (this.isMsgCondensed(idx)) {
+      this.msgOpenedIdx[idx] = true;
+      // TODO : refactor to put iframe refresh in backend service; ok for now :
+      this.boxViews.first.updateIFrames();
+    } else {
+      this.msgOpenedIdx[idx] = false;
+    }
+  }
+  _isMsgCondensed = true;
+  isMsgCondensed(idx: number) {
+    this._isMsgCondensed = !this.msgOpenedIdx[idx];
+    return this._isMsgCondensed;
   }
 }

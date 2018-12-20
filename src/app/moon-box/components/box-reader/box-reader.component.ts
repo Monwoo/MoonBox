@@ -25,7 +25,7 @@ import { FormType, FORM_LAYOUT, formModel, formDefaults } from './login-form.mod
 import { NotificationsService } from 'angular2-notifications';
 import { extract } from '@app/core';
 import { FormType as FiltersFormType } from '@moon-box/components/boxes/filters-form.model';
-import { pluck, delay, debounceTime, tap } from 'rxjs/operators';
+import { pluck, delay, last, tap } from 'rxjs/operators';
 import { forkJoin, of, from } from 'rxjs';
 import * as moment from 'moment';
 
@@ -110,6 +110,10 @@ export class BoxReaderComponent implements OnInit {
     // this.readMessages();
   }
 
+  ngAfterViewChecked() {
+    this.updateIFrames();
+  }
+
   selectProvider(id: ProviderID) {
     this.loginData.selectedProvider = id;
     this.loginData.params.mailhost = this.backend.providers[id].serverUrl;
@@ -150,10 +154,9 @@ export class BoxReaderComponent implements OnInit {
     });
   }
 
-  readMessages() {
+  readMessages(page = 1) {
     if (this.formGroup) {
-      this.backend.fetchMsg(this.formGroup.value._username).subscribe((messages: any) => {
-        logReview.debug('BoxReader did fetch msgs ', this.messages);
+      this.backend.fetchMsg(this.formGroup.value._username, page).subscribe((messages: any) => {
         if (!messages.status || messages.status.errors.length) {
           logReview.warn('BoxReader fetch errors ', messages.status ? messages.status.errors : messages);
           this.i18nService.get(extract('mm.box-reader.notif.fetchFail')).subscribe(t => {
@@ -162,8 +165,9 @@ export class BoxReaderComponent implements OnInit {
           });
         } else {
           this.hasMoreMsgs = messages.numResults !== messages.totalCount; // TODO : pagination etc...
-
-          this.messages = messages;
+          // TODO : better data structure to auto fix multiple reads of same page issue...
+          this.messages = shallowMerge(1, this.messages, messages);
+          logReview.debug('BoxReader did fetch msgs ', this.messages);
           this.msgs.pushMessages(messages);
           this.updateIFrames();
         }
@@ -173,12 +177,22 @@ export class BoxReaderComponent implements OnInit {
     }
   }
 
-  updateIFrames() {
+  isProcessingIFrames = false;
+  public updateIFrames() {
+    if (this.isProcessingIFrames) {
+      // logReview.debug('Frame updates already in process');
+      return;
+    }
+    this.isProcessingIFrames = true;
     // TODO : need to forkJoin all multi-box call ? reason of auth transfert avoided ? Nb req limits ?
     of(() => {
       // Backend is configured to allow only One access to email content
       // Show only if needed, otherwise user will have to connect back to get the content
       let iframes = document.querySelectorAll('iframe[data-didload="0"]');
+      if (!iframes.length) {
+        this.isProcessingIFrames = false;
+        return;
+      }
       // iframes.forEach(f => {
       //   // this.renderer.setAttribute(f, 'src', f.getAttribute('data-src'));
       //   if (!parseInt(f.getAttribute('data-didLoad'))) {
@@ -188,7 +202,9 @@ export class BoxReaderComponent implements OnInit {
       // });
       // https://www.learnrxjs.io/operators/transformation/scan.html
       // https://github.com/ReactiveX/RxJava/issues/3505
-      from(iframes)
+      // https://www.learnrxjs.io/operators/filtering/last.html
+      // https://www.learnrxjs.io/operators/filtering/debounce.html
+      from(iframes) // TODO : refactor and bundle down in backend.service => Async Worker Stack design pattern
         .pipe(
           delay(1000),
           tap(f => {
@@ -197,6 +213,11 @@ export class BoxReaderComponent implements OnInit {
               f.setAttribute('src', f.getAttribute('data-src'));
               f.setAttribute('data-didLoad', '1');
             }
+          }),
+          last(() => {
+            this.isProcessingIFrames = false;
+            logReview.debug('IFrame updates OK');
+            return true;
           })
         )
         .subscribe(() => {});
@@ -260,7 +281,11 @@ export class BoxReaderComponent implements OnInit {
   }
   loadNext(e: any) {
     // TODO: paginantion
-    logReview.warn('TODO');
+    if (this.messages) {
+      this.readMessages(this.messages.nextPage);
+    } else {
+      logReview.debug('Trying to load next page of : ', this.id);
+    }
   }
   // Avoid below : better to let Collection handle the position etc...
   // => keep design at component level Max possible VS Quicks needs for current sprint

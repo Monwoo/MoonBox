@@ -86,7 +86,11 @@
               {{ '[' + msg.value.expeditor + '] => ' + msg.value.to + ' | ' + msg.value.cc + ' | ' + msg.value.bcc }}
             </span>
             <ng-template #msgBody>
-              <div class="condensable-lvl2" [innerHTML]="msg.value.iframeBody | safeHtml"></div>
+              <div
+                *ngIf="!(isMsgCondensed(index) || _isMsgCondensed)"
+                class="condensable-lvl2"
+                [innerHTML]="msg.value.iframeBody | safeHtml"
+              ></div>
             </ng-template>
             <ng-container *ngTemplateOutlet="msgBody"> </ng-container>
           </mat-card-content>
