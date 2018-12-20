@@ -18,4 +18,34 @@
       }
     }
   }
+
+  // Drop zones design :
+  .dropzone .dz-preview {
+    display: none !important;
+  }
+
+  // https://stackoverflow.com/questions/5697067/css-for-grabbing-cursors-drag-drop
+  // https://css-tricks.com/almanac/properties/c/cursor/
+  dropzone > .dropzone.dz-wrapper {
+    cursor: copy;
+
+    .dz-message {
+      overflow: hidden !important;
+      min-height: 94px !important;
+
+      cursor: copy;
+      // cursor: move; /* fallback if grab cursor is unsupported */
+      // cursor: grab;
+      // cursor: -moz-grab;
+      // cursor: -webkit-grab;
+      // &:active {
+      //   cursor: grabbing;
+      //   cursor: -moz-grabbing;
+      //   cursor: -webkit-grabbing;
+      // }
+      .dz-text {
+        cursor: copy;
+      }
+    }
+  }
 }

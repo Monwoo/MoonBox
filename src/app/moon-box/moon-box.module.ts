@@ -30,7 +30,7 @@ import {
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import { DYNAMIC_VALIDATORS, DynamicFormsCoreModule, Validator, ValidatorFactory } from '@ng-dynamic-forms/core';
 import { DynamicFormsMaterialUIModule } from '@ng-dynamic-forms/ui-material';
-import { ShowHidePasswordModule } from 'ngx-show-hide-password';
+// import { ShowHidePasswordModule } from 'ngx-show-hide-password';
 import {
   customValidator,
   customDateRangeValidator,
@@ -44,6 +44,7 @@ import { LockScreenComponent } from './components/lock-screen/lock-screen.compon
 import { I18nService } from '@app/core';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { CookieService } from 'ngx-cookie-service';
+import { DropzoneModule } from 'ngx-dropzone-wrapper';
 
 @NgModule({
   declarations: [BoxReaderComponent, ParametersComponent, BoxesComponent, LockScreenComponent, SafeHtmlPipe],
@@ -56,7 +57,8 @@ import { CookieService } from 'ngx-cookie-service';
       provide: DateAdapter,
       useFactory: adapterFactory
     }),
-    ShowHidePasswordModule.forRoot(),
+    // ShowHidePasswordModule.forRoot(),
+    DropzoneModule,
     FormsModule,
     ReactiveFormsModule,
     MatButtonModule,

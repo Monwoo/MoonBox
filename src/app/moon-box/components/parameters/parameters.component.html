@@ -50,6 +50,25 @@
   </button>
 </mat-card>
 
+<mat-card *ngIf="!this.storage.isLocked">
+  <strong>{{ 'mb.param.exportBckp.slct.lbl' | translate }}</strong>
+  <button
+    mat-button
+    color="primary"
+    matTooltip="{{'mm.param.exportBckp.tooltip'|translate}}"
+    (click)="processingBckpExport($event)"
+  >
+    <i class="fas fa-file"></i> {{ 'mb.param.exportBckp.btn' | translate }}
+  </button>
+  <dropzone
+    *ngIf="dropzoneBckp"
+    [config]="dropzoneBckp"
+    [message]="'mm.param.importBckp.dzone.msg' | translate"
+    (error)="onUploadBckpError($event)"
+  ></dropzone>
+  <mat-progress-bar mode="determinate" [value]="timingsProgress"></mat-progress-bar>
+</mat-card>
+
 <mat-card>
   <a href="https://github.com/Monwoo/MoonBox">
     {{ 'Project under M.I.T. Licence. Build by Monwoo.' | translate }}

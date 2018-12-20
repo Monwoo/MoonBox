@@ -12,6 +12,7 @@ import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
 import { CookieService } from 'ngx-cookie-service';
 import { BackendService } from '@moon-box/services/backend.service';
+
 import { Logger } from '@app/core/logger.service';
 const logReview = new Logger('MonwooReview');
 
@@ -41,54 +42,81 @@ export class SecuStorageService {
     private ngZone: NgZone,
     private i18nService: I18nService,
     private notif: NotificationsService,
-    private cookieService: CookieService
+    private cookieService: CookieService,
+    private localStorage: LocalStorage
   ) {
-    // TODO : may have a mode without encryptionSecret: environment.clientSecret + this.passCode ?
-    // what if update application in prod => will wipe out all conneted user datas...
-    // well : add warning msg about BACKUP their data, since may diseapear on Demo Version upgrades
-    this.setupStorage('lvl1');
     try {
-      this.eS = this.storage.get('eS');
-      this.pC = this.storage.get('pC');
-      this.cS = this.storage.get('cS');
+      // TODO : may have a mode without encryptionSecret: environment.clientSecret + this.passCode ?
+      // what if update application in prod => will wipe out all conneted user datas...
+      // well : add warning msg about BACKUP their data, since may diseapear on Demo Version upgrades
+      this.setupStorage('lvl1');
+      try {
+        this.eS = this.storage.get('eS');
+        this.pC = this.storage.get('pC');
+        this.cS = this.storage.get('cS');
+      } catch (error) {
+        logReview.warn(error);
+      }
+      this.setupStorage('lvl2');
+      this.checkLockScreen();
     } catch (error) {
-      console.error(error);
+      logReview.error(error);
+      // this.storage.isLocked = true;
     }
-    this.setupStorage('lvl2');
-    this.checkLockScreen();
   }
 
   protected setupStorage(secuLvl: 'lvl1' | 'lvl2' | 'lastEs') {
-    if (this.debugStorage) {
-      this.storage = new SecureLS({ encodingType: '', isCompression: false });
-      return;
-    }
-    switch (secuLvl) {
-      case 'lvl1':
-        {
-          this.storage = new SecureLS({ encodingType: 'aes' });
-        }
-        break;
-      case 'lvl2':
-        {
-          if (!!this.eS && '' !== this.eS) {
-            this.storage = new SecureLS({ encodingType: 'aes', encryptionSecret: this.eS });
-          } else {
+    try {
+      if (this.debugStorage) {
+        this.storage = new SecureLS({ encodingType: '', isCompression: false });
+        return;
+      }
+      switch (secuLvl) {
+        case 'lvl1':
+          {
             this.storage = new SecureLS({ encodingType: 'aes' });
           }
-        }
-        break;
-      case 'lastEs':
-        {
-          if (!!this.lastEs && '' !== this.lastEs) {
-            this.storage = new SecureLS({ encodingType: 'aes', encryptionSecret: this.lastEs });
-          } else {
-            this.storage = new SecureLS({ encodingType: 'aes' });
+          break;
+        case 'lvl2':
+          {
+            if (!!this.eS && '' !== this.eS) {
+              this.storage = new SecureLS({ encodingType: 'aes', encryptionSecret: this.eS });
+            } else {
+              this.storage = new SecureLS({ encodingType: 'aes' });
+            }
           }
-        }
-        break;
-      default:
-        break;
+          break;
+        case 'lastEs':
+          {
+            if (!!this.lastEs && '' !== this.lastEs) {
+              this.storage = new SecureLS({ encodingType: 'aes', encryptionSecret: this.lastEs });
+            } else {
+              this.storage = new SecureLS({ encodingType: 'aes' });
+            }
+          }
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      // Falback to auto-restore viable context for app to still run and let
+      // user to access parameters => reset btn...
+      // this.storage = {
+      //   set:(k:string, v:any)=>{},
+      //   get:(k:string)=><any>null,
+      //   remove:(k:string)=>{},
+      //   getAllKeys:()=><string[]>[],
+      // };
+      (async () => {
+        localStorage.clear(); // Native one may work, next call may fail since encrypted data ?
+        this.localStorage.clear().subscribe(() => {
+          this.i18nService.get(extract('mb.param.notif.didCleanStorageDueErr')).subscribe(t => {
+            this.notif.error(t);
+          });
+        });
+      })();
+      logReview.error(error);
+      // this.storage.isLocked = true;
     }
   }
 
@@ -149,6 +177,7 @@ export class SecuStorageService {
     // System D logout in case network fails :
     // Clear session connection with the backend on frontend side :
     this.cookieService.delete('PHPSESSID');
+    this.removeItem('access_token');
     // Clear session connection with the backend on backend front Api side :
     // Inspired from :
     // https://stackoverflow.com/questions/2144386/how-to-delete-a-cookie/2138471#2138471
@@ -204,7 +233,7 @@ export class SecuStorageService {
     }
   }
 
-  public openDataKey = ['access_token', 'language'];
+  public openDataKey = ['language'];
   public lvl1SecuDataKey = ['pC', 'cS', 'eS'];
   openData = {}; // TODO : refactor : not used, preventing algo based on openDataKey instead...
   protected saveOpenData() {
@@ -265,7 +294,20 @@ export class SecuStorageService {
     return of(true);
   }
   public getItem<T>(key: string, failback: any = null) {
-    const i = this.storage.get(key);
+    let i = null;
+    try {
+      i = this.storage.get(key);
+    } catch (error) {
+      (async () => {
+        localStorage.clear(); // Native one may work, next call may fail since encrypted data ?
+        this.localStorage.clear().subscribe(() => {
+          this.i18nService.get(extract('mb.param.notif.didCleanStorageDueErr')).subscribe(t => {
+            this.notif.error(t);
+          });
+        });
+      })();
+      logReview.error(error);
+    }
     return of<T>(null === i ? failback : i);
   }
   public setItem<T>(key: string, value: any) {
