@@ -136,7 +136,7 @@ export class BackendService {
     );
   }
 
-  fetchMsg(username: string, page: number = 1, limit: number = 42) {
+  fetchMsg(username: string, page: number = 1, limit: number = 21) {
     return this.http.get(this.apiBaseUrl + 'api/moon-box/data_imap/submit_refresh', {
       ...httpOptions,
       ...{

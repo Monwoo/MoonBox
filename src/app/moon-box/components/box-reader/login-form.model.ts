@@ -52,6 +52,7 @@ export const formDefaults = async (caller: any) => {
         _password: '',
         selectedProvider: 'YopMail',
         keepInMemory: true,
+        keepPasswordsInMemory: false,
         params: {
           // TODO : default provider not working yet... :
           // http://www.yopmail.com/en/

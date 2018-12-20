@@ -23,6 +23,7 @@ export type FormType = {
     fetchEndStr: string;
   };
   keepInMemory: boolean;
+  keepPasswordsInMemory: boolean;
   params: {
     moonBoxEmailsGrouping: {
       // [key: string]: string,
@@ -59,6 +60,7 @@ export const formDefaults = async (caller: any) => {
           fetchEndStr: null
         },
         keepInMemory: true,
+        keepPasswordsInMemory: false,
         params: {
           moonBoxEmailsGrouping: {
             mbegKeyTransformer: []
@@ -131,6 +133,11 @@ export const FORM_LAYOUT = {
       container: 'condensable'
     }
   },
+  keepPasswordsInMemory: {
+    element: {
+      container: 'condensable'
+    }
+  },
   params: {
     element: {
       container: 'condensable'
@@ -183,6 +190,11 @@ export const formModel = async (caller: any) => {
           id: 'keepInMemory',
           label: await fetchTrans(extract('Conserver les identifiants')),
           value: d.keepInMemory
+        }),
+        new DynamicCheckboxModel({
+          id: 'keepPasswordsInMemory',
+          label: await fetchTrans(extract('Conserver les mots de passes')),
+          value: d.keepPasswordsInMemory
         }),
         new DynamicFormGroupModel({
           id: 'params',

@@ -26,7 +26,9 @@ import { NotificationsService } from 'angular2-notifications';
 import { extract } from '@app/core';
 import { FormType as FiltersFormType } from '@moon-box/components/boxes/filters-form.model';
 import { pluck, delay, debounceTime, tap } from 'rxjs/operators';
-import { forkJoin, of, interval } from 'rxjs';
+import { forkJoin, of, from } from 'rxjs';
+import * as moment from 'moment';
+
 import { Logger } from '@app/core/logger.service';
 const logReview = new Logger('MonwooReview');
 
@@ -172,19 +174,34 @@ export class BoxReaderComponent implements OnInit {
   }
 
   updateIFrames() {
+    // TODO : need to forkJoin all multi-box call ? reason of auth transfert avoided ? Nb req limits ?
     of(() => {
       // Backend is configured to allow only One access to email content
       // Show only if needed, otherwise user will have to connect back to get the content
       let iframes = document.querySelectorAll('iframe[data-didload="0"]');
-      iframes.forEach(f => {
-        // this.renderer.setAttribute(f, 'src', f.getAttribute('data-src'));
-        if (!parseInt(f.getAttribute('data-didLoad'))) {
-          f.setAttribute('src', f.getAttribute('data-src'));
-          f.setAttribute('data-didLoad', '1');
-        }
-      });
+      // iframes.forEach(f => {
+      //   // this.renderer.setAttribute(f, 'src', f.getAttribute('data-src'));
+      //   if (!parseInt(f.getAttribute('data-didLoad'))) {
+      //     f.setAttribute('src', f.getAttribute('data-src'));
+      //     f.setAttribute('data-didLoad', '1');
+      //   }
+      // });
+      // https://www.learnrxjs.io/operators/transformation/scan.html
+      // https://github.com/ReactiveX/RxJava/issues/3505
+      from(iframes)
+        .pipe(
+          delay(1000),
+          tap(f => {
+            // this.renderer.setAttribute(f, 'src', f.getAttribute('data-src'));
+            if (!parseInt(f.getAttribute('data-didLoad'))) {
+              f.setAttribute('src', f.getAttribute('data-src'));
+              f.setAttribute('data-didLoad', '1');
+            }
+          })
+        )
+        .subscribe(() => {});
     })
-      .pipe(delay(300))
+      .pipe(delay(200))
       .subscribe((callback: any) => callback());
   }
 
@@ -195,8 +212,14 @@ export class BoxReaderComponent implements OnInit {
         val._password = '*' + '#__hash' + (Math.random().toString(36) + '777777777').slice(2, 9) + btoa(val._password);
       }
       this.loginData = <FormType>shallowMerge(1, this.loginData, val);
+      let storeData = this.loginData;
+      if (!this.loginData.keepPasswordsInMemory) {
+        storeData = <FormType>shallowMerge(1, this.loginData, {
+          _password: ''
+        });
+      }
       if (this.loginData.keepInMemory) {
-        this.storage.setItem('moon-box-' + this.id, this.loginData).subscribe(() => {
+        this.storage.setItem('moon-box-' + this.id, storeData).subscribe(() => {
           // TODO : fluent design review : do not show useless msg, if it works, data
           // showing up is enough...
 
@@ -212,6 +235,14 @@ export class BoxReaderComponent implements OnInit {
           logReview.debug("'No save required for moon-box-' + this.id");
         }, this.errorHandler);
       }
+      // Transforms for login purpose :
+      this.loginData.periode.fetchStartStr = this.loginData.periode.fetchStart
+        ? moment(this.loginData.periode.fetchStart).format('YYYY/MM/DD')
+        : null;
+      this.loginData.periode.fetchEndStr = this.loginData.periode.fetchEnd
+        ? moment(this.loginData.periode.fetchEnd).format('YYYY/MM/DD')
+        : null;
+
       this.backend.login(this.loginData).subscribe(() => {
         logReview.debug('User is logged in');
 

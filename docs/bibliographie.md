@@ -179,6 +179,8 @@
 * https://github.com/php-ds/polyfill
 
 * https://angular.io/guide/component-interaction
+* https://www.xul.fr/html5/iframe-communication.php
+* https://blog.dareboost.com/fr/2015/07/securiser-une-iframe-attribut-sandbox/
 
 ```bash
 # Added packages :

@@ -229,12 +229,6 @@ export class BoxesComponent implements OnInit {
           let freshDefaults = await formDefaults(this);
           let transforms = <FormType>shallowMerge(1, freshDefaults, filtersData);
           this.filters.data = <FormType>shallowMerge(1, transforms, this.filters.group.value);
-          this.filters.data.periode.fetchStartStr = this.filters.data.periode.fetchStart
-            ? moment(this.filters.data.periode.fetchStart).format('YYYY/MM/DD')
-            : null;
-          this.filters.data.periode.fetchEndStr = this.filters.data.periode.fetchEnd
-            ? moment(this.filters.data.periode.fetchEnd).format('YYYY/MM/DD')
-            : null;
 
           this.storage.setItem('moon-box-filters', this.filters.data).subscribe(() => {
             this.i18nService.get(extract('mb.boxes.notif.changeRegistred')).subscribe(t => {

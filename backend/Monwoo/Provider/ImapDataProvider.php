@@ -104,11 +104,15 @@ class ImapDataProvider extends DataProvider
             'param' => $srcPath,
             'username' => $dataUsername,
         ]);
+        // https://blog.dareboost.com/fr/2015/07/securiser-une-iframe-attribut-sandbox/
+        // https://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/
+        // https://developers.google.com/web/fundamentals/web-components/shadowdom
         $iframeStyle = 'min-height:250px;max-height:800px;width:100%';
         return "<iframe
         src='$loadingPictPath'
         data-didLoad='0'
         data-src='$iframePath'
+         
         frameborder='0'
         style='$iframeStyle'
         ></iframe>";
@@ -563,7 +567,10 @@ class ImapDataProvider extends DataProvider
                             $subject = $msg->subject;//htmlentities($msg->subject);
                             $msgFlags = $msg->getFlags();
                             // $body = $msg->mail->getBody(); // or get raw message and instanciate imap msg with it...;
-                            $msgDateTime = new \DateTime($headers['Date']);
+                            // TODO : use Carbon/Date ?
+                            // https://stackoverflow.com/questions/13421635/failed-to-parse-time-string-at-position-41-i-double-timezone-specification
+                            $dateStr = substr($headers['Date'], 0, 31);
+                            $msgDateTime = new \DateTime($dateStr);
                             $timestamp = $msgDateTime->getTimestamp();
                             $localTime = $msgDateTime->format('Y/m/d H:i');
                             // $msgsSummary[] = [
