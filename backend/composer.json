@@ -19,12 +19,14 @@
     "sort-packages": true
   },
   "require": {
+    "awurth/silex-user": "^1.0",
     "cnam/security-jwt-service-provider": "2.*",
     "monolog/monolog": "^1.19",
     "moust/silex-cache": "^2.0",
     "php-ds/php-ds": "^1.2",
     "silex/silex": "^2.0",
     "silex/web-profiler": "^2.0",
+    "symfony/console": "^4.2",
     "symfony/filesystem": "^4.2",
     "symfony/monolog-bridge": "^4.2",
     "symfony/translation": "^4.2",

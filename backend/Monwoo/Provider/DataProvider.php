@@ -31,6 +31,7 @@ class DataProvider implements ServiceProviderInterface, BootableProviderInterfac
         $self->dataset_id = 'data_data';
     }
     public function actionRouteName() {
+        $self = $this;
         return "DataProvider.{$self->dataset_id}";
     }
     /**

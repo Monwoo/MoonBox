@@ -184,6 +184,9 @@
 
 * https://blog.angular-university.io/angular-ng-template-ng-container-ngtemplateoutlet/
 
+* http://awurth.fr/doc/silex-user/
+* https://symfony.com/doc/current/components/console.html
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
@@ -219,7 +222,8 @@ cd -
 (cd backend && composer require monolog/monolog symfony/yaml \
 symfony/monolog-bridge symfony/filesystem
 symfony/translation zendframework/zend-mail
-moust/silex-cache silex/web-profiler
+moust/silex-cache silex/web-profiler awurth/silex-user
+ symfony/console
 )
 
 # clean all and rebuild :

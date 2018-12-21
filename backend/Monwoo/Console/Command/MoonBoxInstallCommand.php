@@ -2,7 +2,7 @@
 // Copyright Monwoo 2017-2018, by Miguel Monwoo, service@monwoo.com
 // Inspired from 
 // MonwooMarket/silexDemo/src/Core/Command/MoonBoxInstallCommand.php
-namespace Monwoo\Command;
+namespace Monwoo\Console\Command;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -25,20 +25,23 @@ use Symfony\Component\DependencyInjection\Container as ContainerInterface;
 use Pimple\Container;
 use Phar;
 
-/**
- * Wrapper for GenerateDoctrineEntityCommand. TODO : adapt code
- *
- * @author Miguel Monwoo <service@monwoo.com>
- */
-class ContainerAwareCommand extends ContainerInterface
-{
-    public function __construct(Container $container)
-    {
-        parent::__construct();
-        // Try force set container to Pimple container
-        $this->container = $container;
-    }
-}
+use Monwoo\Console\Traits\RunnableCommandTrait;
+
+use AWurth\Silex\User\Command\ContainerAwareCommand;
+// /**
+//  * Wrapper for GenerateDoctrineEntityCommand. TODO : adapt code
+//  *
+//  * @author Miguel Monwoo <service@monwoo.com>
+//  */
+// class ContainerAwareCommand extends ContainerInterface
+// {
+//     public function __construct(Container $container)
+//     {
+//         parent::__construct();
+//         // Try force set container to Pimple container
+//         $this->container = $container;
+//     }
+// }
 
 /**
  * # Dev install : by copy of current env

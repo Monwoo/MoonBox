@@ -1,0 +1,163 @@
+#!/usr/bin/env php
+<?php
+/*
+* Copyright Monwoo 2017, made by Miguel Monwoo, service@monwoo.com
+*/
+use Symfony\Component\Console\Input\ArrayInput;
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+// $isCommandLineMode = php_sapi_name() == "cli"
+// || array_key_exists('argv', $_SERVER);
+$isCommandLineMode = array_key_exists('argv', $_SERVER)
+&& count($_SERVER['argv']) > 1; // For get request, $_SERVER['argv'][0] will contain full get query string
+// var_dump($_SERVER['argv']);exit();
+if(!$isCommandLineMode) {
+    // use silex global App
+    global $app; // TODO : remove globals ? => Application::backendInstance();
+    if (!$app) {
+        $isCommandLineMode = true;
+    } else {
+        // Define missing envs from web calls :
+        //define('STDIN',fopen("php://null","r"));
+        //define('STDIN',fopen("php://stdin","r"));
+        //define('STDIN',new ArrayInput([]));
+        //*** DEBUG
+        $app['logger']->debug("Using Console as Inside script");
+        //***/
+        echo "using Console as Inside script \n";
+    }
+}
+
+if ($isCommandLineMode) {
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
+    // TODO : factorise with :
+    // $appInclude = __DIR__ . '/../../../public/dev/include.php';
+    $shouldOnlySetup = true;
+    require __DIR__ . '/../../index.php';
+    // $app = new App\Core\Application([
+    //     'debug' => true,
+    //     'environment' => 'dev',
+    //     'root_dir' => dirname(__DIR__)
+    // ]);
+    //*** DEBUG
+    $app['logger']->debug("Using Console as standalone Console Cmd");
+    //***/
+    echo "using Console as standalone Console Cmd \n";
+}
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Input\InputArgument;
+use Doctrine\ORM\Tools\Console\ConsoleRunner as DoctrineConsoleRunner;
+$console = new Application();
+$app['console'] = $console;
+// Providers mandatory for console to work :
+// Register the filesystem for GenerateDoctrineEntityCommand command
+// TODO : what if already registred inside app, ok to multiple register ?
+if ($app['debug']) {
+    // Allow file access from console only in dev mode
+    // use App\Core\Provider\FilesystemServiceProvider;
+    // $app->register(new FilesystemServiceProvider());
+}
+
+// $db = $app['db'];
+// $em = $app['orm.em'];
+$app->boot();
+$helperContext = [
+    'dialog' => new \Symfony\Component\Console\Helper\QuestionHelper(),
+    // TODO : refacor since ovewritten by DoctrineConsoleRunner::createHelperSet ?
+    // 'db' => new \Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper($db),
+    // 'em' => new \Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper($em),
+];
+// $helperContext = array_merge($helperContext
+// , DoctrineConsoleRunner::createHelperSet($em)->getIterator());
+// foreach (DoctrineConsoleRunner::createHelperSet($em)->getIterator()
+// as $key => $value) {
+//     $helperContext[$key] = $value;
+// }
+// function objectToObject($instance, $className) {
+//     // return unserialize(sprintf(
+//     //     'O:%d:"%s"%s',
+//     //     strlen($className),
+//     //     $className,
+//     //     strstr(strstr(serialize($instance), '"'), ':')
+//     // ));
+//     return $instance;
+// }
+//$helperSet = new \Symfony\Component\Console\Helper\HelperSet($helperContext);
+//$console->setHelperSet($helperSet);
+//$console->getHelperSet()->set($helperSet);
+// $console->addHelperSet($helperSet);
+foreach ($helperContext as $key => $value) {
+    $console->getHelperSet()->set($value, $key);
+}
+// TODO : or instead to add one by one, add with : ?
+// Doctrine\ORM\Tools\Console\ConsoleRunner::addCommands($console);
+// if (array_key_exists('argv', $_SERVER)
+// && in_array('--set-auto-exit-false', $_SERVER['argv'])
+// || !$isCommandLineMode) {
+if (!$isCommandLineMode ||
+in_array('--set-auto-exit-false', $_SERVER['argv'])) {
+    // TODO refactor ? no need anymore since using $isCommandLineMode instead
+    $console->setAutoExit(false); // This one will remove exit code too..
+}
+$console->addCommands([
+    // Migration not compatible with SF 3 ? well composer reject doctrine/migrations for now
+    // Solve with https://github.com/dbtlr/silex-doctrine-migrations ??
+    // new \Doctrine\DBAL\Migrations\Tools\Console\Command\DiffCommand(),
+    // new \Doctrine\DBAL\Migrations\Tools\Console\Command\ExecuteCommand(),
+    // new \Doctrine\DBAL\Migrations\Tools\Console\Command\GenerateCommand(),
+    // new \Doctrine\DBAL\Migrations\Tools\Console\Command\MigrateCommand(),
+    // new \Doctrine\DBAL\Migrations\Tools\Console\Command\StatusCommand(),
+    // new \Doctrine\DBAL\Migrations\Tools\Console\Command\VersionCommand(),
+    // DBAL Commands
+    // Not working : new \Sensio\Bundle\GeneratorBundle\Command\GenerateDoctrineEntityCommand(),
+    // Quick custom integration :
+    // new \App\Core\Command\GenerateDoctrineEntityCommand(objectToObject($app, 'Symfony\Component\DependencyInjection\ContainerInterface')),
+    //new \Sensio\Bundle\GeneratorBundle\Command\GenerateDoctrineCommand(),
+    //new \Sensio\Bundle\GeneratorBundle\Command\GenerateDoctrineEntityCommand(),
+    // new \Doctrine\DBAL\Tools\Console\Command\ImportCommand,
+    // new \Doctrine\DBAL\Tools\Console\Command\ReservedWordsCommand,
+    // new \Doctrine\DBAL\Tools\Console\Command\RunSqlCommand,
+    // // ORM Commands
+    // new \Doctrine\ORM\Tools\Console\Command\ClearCache\MetadataCommand(),
+    // new \Doctrine\ORM\Tools\Console\Command\ClearCache\ResultCommand(),
+    // new \Doctrine\ORM\Tools\Console\Command\ClearCache\QueryCommand(),
+    // new \Doctrine\ORM\Tools\Console\Command\SchemaTool\CreateCommand(),
+    // new \Doctrine\ORM\Tools\Console\Command\SchemaTool\UpdateCommand(),
+    // new \Doctrine\ORM\Tools\Console\Command\SchemaTool\DropCommand(),
+    // new \Doctrine\ORM\Tools\Console\Command\EnsureProductionSettingsCommand(),
+    // new \Doctrine\ORM\Tools\Console\Command\ConvertDoctrine1SchemaCommand(),
+    // new \Doctrine\ORM\Tools\Console\Command\GenerateRepositoriesCommand(),
+    // new \Doctrine\ORM\Tools\Console\Command\GenerateEntitiesCommand(),
+    // new \Doctrine\ORM\Tools\Console\Command\GenerateProxiesCommand(),
+    // new \Doctrine\ORM\Tools\Console\Command\ConvertMappingCommand(),
+    // new \Doctrine\ORM\Tools\Console\Command\RunDqlCommand(),
+    // new \Doctrine\ORM\Tools\Console\Command\InfoCommand,
+    // new \Doctrine\ORM\Tools\Console\Command\ValidateSchemaCommand(),
+    // new \App\Core\Command\FixedSyncCommand(),
+    // new \App\Core\Command\MoonShopDatabaseCommand($app),
+    // new \App\Core\Command\MoonShopInstallCommand($app),
+    // new \App\Core\Command\MoonShopBackupCommand($app),
+    // new \App\Core\Command\ClearCacheCommand($app),
+    // new \AWurth\Silex\User\Command\ActivateUserCommand($app),
+    // new \AWurth\Silex\User\Command\ChangePasswordCommand($app),
+    // new \AWurth\Silex\User\Command\CreateUserCommand($app),
+    // new \AWurth\Silex\User\Command\DeactivateUserCommand($app),
+    // new \AWurth\Silex\User\Command\DemoteUserCommand($app),
+    // new \AWurth\Silex\User\Command\PromoteUserCommand($app),
+    new \Monwoo\Console\Command\RouterDebugCommand($app),
+    new \Monwoo\Console\Command\ContainerDebugCommand($app),
+    new \Monwoo\Console\Command\MoonBoxInstallCommand($app),
+]);
+if ($isCommandLineMode) {
+    $console->run();
+} else {
+    // else => you can use $console after having require this file in a local
+    // context, to avoid ovewritting of globals
+    return $console;
+}

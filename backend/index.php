@@ -197,7 +197,8 @@ $app['users'] = function () use ($app) { // TODO : why need to be called 'users'
     //       ),
     //   ];
     $users = [];
-    array_walk($app['session']->get('apiUsers', []), function(&$apiUser, &$key) use (&$users) {
+    $apiUsers = $app['session']->get('apiUsers', []);
+    array_walk($apiUsers, function(&$apiUser, &$key) use (&$users) {
         // $key = "Change key value..." ?;
         // $users[] = new User($key, null);
         $users[$key] = [
@@ -385,4 +386,8 @@ $app->after(function($request, Response $response) use ($app) {
     AddingCors::addCors($request, $response);
 });
 
-$app->run();
+if (isset($shouldOnlySetup)) {
+    $app['logger']->debug("App setup OK");
+} else {
+    $app->run();
+}
