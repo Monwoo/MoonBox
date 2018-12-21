@@ -10,12 +10,12 @@ export const environment = {
   version: env.npm_package_version + '-dev',
   // serverUrl: '/api',
   serverUrl: '/',
-  moonBoxBackendUrl: 'http://localhost:6901/', // TODO : refactor : redondency of below props ? :
+  moonBoxBackendUrl: 'http://localhost:6901/',
   moonBoxBackendDomain: 'localhost',
   moonBoxBackendBasePath: '/',
   defaultLanguage: 'fr-FR',
   supportedLanguages: ['fr-FR', 'en-US'],
-  clientSecret: 'c08g746n3jeobcw'
+  clientSecret: 'dt9d6o236br48uw'
 };
 /*
  * For easier debugging in development mode, you can import the following file

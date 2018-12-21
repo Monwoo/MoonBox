@@ -182,6 +182,8 @@
 * https://www.xul.fr/html5/iframe-communication.php
 * https://blog.dareboost.com/fr/2015/07/securiser-une-iframe-attribut-sandbox/
 
+* https://blog.angular-university.io/angular-ng-template-ng-container-ngtemplateoutlet/
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

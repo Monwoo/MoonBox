@@ -5,9 +5,6 @@ export const environment = {
   version: env.npm_package_version,
   serverUrl: '/MoonBox/Demo/',
   moonBoxBackendUrl: '/MoonBox/Demo/backend/',
-  moonBoxBackendDomain: <string>null,
-  moonBoxBackendBasePath: '/MoonBox/Demo/backend/',
-  defaultLanguage: 'fr-FR',
-  supportedLanguages: ['fr-FR', 'en-US'],
-  clientSecret: '2an2tce45fy82o3'
+  moonBoxBackendDomain: 'monwoo.com',
+  moonBoxBackendBasePath: '/MoonBox/Demo/backend/'
 };

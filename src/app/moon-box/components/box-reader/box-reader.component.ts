@@ -9,6 +9,7 @@ import {
   Renderer2,
   RendererFactory2,
   ElementRef,
+  TemplateRef,
   Output,
   EventEmitter
 } from '@angular/core';
@@ -44,6 +45,9 @@ export class BoxReaderComponent implements OnInit {
     this.loginData = <FormType>shallowMerge(1, this.loginData, filters);
     this.updateForm();
   }
+  @Input()
+  extendedActions: TemplateRef<any> = null;
+
   @Output() onIdChange = new EventEmitter<[string, string]>();
 
   @ViewChild('loginForm') loginForm: NgForm = null;
@@ -66,6 +70,8 @@ export class BoxReaderComponent implements OnInit {
   hasMoreMsgs: boolean = false;
 
   isCondensed: boolean = true;
+
+  ctx = { boxId: this.id };
 
   constructor(
     private fb: FormBuilder,

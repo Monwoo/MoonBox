@@ -1,3 +1,5 @@
+<ng-template #defaultExtendedActions let-boxId="boxId"> Hello :) </ng-template>
+
 <div class="bs box-reader condensed" #eltRef>
   <div class="container-fluid">
     <mat-card class="row">
@@ -8,6 +10,29 @@
       </div>
       <div class="col-3 text-right">
         <button mat-button color="primary" type="button" (click)="toggleConfigs($event)">...</button>
+      </div>
+      <div class="col-12 text-md-right">
+        <ng-container
+          *ngTemplateOutlet="extendedActions ? extendedActions : defaultExtendedActions; context: ctx"
+        ></ng-container>
+
+        <button
+          *ngIf="hasMoreMsgs"
+          mat-button
+          color="primary"
+          matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
+          (click)="loadNext($event)"
+        >
+          <i class="fas fa-download"></i> {{ 'mb.box-reader.btn.LoadMore' | translate }}
+        </button>
+        <button
+          mat-button
+          color="primary"
+          matTooltip="{{'mb.box-reader.btn.Login.tooltip'|translate}}"
+          (click)="login($event)"
+        >
+          <i class="fas fa-envelope"></i> {{ 'mb.box-reader.btn.Login' | translate }}
+        </button>
       </div>
       <div class="col-12 col-md-6 text-md-left condensable">
         <mat-form-field class="float-right">
@@ -36,14 +61,6 @@
             -->
           </dynamic-material-form>
         </form>
-        <button
-          mat-button
-          color="primary"
-          matTooltip="{{'mb.box-reader.btn.Login.tooltip'|translate}}"
-          (click)="login($event)"
-        >
-          <i class="fas fa-envelope"></i> {{ 'mb.box-reader.btn.Login' | translate }}
-        </button>
       </div>
 
       <div *ngIf="messages && !isCondensed && 'TODO Auto inline expand' && false" class="col-12 text-md-left">
@@ -68,17 +85,6 @@
             </mat-card>
           </mat-card-content>
         </mat-card>
-      </div>
-      <div class="col-12 text-md-right">
-        <button
-          *ngIf="hasMoreMsgs"
-          mat-button
-          color="primary"
-          matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
-          (click)="loadNext($event)"
-        >
-          <i class="fas fa-download"></i> {{ 'mb.box-reader.btn.LoadMore' | translate }}
-        </button>
       </div>
     </mat-card>
   </div>

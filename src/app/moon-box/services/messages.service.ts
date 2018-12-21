@@ -44,8 +44,14 @@ export class MessagesService {
       }
       this.msgs[msg.moonBoxGroup].data[dataKey] = msg;
     });
-    this.numResults += messages.numResults - alreadyCounted;
-    this.totalCount += messages.totalCount - alreadyCounted; // Accuracy ok
+    // this.numResults += messages.numResults - alreadyCounted;
+    // this.totalCount += messages.totalCount - alreadyCounted; // Accuracy ok
+    this.numResults = Object.keys(this.msgs).reduce((acc: number, k: string) => {
+      return acc + this.msgs[k].numResults;
+    }, 0);
+    this.totalCount = Object.keys(this.msgs).reduce((acc: number, k: string) => {
+      return acc + this.msgs[k].totalCount;
+    }, 0);
   }
 
   clearMessages() {
