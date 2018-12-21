@@ -21,13 +21,7 @@ use Symfony\Bridge\Monolog\Processor\DebugProcessor;
 use Psr\Log\LogLevel;
 
 $root_dir = __DIR__;
-
-$config = [
-    'debug' => true,
-    'loggerName' => "MoonBoxLog",
-    'sessionTimeOut' => 21 * 24 * 60, // Session life time in secondes
-    'authTimeOut' => 21 * 60, // Session life time in secondes
-];
+require_once __DIR__ . '/config.php';
 
 $app = new class([
     'debug' => $config['debug'],
