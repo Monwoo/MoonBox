@@ -78,7 +78,7 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
         ->addOption('zip-password', 'p', InputOption::VALUE_OPTIONAL
         , 'Specify zip password to use to generate or load archive' . PHP_EOL, false)
         ->addOption('config-moon-box-name', ''/*'c-sn'*/, InputOption::VALUE_OPTIONAL
-        , 'Name id of the generated MoonBox, match /[a-z0-9]+/i' . PHP_EOL, null)
+        , 'Name id of the generated MoonBox, match /[a-z0-9]+/i' . PHP_EOL, 'monwoo-moon-box')
         ->addOption('config-frontend-base-url', ''/*'c-ma'*/, InputOption::VALUE_OPTIONAL
         , "Base Url for frontend production destination" . PHP_EOL, null)
         ->addOption('config-backend-base-url', ''/*'c-mb'*/, InputOption::VALUE_OPTIONAL
@@ -94,6 +94,12 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
         , 'Path to your gulp binary' . PHP_EOL,null)
         ->addOption('dev', 'd', InputOption::VALUE_OPTIONAL
         , 'Install for developpement' . PHP_EOL, false)
+        ->addOption('env', 'e', InputOption::VALUE_OPTIONAL
+        , 'Specify env extension to force load initial config from.' . PHP_EOL
+        . 'Input file will be install-config.<env>.yml' . PHP_EOL, null)
+
+        ->addOption('offline', ''/*'off'*/, InputOption::VALUE_OPTIONAL
+        , 'Try to install in offline mode (from what you have in cache)' . PHP_EOL, false)
         ->setHelp(
             // TODO : why not working like in documentation ?
             // -r do not work, --restore do no work, only -restore works...
@@ -130,7 +136,6 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
         $zipPassword = $self->initArchivePassword(
             $input->getOption('zip-password')
         );
-        $encryptMethod = \PhpZip\ZipFile::ENCRYPTION_METHOD_WINZIP_AES_256;
         $self->isDev = $input->getOption('dev');
         $self->isDev = $self->isDev === null || $self->isDev;
         $self->isOffline = $input->getOption('offline');
@@ -345,6 +350,7 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
             $output->writeln("<error>Password for build not dev yet </error>");
             // throw new \Exception('Password for build not dev yet');
             // $output->writeln("<info>Adding Password to $installArchivePath</info>");
+            // $encryptMethod = \PhpZip\ZipFile::ENCRYPTION_METHOD_WINZIP_AES_256;
             // $zipFile->setPassword($zipPassword, $encryptMethod);
         } else {
             // TODO : even this way, my unzip tool keep telling me those zip are encrypted, my zip bug or other ?
