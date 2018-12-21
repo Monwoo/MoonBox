@@ -10,15 +10,21 @@ Financé temporellement et fondé par Monwoo 2018.
 
 Démo : https://monwoo.com/MoonBox/Demo/ (Comming soon)
 
+Attention : démo v1.0.0 testé humainement uniquement. Pour limiter les risques, utilisez l'outil depuis un onglet de navigation privée.
+
+Warning : démo v1.0.0 testé humainement uniquement. Pour limiter les risques, utilisez l'outil depuis un onglet de navigation privée.
+
 #### FR
 
 Objectif centralisation :
+
 - des emails (En cours de développement)
 - des notifications business (En cours de développement)
 
 #### EN
 
 Centralized place for :
+
 - emails (Coding in progress, comming soon)
 - business notifications (Coding in progress, comming soon)
 
@@ -43,6 +49,11 @@ yarn run translations:extract # Generate template.json
 # For this process to work inside ts files, you need to always
 # use extract('your string') in your .ts file :
 #   import { extract } from '@app/core';
+
+# For generating by copy from json translated file :
+# "(.*)": "",
+# Replace with :
+# "$1": "$1",
 
 # Display project documentation :
 yarn run docs
