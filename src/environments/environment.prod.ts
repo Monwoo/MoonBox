@@ -8,13 +8,13 @@ import env from './.env';
 export const environment = {
   production: true,
   version: env.npm_package_version,
-  serverUrl: '/MoonBox/Demo/',
+  serverUrl: '',
   moonBoxBackendUrl: 'backend/',
   moonBoxBackendDomain: 'monwoo.com',
   moonBoxBackendBasePath: 'backend/',
   defaultLanguage: 'fr-FR',
   supportedLanguages: ['fr-FR', 'en-US'],
-  clientSecret: '5om4g05jsmioain'
+  clientSecret: '22izuodewz5s3hn'
 };
 /*
  * For easier debugging in development mode, you can import the following file

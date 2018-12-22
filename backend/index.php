@@ -288,7 +288,7 @@ $ctlrs->match('/api/login', function(Request $request) use ($app){
       $userName = $vars['_username'];
 
       $apiUsers = $app['session']->get('apiUsers', []);
-      if (!array_key_exists($apiUsers, $apiUsername)) {
+      if (!array_key_exists($apiUsername, $apiUsers)) {
         $apiUsers[$apiUsername] = [
             // 'roles' => [], // array('ROLE_ADMIN'),
             // raw password is foo
