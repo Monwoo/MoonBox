@@ -1,7 +1,7 @@
 {
   "name": "MoonBox",
   "version": "1.0.0-HumanlyTested",
-  "description": "Centralize your mailboxes, notifications, etc...",
+  "description": "MoonBox by Monwoo : Centralize your mailboxes, go above notifications, etc...",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Monwoo/MoonBox"

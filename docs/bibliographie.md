@@ -191,6 +191,11 @@
 * https://github.com/Nicolab/php-ftp-client
 * https://packagist.org/packages/altayalp/ftp-client
 
+* https://glitch.com/edit/#!/nebula-cross?path=apple/manifest.json:35:1
+* https://nebula-cross.glitch.me/
+* https://stackoverflow.com/questions/50548573/are-pwa-sites-in-same-domain-not-able-to-install-both-on-home-screen
+* https://stackoverflow.com/questions/51280821/multiple-pwas-in-the-same-domain
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

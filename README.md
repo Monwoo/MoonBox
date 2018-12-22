@@ -2,7 +2,7 @@
 
 ![alt logo MoonBox](https://raw.githubusercontent.com/monwoo/MoonBox/master/src/assets/logos/MoonBox-128.png) ![alt logo MoonBox Secondary](https://raw.githubusercontent.com/monwoo/MoonBox/master/src/assets/logos/MoonBox-64-secondary.png)
 
-**Centralize your mailboxes, notifications, etc...**
+**MoonBox by Monwoo : Centralize your mailboxes, go above notifications, etc...**
 
 ![alt logo Monwoo](https://www.monwoo.com/LogoMonwoo-64.png)
 Timely funded and founded by Monwoo 2018.

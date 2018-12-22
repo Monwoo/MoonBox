@@ -3,27 +3,26 @@
   "short_name": "MoonBox",
   "theme_color": "#119a4c",
   "background_color": "#FFFFFF",
-  "scope": "/MoonBox/Demo/?source=pwa&prodCache=9/",
+  "scope": "/MoonBox/Demo/",
   "start_url": "/MoonBox/Demo/",
   "display": "standalone",
+  "description": "MoonBox by Monwoo : Centralize your mailboxes, go above notifications, etc...",
   "permissions": ["unlimitedStorage"],
   "icons": [
+    {
+      "src": "assets/logos/MoonBox-favicomatic_com/favicon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/logos/MoonBox-favicomatic_com/mstile-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
     {
       "src": "assets/logos/MoonBox-512.png?v=5",
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "sockets": {
-    "udp": {
-      "send": "*",
-      "bind": "*"
-    },
-    "tcp": {
-      "connect": "*"
-    },
-    "tcpServer": {
-      "listen": "*"
-    }
-  }
+  ]
 }
