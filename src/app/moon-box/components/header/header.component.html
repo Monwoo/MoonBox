@@ -8,7 +8,9 @@
         until client side brower chose to update => will avoid strang bug that are no bug, but cache refresh issues
       -->
       <img class="primary-brand" src="assets/logos/MoonBox-64.png?v=2" alt="{{'MoonBox logo'|translate}}" />
-      <span class="m-md-2">{{ appTitle }}</span>
+      <!-- TODO : change size of primary and secondary brand depending on number of un-read messages in all boxes -->
+      <img class="secondary-brand" src="assets/logos/MoonBox-64-secondary.png?v=2" alt="{{'MoonBox logo'|translate}}" />
+      <span class="d-none d-md-inline m-md-2">{{ appTitle }}</span>
     </a>
     <button mat-button color="primary" matTooltip="{{'Verouiller Moon Box'|translate}}" (click)="lockScreen($event)">
       <i class="fas fa-lock"></i> <span class="d-none d-md-inline"> {{ 'Verouiller' | translate }} </span>

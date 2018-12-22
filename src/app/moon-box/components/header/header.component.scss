@@ -37,6 +37,16 @@ header {
       box-shadow: 4px 4px 5px 0px rgba(0, 0, 0, 0.75);
       */
     }
+
+    .secondary-brand {
+      $coef: 0.5;
+      // https://stackoverflow.com/questions/3433641/flipping-inverting-mirroring-text-using-css-only
+      -moz-transform: scaleX(-$coef) scaleY($coef); /* Gecko */
+      -o-transform: scaleX(-$coef) scaleY($coef); /* Opera */
+      -webkit-transform: scaleX(-$coef) scaleY($coef); /* Webkit */
+      transform: scaleX(-$coef) scaleY($coef); /* Standard */
+      filter: FlipH; /* IE 6/7/8 */
+    }
   }
 
   .fill-space {
