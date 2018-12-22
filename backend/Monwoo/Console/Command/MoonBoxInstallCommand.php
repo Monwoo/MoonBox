@@ -306,6 +306,9 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
                 "$installFolder/config.php",
                 "$installFolder/config.prod.php",
                 "$installFolder/index.php",
+                "$installFolder/composer.lock",
+                "$installFolder/composer.json",
+                "$installFolder/composer.phar",
             ]);
             $output->writeln("<info>Will add index.php for .phar builded app</info>");
             $fs->copy("$srcFolder/index.phar.php", "$installFolder/index.php");
