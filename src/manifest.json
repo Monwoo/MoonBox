@@ -3,7 +3,7 @@
   "short_name": "MoonBox",
   "theme_color": "#119a4c",
   "background_color": "#FFFFFF",
-  "scope": "/MoonBox/Demo/?source=pwa&prodCache=9",
+  "scope": "/MoonBox/Demo/?source=pwa&prodCache=9/",
   "start_url": "/MoonBox/Demo/",
   "display": "standalone",
   "permissions": ["unlimitedStorage"],
