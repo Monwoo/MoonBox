@@ -72,6 +72,8 @@ git archive --format=zip -o ~/goinfre/MonwooMoonBox.zip HEAD
 emacs src/manifest.json
 # build productions file in dist folder with correct base-href for deploy :
 yarn run build --base-href '/MoonBox/Demo/'
+# avoid commit productions files to dev repo by reverting them :
+git checkout HEAD src/environments/environment.ts
 # zip result for Production Software delivery :
 zip -r "MoonBox-Prod.zip" dist
 
