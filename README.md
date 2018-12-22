@@ -71,7 +71,7 @@ git archive --format=zip -o ~/goinfre/MonwooMoonBox.zip HEAD
 # https://developers.google.com/web/fundamentals/web-app-manifest/
 emacs src/manifest.json
 # build productions file in dist folder with correct base-href for deploy :
-yarn run build --target=production --base-href '/MoonBox/Demo/'
+yarn run build --base-href '/MoonBox/Demo/'
 # zip result for Production Software delivery :
 zip -r "MoonBox-Prod.zip" dist
 
