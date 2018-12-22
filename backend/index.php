@@ -23,6 +23,7 @@ use Psr\Log\LogLevel;
 $root_dir = $root_dir ?? __DIR__;
 require_once __DIR__ . '/config.php';
 $prodDebug = $prodDebug ?? false;
+// $prodDebug = false; // Un-comment this line to disallow prodDebug feature showing sensitive datas
 
 $app = new class([
     'debug' => $prodDebug || $config['debug'],
@@ -272,8 +273,14 @@ if ($app['debug']) {
     $app['profiler.cache_dir'] = $app['cache_dir'] . '/profiler';
     $app->register(new Silex\Provider\VarDumperServiceProvider());
     $app->register(new Silex\Provider\ServiceControllerServiceProvider());
-    $app->register(new Silex\Provider\TwigServiceProvider());
-    $app->register(new Silex\Provider\WebProfilerServiceProvider());
+    if (!$prodDebug) {
+        // $prodDebug means it's runing without vendors folder ref
+        // Due to current integration of .phar building process...
+        // Avoiding possible un-solved issue by avoiding twig for now...
+        // Ps : laravel system based on .blade teplates ?
+        $app->register(new Silex\Provider\TwigServiceProvider());
+        $app->register(new Silex\Provider\WebProfilerServiceProvider());
+    }
 }
 
 // $app->post('/api/login', function(Request $request) use ($app){
