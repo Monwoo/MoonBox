@@ -20,7 +20,7 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Bridge\Monolog\Processor\DebugProcessor;
 use Psr\Log\LogLevel;
 
-$root_dir = __DIR__;
+$root_dir = $root_dir ?? __DIR__;
 require_once __DIR__ . '/config.php';
 
 $app = new class([

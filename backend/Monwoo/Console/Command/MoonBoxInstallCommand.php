@@ -232,10 +232,10 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
             // On définit le container (Phar stub)
             $stub = '<?php' . PHP_EOL
             . 'Phar::mapPhar();' . PHP_EOL
-            . 'Phar::interceptFileFuncs();' . PHP_EOL
-            . '$basePath = "phar://" . __FILE__ . "/";' . PHP_EOL
+            // . 'Phar::interceptFileFuncs();' . PHP_EOL
+            // . '$basePath = "phar://" . __FILE__ . "/";' . PHP_EOL
             // . 'require_once $basePath . "vendor/autoload.php";' . PHP_EOL
-            . 'require_once $basePath . "index.php";' . PHP_EOL
+            // . 'require_once $basePath . "index.php";' . PHP_EOL
             . '__HALT_COMPILER(); ?>' . PHP_EOL;
             // $p->setStub('<?php
             // Phar::mapPhar();

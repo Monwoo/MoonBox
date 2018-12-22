@@ -14,7 +14,8 @@ try {
   // | FilesystemIterator::KEY_AS_FILENAME,
   // $pharName);
   include $pharPath;
-  // require "phar://$pharPath/index.php";
+  $root_dir = $root_dir ?? __DIR__;
+  require "phar://$pharPath/index.php";
   // require "phar://$pharPath/vendor/autoload.php";
 } catch (UnexpectedValueException $e) {
   var_dump($e);
