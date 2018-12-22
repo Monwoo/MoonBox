@@ -22,9 +22,10 @@ use Psr\Log\LogLevel;
 
 $root_dir = $root_dir ?? __DIR__;
 require_once __DIR__ . '/config.php';
+$prodDebug = $prodDebug ?? false;
 
 $app = new class([
-    'debug' => $appDebug ?? $config['debug'],
+    'debug' => $prodDebug || $config['debug'],
     'logger' => new class($config['loggerName']) extends \Monolog\Logger {
         public function assert($ok, $msg, $extra = null) {
             // TODO psySh => could break there ? XDebug ?
@@ -136,7 +137,7 @@ $mySaveToFileHandler = new class ($app, $logLvl) extends AbstractMonologHandler 
         if (!is_dir($basePath)) {
             $fs->mkdir($basePath);
         }
-        if ($record['level'] >= Logger::WARNING) {
+        if ($record['level'] >= Logger::WARNING || $prodDebug) {
             // Writting only warnings and errors to logs file
             // to avoid useless huges logs
             $dump = Yaml::dump($logs, 4);//, 4, Yaml::DUMP_OBJECT);
