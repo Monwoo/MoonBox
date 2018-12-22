@@ -119,23 +119,27 @@ export class BoxesComponent implements OnInit {
     }, this.errorHandler);
   }
 
+  initShadowStickySizes() {
+    // https://stackoverflow.com/questions/5598743/finding-elements-position-relative-to-the-document
+    const getOffsetTop = (elem: any) => {
+      var offsetTop = 0;
+      do {
+        if (!isNaN(elem.offsetTop)) {
+          offsetTop += elem.offsetTop;
+        }
+      } while ((elem = elem.offsetParent));
+      return offsetTop;
+    };
+    this.initialStickyOffset = getOffsetTop(this.filtersFormRef.nativeElement);
+    // TODO : find back in Monwoo CVVideo or Ecole de la Vie how to get real div Height...
+    // This height is missing margin/padding and border size....
+    this.initialStickyHeight = this.filtersFormRef.nativeElement.getClientRects()[0].height + 15 * 2 + 16 * 2 + 1 * 2;
+  }
+
   ngAfterViewChecked() {
     this.storage.ensureLockIsNotClosable();
     if (this.filtersFormRef && !this.initialStickyOffset) {
-      // https://stackoverflow.com/questions/5598743/finding-elements-position-relative-to-the-document
-      const getOffsetTop = (elem: any) => {
-        var offsetTop = 0;
-        do {
-          if (!isNaN(elem.offsetTop)) {
-            offsetTop += elem.offsetTop;
-          }
-        } while ((elem = elem.offsetParent));
-        return offsetTop;
-      };
-      this.initialStickyOffset = getOffsetTop(this.filtersFormRef.nativeElement);
-      // TODO : find back in Monwoo CVVideo or Ecole de la Vie how to get real div Height...
-      // This height is missing margin/padding and border size....
-      this.initialStickyHeight = this.filtersFormRef.nativeElement.getClientRects()[0].height + 15 * 2 + 16 * 2 + 1 * 2;
+      this.initShadowStickySizes();
     }
   }
 
@@ -219,6 +223,7 @@ export class BoxesComponent implements OnInit {
     } else {
       this.renderer.addClass(this.filtersFormRef.nativeElement, 'condensed');
     }
+    this.initShadowStickySizes();
   }
 
   onFiltersChange() {
