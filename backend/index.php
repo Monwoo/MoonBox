@@ -23,7 +23,9 @@ use Psr\Log\LogLevel;
 $root_dir = $root_dir ?? __DIR__;
 require_once __DIR__ . '/config.php';
 $prodDebug = $prodDebug ?? false;
-// $prodDebug = false; // Un-comment this line to disallow prodDebug feature showing sensitive datas
+
+// DEBUG MediumRisk, un-cmt for prod
+$prodDebug = false; // Un-comment this line to disallow prodDebug feature showing sensitive datas
 
 $app = new class([
     'debug' => $prodDebug || $config['debug'],

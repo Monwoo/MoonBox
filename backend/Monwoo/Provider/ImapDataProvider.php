@@ -186,7 +186,8 @@ class ImapDataProvider extends DataProvider
             // TODO : clean cached password on user session out => event listener ?
             $password = base64_decode(substr($password, 15));
         }
-        // * DEBUG
+        /*
+        // DEBUG HighRisk, cmt for prod
         if ($app['prodDebug']) {
             $self = $this;
             $app = $self->app;
