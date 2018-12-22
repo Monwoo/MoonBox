@@ -205,7 +205,7 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
             if ($process->getExitCode()) return 1; // Error is already displayed, only have to exit
         } else {
             $cpyBase = $prefixWithAppRoot($self->depsCopySrc);
-            $cpySrc = "$cpyBase/vendor";
+            $cpySrc = "{$cpyBase}vendor";
             $cpyDst = "$installFolder/vendor";
             $output->writeln("<info>Starting copy of vendor files "
             . "$cpySrc => $cpyDst</info>");
@@ -230,16 +230,33 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
                 ($self->isDev ? 'config.dev.php' : 'config.prod.php'),
             ];
             // On définit le container (Phar stub)
-            $p->setStub('<?php' . PHP_EOL
+            $stub = '<?php' . PHP_EOL
             . 'Phar::mapPhar();' . PHP_EOL
+            . 'Phar::interceptFileFuncs();' . PHP_EOL
             . '$basePath = "phar://" . __FILE__ . "/";' . PHP_EOL
-            . 'require_once $basePath . "vendor/autoload.php"' . PHP_EOL
-            . '__HALT_COMPILER();' . PHP_EOL);
+            // . 'require_once $basePath . "vendor/autoload.php";' . PHP_EOL
+            . 'require_once $basePath . "index.php";' . PHP_EOL
+            . '__HALT_COMPILER(); ?>' . PHP_EOL;
             // $p->setStub('<?php
             // Phar::mapPhar();
             // $basePath = "phar://" . __FILE__ . "/";
             // require $basePath . "vendor/autoload.php";
             // __HALT_COMPILER();');
+
+            $hasStub = $p->setStub($stub);
+            // TODO : be carreful with assert, do not put production code in it since may get removed from call in prod...
+            // reaison of phar bug under unix : was building in prod, all assert may have been disabled...
+            assert($hasStub, "Fail to set stub");
+            $resultStub = $p->getStub();
+            // Need php (PECL xdiff >= 0.2.0), will present diff to user
+            // $stubDiff = xdiff_string_diff($stub, $resultStub) === "";
+            $stubHasDiff = strcmp($stub, $resultStub) !== 0;
+            if ($stubHasDiff) {
+                $output->writeln("<stubInput>{$stub}</stubInput>\n");
+                $output->writeln("<stubOutput>{$resultStub}</stubOutput>\n");
+            }
+
+
             // On crée une archive Phar basée sur tar, compressée par gzip (.tar.gz)
             // ini_set('memory_limit', '2048M'); // SOLVE exhausted issue
             // Line below give Memory Exhausted issue for 100M vendor file seem to allocat 100M at least...
