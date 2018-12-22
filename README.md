@@ -84,7 +84,7 @@ zip -r "MoonBox-Prod.zip" dist
 # run backend server for developpment :
 (cd backend && php -eS localhost:6901)
 # build production zip archive in build folder :
-php -d phar.readonly=0 backend/Monwoo/bin/console -vvv moon-box:install
+php -d phar.readonly=0 backend/Monwoo/bin/console -vvv moon-box:install -c false
 
 ```
 
