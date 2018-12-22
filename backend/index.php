@@ -24,7 +24,7 @@ $root_dir = $root_dir ?? __DIR__;
 require_once __DIR__ . '/config.php';
 
 $app = new class([
-    'debug' => $config['debug'],
+    'debug' => $appDebug ?? $config['debug'],
     'logger' => new class($config['loggerName']) extends \Monolog\Logger {
         public function assert($ok, $msg, $extra = null) {
             // TODO psySh => could break there ? XDebug ?

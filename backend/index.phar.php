@@ -15,6 +15,7 @@ try {
   // $pharName);
   include $pharPath;
   $root_dir = $root_dir ?? __DIR__;
+  $appDebug = true;
   require "phar://$pharPath/index.php";
   // require "phar://$pharPath/vendor/autoload.php";
 } catch (UnexpectedValueException $e) {
