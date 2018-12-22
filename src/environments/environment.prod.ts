@@ -9,9 +9,9 @@ export const environment = {
   production: true,
   version: env.npm_package_version,
   serverUrl: '/MoonBox/Demo/',
-  moonBoxBackendUrl: '/MoonBox/Demo/backend/',
+  moonBoxBackendUrl: 'backend/',
   moonBoxBackendDomain: 'monwoo.com',
-  moonBoxBackendBasePath: '/MoonBox/Demo/backend/',
+  moonBoxBackendBasePath: 'backend/',
   defaultLanguage: 'fr-FR',
   supportedLanguages: ['fr-FR', 'en-US'],
   clientSecret: '5om4g05jsmioain'
