@@ -2,10 +2,22 @@
 
 <IfModule mod_rewrite.c>
 	RewriteEngine On
-  # allow credentials redirects
-  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-	RewriteCond %{REQUEST_URI} !index.php
-	RewriteCond %{REQUEST_URI} !/
-	RewriteRule .* - public [F]
+	RewriteCond %{HTTPS} !=on
+	# RewriteCond %{HTTP_HOST} !^localhost
+	# TODO : from config ? => conditional add of line ?
+	# RewriteCond %{HTTP_HOST} !^192.168.43.41
+	RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [QSA,L,R=301]
+
+  # allow credentials redirects
+	RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+	# RewriteCond %{REQUEST_FILENAME} !-d
+	# RewriteCond %{REQUEST_FILENAME} !-f
+	# Protect all other sub folders and files by redirecting all to index.php
+	RewriteRule ^ index.php [QSA,L]
+
+	# RewriteCond %{REQUEST_URI} !index.php
+	# RewriteCond %{REQUEST_URI} !/
+	# RewriteRule .* - public [F]
 </IfModule>

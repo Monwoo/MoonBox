@@ -74,6 +74,18 @@ emacs src/manifest.json
 yarn run build --target=production --base-href '/MoonBox/Demo/'
 # zip result for Production Software delivery :
 zip -r "MoonBox-Prod.zip" dist
+
+# add dependencies to backend :
+(cd backend && composer require  symfony/process)
+# downgrade specific components for compatibility purpose :
+(cd backend && composer require 'symfony/process:^3.4')
+# install backend dependencies :
+(cd backend && composer install)
+# run backend server for developpment :
+(cd backend && php -eS localhost:6901)
+# build production zip archive in build folder :
+php -d phar.readonly=0 backend/Monwoo/bin/console -vvv moon-box:install
+
 ```
 
 ## For advanced documentation :

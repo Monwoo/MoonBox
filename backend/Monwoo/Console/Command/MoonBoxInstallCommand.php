@@ -79,25 +79,28 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
         , 'Specify zip password to use to generate or load archive' . PHP_EOL, false)
         ->addOption('config-moon-box-name', ''/*'c-sn'*/, InputOption::VALUE_OPTIONAL
         , 'Name id of the generated MoonBox, match /[a-z0-9]+/i' . PHP_EOL, 'monwoo-moon-box')
-        ->addOption('config-frontend-base-url', ''/*'c-ma'*/, InputOption::VALUE_OPTIONAL
-        , "Base Url for frontend production destination" . PHP_EOL, null)
-        ->addOption('config-backend-base-url', ''/*'c-mb'*/, InputOption::VALUE_OPTIONAL
-        , "Base Url for backend production destination" . PHP_EOL, null)
+        // ->addOption('config-frontend-base-url', ''/*'c-ma'*/, InputOption::VALUE_OPTIONAL
+        // , "Base Url for frontend production destination" . PHP_EOL, null)
+        // ->addOption('config-backend-base-url', ''/*'c-mb'*/, InputOption::VALUE_OPTIONAL
+        // , "Base Url for backend production destination" . PHP_EOL, null)
         ->addOption('config-php-bin', ''/*'c-pb'*/
         , InputOption::VALUE_OPTIONAL
-        , 'Path to your php 7 binary' . PHP_EOL, null)
+        , 'Path to your php 7 binary' . PHP_EOL, 'php')
         ->addOption('config-yarn-bin', ''/*'c-y'*/, InputOption::VALUE_OPTIONAL
-        , 'Path to your yarn binary' . PHP_EOL,null)
+        , 'Path to your yarn binary' . PHP_EOL, 'yarn')
         ->addOption('config-bower-bin', ''/*'c-b'*/, InputOption::VALUE_OPTIONAL
-        , 'Path to your bower binary' . PHP_EOL,null)
+        , 'Path to your bower binary' . PHP_EOL, 'bower')
         ->addOption('config-gulp-bin', ''/*'c-g'*/, InputOption::VALUE_OPTIONAL
-        , 'Path to your gulp binary' . PHP_EOL,null)
+        , 'Path to your gulp binary' . PHP_EOL, 'gulp')
         ->addOption('dev', 'd', InputOption::VALUE_OPTIONAL
         , 'Install for developpement' . PHP_EOL, false)
         ->addOption('env', 'e', InputOption::VALUE_OPTIONAL
         , 'Specify env extension to force load initial config from.' . PHP_EOL
-        . 'Input file will be install-config.<env>.yml' . PHP_EOL, null)
-
+        . 'Input file will be install-config.<env>.yml' . PHP_EOL, 'prod')
+        ->addOption('dependencies-copy-source', 'c', InputOption::VALUE_OPTIONAL
+        , 'Copy dependencies from source to install folder '
+        . 'instead of fresh installs.'
+        . 'Use -c false to use composer and Internet' . PHP_EOL, '')
         ->addOption('offline', ''/*'off'*/, InputOption::VALUE_OPTIONAL
         , 'Try to install in offline mode (from what you have in cache)' . PHP_EOL, false)
         ->setHelp(
@@ -136,6 +139,8 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
         $zipPassword = $self->initArchivePassword(
             $input->getOption('zip-password')
         );
+
+        $self->depsCopySrc = $input->getOption('dependencies-copy-source');
         $self->isDev = $input->getOption('dev');
         $self->isDev = $self->isDev === null || $self->isDev;
         $self->isOffline = $input->getOption('offline');
@@ -156,10 +161,14 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
             'Monwoo',
             '.htaccess',
             'index.php',
-            'config.php',
+            // 'config.php',
             $self->isDev ? 'config.dev.php' : 'config.prod.php',
-            'composer.json',
         ];
+
+        if ('false' === $self->depsCopySrc) {
+            $keepFiles[] = 'composer.json';
+            $keepFiles[] = 'composer.phar';
+        }
         $progressBar = new ProgressBar($output, count($keepFiles));
         $progressBar->start();
         $progressBar->setRedrawFrequency(2);
@@ -173,6 +182,11 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
                 $fs->copy($keepPath, $installFolder . '/' . $keep);
             }
         }
+        if ('prod' === $self->env) {
+            $output->writeln("<info> Ajusting with Prod config from config.build.php</info>");
+            $fs->copy("$srcFolder/config.build.php", "$installFolder/config.php");
+        }
+
         $progressBar->finish();
         $output->writeln("<info> => Did finish copy</info>");
         // Add missing empty dir for generated files :
@@ -181,14 +195,7 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
         // $output->writeln("<info>Did finish fixing generated folders </info>");
         // Call composer install as prod
         // Initialise production files
-        if ($self->depsCopySrc) {
-            $cpySrc = "{$self->depsCopySrc}/vendor";
-            $cpyDst = "$installFolder/vendor";
-            $output->writeln("<info>Starting copy of vendor files "
-            . "$cpySrc => $cpyDst</info>");
-            $fs->mirror($cpySrc, $cpyDst);
-            $fs->copy("{$self->depsCopySrc}/composer.lock", "$installFolder/composer.lock");
-        } else {
+        if ('false' === $self->depsCopySrc) {
             $process = $self->runExternalPhpScript([
                 "composer.phar",
                 "install",
@@ -196,12 +203,20 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
                 "-o",
             ], $installFolder);
             if ($process->getExitCode()) return 1; // Error is already displayed, only have to exit
+        } else {
+            $cpyBase = $prefixWithAppRoot($self->depsCopySrc);
+            $cpySrc = "$cpyBase/vendor";
+            $cpyDst = "$installFolder/vendor";
+            $output->writeln("<info>Starting copy of vendor files "
+            . "$cpySrc => $cpyDst</info>");
+            $fs->mirror($cpySrc, $cpyDst);
+            // $fs->copy("$cpyBase/composer.lock", "$installFolder/composer.lock");
         }
 
-        $output->writeln("<info>Will generate phar Application</info>");
         // http://php.net/manual/fr/phar.using.intro.php
         // php -d phar.readonly=0 bin/console -vvv moon-box:install -c . -e 'prod.sqlite'
-        if (Phar::canWrite() && false) { // TODO : need to make work phar loading size, fail to get twigs assets for now
+        if (Phar::canWrite()) {
+            $output->writeln("<info>Will generate phar Application</info>");
             // unlink($app['root_dir'] . '/moonBox.phar.tar.gz');
             // unlink($app['root_dir'] . '/moonBox.tar.phar');
             $p = new Phar("$installFolder/moonBox.tar.phar", 0, 'moonBox.tar.phar');
@@ -216,10 +231,15 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
             ];
             // On définit le container (Phar stub)
             $p->setStub('<?php
-            Phar::mapPhar();
-            $basePath = "phar://" . __FILE__ . "/";
-            require $basePath . "vendor/autoload.php";
-            __HALT_COMPILER();');
+Phar::mapPhar();
+$basePath = "phar://" . __FILE__ . "/";
+require_once $basePath . "vendor/autoload.php";
+__HALT_COMPILER();');
+            // $p->setStub('<?php
+            // Phar::mapPhar();
+            // $basePath = "phar://" . __FILE__ . "/";
+            // require $basePath . "vendor/autoload.php";
+            // __HALT_COMPILER();');
             // On crée une archive Phar basée sur tar, compressée par gzip (.tar.gz)
             // ini_set('memory_limit', '2048M'); // SOLVE exhausted issue
             // Line below give Memory Exhausted issue for 100M vendor file seem to allocat 100M at least...
@@ -235,7 +255,7 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
                 ), $installFolder);
             }
             foreach ($srcFiles as $path) {
-                $p->addFile("$installFolder/$path", "$path");
+                $p->addFile(fopen("$installFolder/$path", "r"), "$path");
             }
             // // ajoute un nouveau fichier en utilisant l'API d'accès par tableau
             // $p['fichier1.txt'] = 'Information';
@@ -257,11 +277,15 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
             $output->writeln("<info>Will clean bundeled php src</info>");
             $fs->remove([
                 "$installFolder/Monwoo",
+                "$installFolder/vendor",
                 "$installFolder/config.dev.php",
                 "$installFolder/config.php",
                 "$installFolder/config.prod.php",
                 "$installFolder/index.php",
             ]);
+            $output->writeln("<info>Will add index.php for .phar builded app</info>");
+            $fs->copy("$srcFolder/index.phar.php", "$installFolder/index.php");
+
             // $cleanPaths = [
             //     $installFolder . '/vendor',
             // ];
@@ -333,8 +357,10 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
             $finder = new Finder();
             $finder->files()->ignoreDotFiles(false)
             ->in($installFolder)
-            ->exclude('node_modules');
-            //->exclude('bower_components');
+            ->exclude('composer.json')
+            ->exclude('composer.phar');
+            // ->exclude('node_modules');
+            // ->exclude('bower_components');
             foreach ($finder as $file) {
                 $zip->addFile($file->getRealPath()
                 , $file->getRelativePathname());
@@ -357,8 +383,8 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
             // $zipFile->withoutPassword(); // TODO : why needed if never called setPassword before, static side effects of other commands calls ?
         }
         // Copy tools for installation at root of build folder
-        $fs->copy(($self->depsCopySrc ?? '.') . '/tools/installer.php', $buildFolder . '/installer.php');
-        $fs->copy(($self->depsCopySrc ?? '.') . '/tools/.htaccess', $buildFolder . '/.htaccess');
+        // $fs->copy(($self->depsCopySrc ?? '.') . '/tools/installer.php', $buildFolder . '/installer.php');
+        // $fs->copy(($self->depsCopySrc ?? '.') . '/tools/.htaccess', $buildFolder . '/.htaccess');
         $output->writeln("<info>Saved to $installArchivePath </info>");
     }
 

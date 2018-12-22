@@ -186,6 +186,7 @@
 
 * http://awurth.fr/doc/silex-user/
 * https://symfony.com/doc/current/components/console.html
+* mrmlnc.vscode-apache
 
 ```bash
 # Added packages :
@@ -223,7 +224,7 @@ cd -
 symfony/monolog-bridge symfony/filesystem
 symfony/translation zendframework/zend-mail
 moust/silex-cache silex/web-profiler awurth/silex-user
- symfony/console
+ symfony/console symfony/finder symfony/process:^3.4
 )
 
 # clean all and rebuild :
