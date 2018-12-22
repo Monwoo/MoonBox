@@ -220,6 +220,13 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
             // unlink($app['root_dir'] . '/moonBox.phar.tar.gz');
             // unlink($app['root_dir'] . '/moonBox.tar.phar');
             $p = new Phar("$installFolder/moonBox.tar.phar", 0, 'moonBox.tar.phar');
+            // Compressing will give fatal memory access error...
+            // $p = $p->compress(Phar::GZ);
+            // On crée une archive Phar basée sur tar, compressée par gzip (.tar.gz)
+            // ini_set('memory_limit', '2048M'); // SOLVE exhausted issue
+            // Line below give Memory Exhausted issue for 100M vendor file seem to allocat 100M at least...
+            // $p = $p->convertToExecutable(Phar::TAR, Phar::GZ);
+
             $srcDirs = [
                 $installFolder . '/vendor',
                 $installFolder . '/Monwoo',
