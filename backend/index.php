@@ -28,6 +28,13 @@ $prodDebug = $prodDebug ?? false;
 $prodDebug = false; // Un-comment this line to disallow prodDebug feature showing sensitive datas
 
 $app = new class([
+    'randSeedSize' => 2,
+    'randSeedInit' => function ($seed) {
+        return 1;
+    },
+    'randSeedFreq' => function ($seed) {
+        return $seed + 1;
+    },
     'debug' => $prodDebug || $config['debug'],
     'prodDebug' => $prodDebug,
     'logger' => new class($config['loggerName']) extends \Monolog\Logger {

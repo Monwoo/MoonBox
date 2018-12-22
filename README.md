@@ -77,6 +77,8 @@ git checkout HEAD src/environments/environment.ts
 # zip result for Production Software delivery :
 zip -r "MoonBox-Prod.zip" dist
 
+# ensure you use php > 7.1
+export PATH=/Applications/MAMP/bin/php/php7.1.8/bin:$PATH
 # add dependencies to backend :
 (cd backend && composer require  symfony/process)
 # downgrade specific components for compatibility purpose :

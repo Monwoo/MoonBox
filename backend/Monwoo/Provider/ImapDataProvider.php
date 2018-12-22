@@ -48,15 +48,39 @@ class ImapDataProvider extends DataProvider
         $self->dataset_name = 'ImapData';
         $self->dataset_id = 'data_imap';
     }
+    protected function injectRandSeed(/*$seed, */$str) {
+        $app = $this->app;
+        $randSeedSize = $app['randSeedSize'];
+        $seed = call_user_func_array($app['randSeedInit']);
+        // TODO : use randSeedFreq function for recursive rand spread seed Algo ?
+        $randSeedFreq = $seed;
+        return chunk_split($str, $randSeedFreq,
+        substr(base64_encode(random_bytes(10)), 0, $randSeedSize));
+    }
+    protected function extractRandSeed(/*$seed, */$str) {
+        $app = $this->app;
+        $randSeedSize = $app['randSeedSize'];
+        $seed = call_user_func_array($app['randSeedInit']);
+        // TODO : use randSeedFreq function for recursive rand spread seed Algo ?
+        $randSeedFreq = $seed;
+        // By Miguel Monwoo, service@monwoo.com, R&D on JS Console :
+        // 'qqakkabba'.replace(/((..).)/g, "$2")
+        // 'qqakkabba'.replace(/((.{1}).{1})/g, "$2")
+        return preg_replace("/((.{$randSeedFreq}).{$randSeedSize})/g", '${2}', $str);
+    }
     protected function storeInCache($key, $data) {
         $app = $this->app;
-        $app['cache']->store($key, base64_encode(json_encode($data)), self::cacheLifetime);
+        $app['cache']->store($key, $this->injectRandSeed(
+            base64_encode(json_encode($data))
+        ), self::cacheLifetime);
         return $this;
     }
     protected function fetchFromCache($key) {
         $app = $this->app;
         // var_dump(json_decode(base64_decode($app['cache']->fetch($key)))); exit;
-        return json_decode(base64_decode($app['cache']->fetch($key)), true);
+        return json_decode(base64_decode($this->extractRandSeed(
+            $app['cache']->fetch($key)
+        )), true);
     }
 
     protected function getUserDataStoreKey() {
