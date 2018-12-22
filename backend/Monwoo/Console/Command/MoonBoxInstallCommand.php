@@ -230,11 +230,11 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
                 ($self->isDev ? 'config.dev.php' : 'config.prod.php'),
             ];
             // On définit le container (Phar stub)
-            $p->setStub('<?php
-Phar::mapPhar();
-$basePath = "phar://" . __FILE__ . "/";
-require_once $basePath . "vendor/autoload.php";
-__HALT_COMPILER();');
+            $p->setStub('<?php' . PHP_EOL
+            . 'Phar::mapPhar();' . PHP_EOL
+            . '$basePath = "phar://" . __FILE__ . "/";' . PHP_EOL
+            . 'require_once $basePath . "vendor/autoload.php"' . PHP_EOL
+            . '__HALT_COMPILER();' . PHP_EOL);
             // $p->setStub('<?php
             // Phar::mapPhar();
             // $basePath = "phar://" . __FILE__ . "/";
@@ -255,7 +255,7 @@ __HALT_COMPILER();');
                 ), $installFolder);
             }
             foreach ($srcFiles as $path) {
-                $p->addFile(fopen("$installFolder/$path", "r"), "$path");
+                $p->addFile("$installFolder/$path", "$path");
             }
             // // ajoute un nouveau fichier en utilisant l'API d'accès par tableau
             // $p['fichier1.txt'] = 'Information';
