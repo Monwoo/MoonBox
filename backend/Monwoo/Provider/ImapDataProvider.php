@@ -26,6 +26,8 @@ use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\DomCrawler\Crawler;
 use Monwoo\Middleware\AddingCors;
+use Defuse\Crypto\Crypto;
+use Defuse\Crypto\KeyProtectedByPassword;
 
 use Monwoo\Middleware\MonwooDataEventsMiddleware;
 use JasonGrimes\Paginator;
@@ -50,23 +52,50 @@ class ImapDataProvider extends DataProvider
     }
     protected function injectRandSeed(/*$seed, */$str) {
         $app = $this->app;
-        $randSeedSize = $app['randSeedSize'];
-        $seed = call_user_func_array($app['randSeedInit']);
-        // TODO : use randSeedFreq function for recursive rand spread seed Algo ?
-        $randSeedFreq = $seed;
-        return chunk_split($str, $randSeedFreq,
-        substr(base64_encode(random_bytes(10)), 0, $randSeedSize));
+        $pass = $app['session']->get('randPass');
+        $key = $app['session']->get('sessionClientKey');
+        if (!$key) {
+            $pass = substr(base64_encode(random_bytes(10)), 0, 12);
+            $key = KeyProtectedByPassword::createRandomPasswordProtectedKey($pass);
+            $key = $key->saveToAsciiSafeString();
+            $app['session']->set('randPass', $pass);
+            $app['session']->set('sessionClientKey', $key);
+        }
+        $protected_key = KeyProtectedByPassword::loadFromAsciiSafeString($key);
+        $open_key = $protected_key->unlockKey($pass);
+        // $randSeedSize = $app['randSeedSize'];
+        // $seed = call_user_func_array($app['randSeedInit']);
+        // // TODO : use randSeedFreq function for recursive rand spread seed Algo ?
+        // $randSeedFreq = $seed;
+        // return chunk_split($str, $randSeedFreq,
+        // substr(base64_encode(random_bytes(10)), 0, $randSeedSize));
+        return Crypto::encrypt($str, $open_key);
     }
     protected function extractRandSeed(/*$seed, */$str) {
         $app = $this->app;
-        $randSeedSize = $app['randSeedSize'];
-        $seed = call_user_func_array($app['randSeedInit']);
-        // TODO : use randSeedFreq function for recursive rand spread seed Algo ?
-        $randSeedFreq = $seed;
-        // By Miguel Monwoo, service@monwoo.com, R&D on JS Console :
-        // 'qqakkabba'.replace(/((..).)/g, "$2")
-        // 'qqakkabba'.replace(/((.{1}).{1})/g, "$2")
-        return preg_replace("/((.{$randSeedFreq}).{$randSeedSize})/g", '${2}', $str);
+        $pass = $app['session']->get('randPass');
+        $key = $app['session']->get('sessionClientKey');
+        $protected_key = KeyProtectedByPassword::loadFromAsciiSafeString($key);
+        $open_key = $protected_key->unlockKey($pass);
+        // $randSeedSize = $app['randSeedSize'];
+        // $seed = call_user_func_array($app['randSeedInit']);
+        // // TODO : use randSeedFreq function for recursive rand spread seed Algo ?
+        // $randSeedFreq = $seed;
+        // // By Miguel Monwoo, service@monwoo.com, R&D on JS Console :
+        // // 'qqakkabba'.replace(/((..).)/g, "$2")
+        // // 'qqakkabba'.replace(/((.{1}).{1})/g, "$2")
+        // return preg_replace("/((.{$randSeedFreq}).{$randSeedSize})/g", '${2}', $str);
+        try {
+            return Crypto::decrypt($str, $open_key);
+        } catch (\Defuse\Crypto\Exception\WrongKeyOrModifiedCiphertextException $ex) {
+            // An attack! Either the wrong key was loaded, or the ciphertext has
+            // changed since it was created -- either corrupted in the database or
+            // intentionally modified by Eve trying to carry out an attack.
+        
+            // ... handle this case in a way that's suitable to your application ...
+            $app['logger']->error("Fail to decode", $ex);
+            throw $ex;
+        }
     }
     protected function storeInCache($key, $data) {
         $app = $this->app;

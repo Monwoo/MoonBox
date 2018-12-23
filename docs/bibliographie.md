@@ -212,6 +212,8 @@
 
 * https://stackoverflow.com/questions/43553544/how-can-i-manually-set-an-angular-form-field-as-invalid
 
+* https://github.com/defuse/php-encryption/blob/master/docs/Tutorial.md
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
@@ -248,7 +250,8 @@ cd -
 symfony/monolog-bridge symfony/filesystem
 symfony/translation zendframework/zend-mail
 moust/silex-cache silex/web-profiler awurth/silex-user
- symfony/console symfony/finder symfony/process:^3.4
+symfony/console symfony/finder symfony/process:^3.4
+defuse/php-encryption
 )
 
 # clean all and rebuild :

@@ -18,11 +18,11 @@ pre {
   font-size: 8pt;
 }
 
-.config-toggler-wrapper {
-  margin-bottom: 7px;
-}
-
 ::ng-deep {
+  .config-toggler-wrapper {
+    margin-bottom: 7px;
+  }
+
   .mat-card-header {
     @include media-breakpoint-down(md) {
       flex-direction: column;
