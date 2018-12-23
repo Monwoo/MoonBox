@@ -406,48 +406,15 @@ class ImapDataProvider extends DataProvider
         ])->getContent());
 
         $self->context['dataProvider'] = $self;
-        $order_by = $request->get('order_by') ?: 'time';
-        $order_dir = $request->get('order_dir') == 'ASC' ? 'ASC' : 'DESC';
+        $order_by = $request->get('order_by') ?: 'time'; // TODO : use it ? no way on ids for now...
+        $order_dir = $request->get('order_dir') == 'DESC' ? 'DESC' : 'ASC';
         $limit = (int)($request->get('limit') ?: 20);
         $page = (int)($request->get('page') ?: 1);
-        if ($request->get('page')) { // TODO : improve if test on pagination params ?
-            // have pagination request, save it for chained processing
-            $self->setSession('order_by', $order_by);
-            $self->setSession('order_dir', $order_dir);
-            $self->setSession('limit', $limit);
-            $self->setSession('page', $page);
-        } else {
-            $order_by = $self->getSession('order_by') ?? $order_by;
-            $order_dir = $self->getSession('order_dir') ?? $order_dir;
-            $limit = $self->getSession('limit') ?? $limit;
-            $page = $self->getSession('page') ?? $page;
-        }
         $offset = ($page - 1) * $limit;
         $self->offsetStart = $offset;
         $self->offsetLimit = $limit;
         if ('admin_form' === $action) {
         } else if ('admin_results' === $action) {
-            // $self->context['admin_result_form'] = $self->buildAdminForm();
-            // $self->context['admin_edit_form'] = $self->buildEditForm();
-            // TODO : if $page > maxNbPage => rewind to page 1
-            $paginator = new \JasonGrimes\Paginator(
-                $self->getSession('numResults'),
-                $limit, $page,
-                $app->path("TODO", [
-                    'action' => 'admin_results',
-                    // Escape issue : 'page' => '(:num)',
-                    'limit' => $limit,
-                    'order_by' => $order_by,
-                    'order_dir' => $order_dir,
-                ]) . '&page=(:num)'
-                // $app['url_generator']->generate($self->manager_route_name)
-                // . '?page=(:num)&limit=' . $limit . '&order_by='
-                // . $order_by . '&order_dir=' . $order_dir
-            );
-            $self->context['paginator'] = $paginator;
-            $self->actionResponse = $self->actionResponse ?? $app['twig']->render(
-                'MonwooConnector/Imap/admin_results.twig', $self->context
-            );
         } else if ('submit_refresh' === $action) {
             // $self->context['admin_result_form'] = $self->buildAdminForm();
             $status = [
@@ -575,6 +542,9 @@ class ImapDataProvider extends DataProvider
 
                     // SE_UID option like in http://www.php.net/manual/en/function.imap-search.php ?
                     $msgIds = $this->imap->search($imapQuery);
+                    if ("ASC" === $order_dir) {
+                        $msgIds = array_reverse($msgIds);
+                    }
                     $totalCountOfMsg = count($msgIds);
                     $totalCount += $totalCountOfMsg;
                     $msgIds = array_slice($msgIds, $self->offsetStart, $self->offsetLimit);

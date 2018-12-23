@@ -58,6 +58,11 @@ export class BoxReaderComponent implements OnInit {
     if (!this.loginForm.form.valid) {
       let target;
       for (var i in this.loginForm.form.controls) {
+        // need to check errors since did use 'setError' method from login action on bad user ids ?
+        // TODO : remove below hack, avoiding tricky case for now :
+        if ('_username' === i) {
+          continue;
+        }
         if (!this.loginForm.form.controls[i].valid) {
           target = this.loginForm.form.controls[i];
           break;

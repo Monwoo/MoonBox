@@ -10,6 +10,7 @@ export type MsgsStateType = {
     data: {
       [key: string]: any[];
     };
+    sortedKey?: string[];
   };
 };
 
@@ -46,12 +47,22 @@ export class MessagesService {
     });
     // this.numResults += messages.numResults - alreadyCounted;
     // this.totalCount += messages.totalCount - alreadyCounted; // Accuracy ok
-    this.numResults = Object.keys(this.msgs).reduce((acc: number, k: string) => {
-      return acc + this.msgs[k].numResults;
-    }, 0);
-    this.totalCount = Object.keys(this.msgs).reduce((acc: number, k: string) => {
-      return acc + this.msgs[k].totalCount;
-    }, 0);
+    // this.numResults = Object.keys(this.msgs).reduce((acc: number, k: string) => {
+    //   return acc + this.msgs[k].numResults;
+    // }, 0);
+    // this.totalCount = Object.keys(this.msgs).reduce((acc: number, k: string) => {
+    //   return acc + this.msgs[k].totalCount;
+    // }, 0);
+    this.totalCount = 0;
+    this.numResults = 0;
+    Object.keys(this.msgs).forEach((k: string) => {
+      const msg = this.msgs[k];
+      this.totalCount += msg.totalCount;
+      this.numResults += msg.numResults;
+      msg.sortedKey = Object.keys(msg.data)
+        .sort()
+        .reverse();
+    });
   }
 
   clearMessages() {
