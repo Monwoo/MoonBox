@@ -196,6 +196,16 @@
 * https://stackoverflow.com/questions/50548573/are-pwa-sites-in-same-domain-not-able-to-install-both-on-home-screen
 * https://stackoverflow.com/questions/51280821/multiple-pwas-in-the-same-domain
 
+- https://php-osx.liip.ch/
+- https://medium.com/@romaninsh/install-php-7-2-on-macos-high-sierra-with-homebrew-bdc4d1b04ea6
+- https://medium.com/@romaninsh/install-php-7-2-xdebug-on-macos-high-sierra-with-homebrew-july-2018-d7968fe7e8b8
+- http://php.net/manual/fr/migration72.php
+- https://web.archive.org/web/20180131074715/http://www.mamp.info/en/downloads/ => https://www.mamp.info/en/downloads/
+- http://php.net/downloads.php
+- http://php.net/get/php-7.2.13.tar.bz2/from/a/mirror
+- https://github.com/Ocramius/ProxyManager
+- http://ocramius.github.io/ProxyManager/
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
