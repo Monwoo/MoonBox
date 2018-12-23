@@ -83,6 +83,22 @@ export class BoxesComponent implements OnInit {
       this.filtersFormRef.nativeElement.parentElement.parentElement.style.marginTop = '0px';
     }
   }
+  @HostListener('submit', ['$event'])
+  onSubmit(event: any) {
+    // TODO : better design model for animation : should stack etc.... async for now....
+    // if(!this.form.valid) {
+    //   let target;
+    //   for (var i in this.form.controls) {
+    //     if(!this.form.controls[i].valid) {
+    //       target = this.form.controls[i];
+    //       break;
+    //     }
+    //   }
+    //   if(target) {
+    //     $('html,body').animate({scrollTop: $(target.nativeElement).offset().top}, 'slow');
+    //   }
+    // }
+  }
 
   filters: ContextType = null;
 

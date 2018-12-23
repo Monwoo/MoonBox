@@ -227,10 +227,15 @@ export const formModel = async (caller: any) => {
                       new DynamicInputModel({
                         id: 'key',
                         label: srcLbl
+                        // TODO : auto fetch availables emails from loaded msgs headers
+                        // and use as sugestions
+                        // list: ["Alabama", "Alaska", "Arizona", "Arkansas"]
                       }),
                       new DynamicInputModel({
                         id: 'value',
                         label: assLbl
+                        // TODO : auto fetch availables emails from loaded msgs headers
+                        // and use as sugestions
                       })
                     ];
                   })()

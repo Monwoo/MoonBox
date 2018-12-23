@@ -131,7 +131,14 @@ export const formModel = async (caller: any) => {
           label: await fetchTrans(extract('Mot de passe')),
           inputType: 'password',
           placeholder: await fetchTrans(extract('Password')),
-          value: d._password
+          value: d._password,
+          validators: {
+            required: null,
+            minLength: 1
+          },
+          errorMessages: {
+            required: await fetchTrans(extract('{{ label }} requis.'))
+          }
         }),
         // new DynamicCheckboxModel({
         //   id: 'keepInMemory',

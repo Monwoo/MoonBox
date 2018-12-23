@@ -206,6 +206,12 @@
 - https://github.com/Ocramius/ProxyManager
 - http://ocramius.github.io/ProxyManager/
 
+* https://github.com/udos86/ng-dynamic-forms#custom-validators
+* https://medium.com/front-end-weekly/reactive-forms-and-form-validation-with-angular-fdcbcf98e1e8
+* https://guide-angular.wishtack.io/angular/formulaires/reactive-forms/validation
+
+* https://stackoverflow.com/questions/43553544/how-can-i-manually-set-an-angular-form-field-as-invalid
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

@@ -11,7 +11,8 @@ import {
   ElementRef,
   TemplateRef,
   Output,
-  EventEmitter
+  EventEmitter,
+  HostListener
 } from '@angular/core';
 import { NgForm, FormGroup, Validators, FormBuilder } from '@angular/forms';
 // import { LocalStorage } from '@ngx-pwa/local-storage';
@@ -52,6 +53,28 @@ export class BoxReaderComponent implements OnInit {
 
   @ViewChild('loginForm') loginForm: NgForm = null;
   @ViewChild('eltRef') eltRef: ElementRef = null;
+  @HostListener('submit', ['$event'])
+  onSubmit(event: any) {
+    if (!this.loginForm.form.valid) {
+      let target;
+      for (var i in this.loginForm.form.controls) {
+        if (!this.loginForm.form.controls[i].valid) {
+          target = this.loginForm.form.controls[i];
+          break;
+        }
+      }
+      if (target) {
+        // https://stackoverflow.com/questions/41173027/angular-2-focus-on-first-invalid-input-after-click-event
+        // https://stackoverflow.com/questions/43553544/how-can-i-manually-set-an-angular-form-field-as-invalid
+        // $('html,body').animate({scrollTop: $(target.nativeElement).offset().top}, 'slow');
+        // logReview.debug(target);
+        target.markAsTouched();
+        if (this.isCondensed) {
+          this.toggleConfigs();
+        }
+      }
+    }
+  }
 
   // formModel: Promise<DynamicFormModel> = configFormModel(this);
   formModel: DynamicFormModel = null;
@@ -165,10 +188,25 @@ export class BoxReaderComponent implements OnInit {
       this.backend.fetchMsg(this.formGroup.value._username, page).subscribe((messages: any) => {
         if (!messages.status || messages.status.errors.length) {
           logReview.warn('BoxReader fetch errors ', messages.status ? messages.status.errors : messages);
-          this.i18nService.get(extract('mm.box-reader.notif.fetchFail')).subscribe(t => {
-            this.notif.warn(t);
-            // this.ll.hideLoader();
-          });
+          if (
+            messages.status &&
+            messages.status.errors.reduce((acc: boolean, err: string[]) => {
+              if ('Exception Exception: cannot login, wrong user or password' === err[1]) {
+              }
+            })
+          ) {
+            this.i18nService.get(extract('mm.box-reader.notif.wrongUserOrPassword')).subscribe(t => {
+              this.notif.warn(t);
+              this.formGroup.controls['_username'].setErrors({ incorrect: true });
+              this.formGroup.controls['_username'].markAsTouched();
+              this.formGroup.controls['_password'].setErrors({ incorrect: true });
+            });
+          } else {
+            this.i18nService.get(extract('mm.box-reader.notif.fetchFail')).subscribe(t => {
+              this.notif.warn(t);
+              // this.ll.hideLoader();
+            });
+          }
         } else {
           this.hasMoreMsgs = messages.numResults !== messages.totalCount; // TODO : pagination etc...
           // TODO : better data structure to auto fix multiple reads of same page issue...
@@ -234,12 +272,20 @@ export class BoxReaderComponent implements OnInit {
 
   login(event: any) {
     const val: FormType = this.loginForm.form.value;
+    // Nghost event not already detected ? TODO : avoid quick fix below :
+    this.onSubmit(event);
     if (this.loginForm.form.valid) {
       if (!/\*#__hash/.test(val._password)) {
         val._password = '*' + '#__hash' + (Math.random().toString(36) + '777777777').slice(2, 9) + btoa(val._password);
       }
       this.loginData = <FormType>shallowMerge(1, this.loginData, val);
       let storeData = this.loginData;
+
+      // https://stackoverflow.com/questions/43553544/how-can-i-manually-set-an-angular-form-field-as-invalid
+      // TODO : advanced realtime enduser error feedback (need to click for now to get those)
+      // Below for quick hack, better to implement full custom validator for regular case....
+      // formData.form.controls['email'].setErrors({'incorrect': true});
+
       if (!this.loginData.keepPasswordsInMemory) {
         storeData = <FormType>shallowMerge(1, this.loginData, {
           _password: ''

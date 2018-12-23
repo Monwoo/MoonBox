@@ -15,7 +15,7 @@ export const environment = {
   moonBoxBackendBasePath: '/',
   defaultLanguage: 'fr-FR',
   supportedLanguages: ['fr-FR', 'en-US'],
-  clientSecret: '84rjls2og9hc6m2'
+  clientSecret: '3ln7r4c0xz4fkck'
 };
 /*
  * For easier debugging in development mode, you can import the following file
