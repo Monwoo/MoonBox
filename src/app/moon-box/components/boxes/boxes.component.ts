@@ -72,6 +72,10 @@ export class BoxesComponent implements OnInit {
 
   @HostListener('window:scroll', ['$event'])
   checkScroll() {
+    if (this.innerWidth < this.size.md) {
+      return; // ignoring sticky effect for mobile devices
+    }
+
     if (!this.filtersFormRef) return; // will waith for filters to be displayed
     const deltaScrollAvailable = document.body.scrollHeight - document.body.clientHeight;
 
@@ -99,7 +103,19 @@ export class BoxesComponent implements OnInit {
     //   }
     // }
   }
-
+  // https://stackoverflow.com/questions/45350716/detect-window-size-using-angular-4
+  // https://getbootstrap.com/docs/4.0/layout/overview/
+  size = {
+    sm: 576,
+    md: 768,
+    lg: 992,
+    xl: 1200
+  };
+  innerWidth = window.innerWidth;
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.innerWidth = window.innerWidth;
+  }
   filters: ContextType = null;
 
   mbegKeyTransformerControl: FormArray;

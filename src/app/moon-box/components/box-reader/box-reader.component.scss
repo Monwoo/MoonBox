@@ -1,4 +1,7 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
+@import "~bootstrap/scss/_functions";
+@import "~bootstrap/scss/_variables";
+@import "~bootstrap/scss/_mixins";
 
 pre {
   white-space: pre-wrap; /* Since CSS 2.1 */
@@ -14,9 +17,40 @@ pre {
 .msg-header {
   font-size: 8pt;
 }
+
+.config-toggler-wrapper {
+  margin-bottom: 7px;
+}
+
 ::ng-deep {
-  .mat-card-avatar {
-    height: auto;
-    width: auto;
+  .mat-card-header {
+    @include media-breakpoint-down(md) {
+      flex-direction: column;
+    }
+
+    .mat-card-avatar {
+      height: auto;
+      width: auto;
+    }
+    .mat-card-title {
+      white-space: pre-wrap; /* Since CSS 2.1 */
+      white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+      white-space: -pre-wrap; /* Opera 4-6 */
+      white-space: -o-pre-wrap; /* Opera 7 */
+      word-wrap: break-word; /* Internet Explorer 5.5+ */
+      word-break: break-all;
+      font-size: 14px;
+      color: inherit;
+    }
+    .mat-card-subtitle {
+      // white-space: pre-wrap; /* Since CSS 2.1 */
+      // white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+      // white-space: -pre-wrap; /* Opera 4-6 */
+      // white-space: -o-pre-wrap; /* Opera 7 */
+      // word-wrap: break-word; /* Internet Explorer 5.5+ */
+      // word-break: break-all;
+      font-size: 14px;
+      color: inherit;
+    }
   }
 }

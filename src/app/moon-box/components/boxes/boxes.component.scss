@@ -1,4 +1,7 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
+@import "~bootstrap/scss/_functions";
+@import "~bootstrap/scss/_variables";
+@import "~bootstrap/scss/_mixins";
 
 :host ::ng-deep {
   dynamic-material-form-control div[role="group"] > dynamic-material-form-control {
@@ -17,12 +20,15 @@
     right: 0px;
     padding: 10px;
   }
-  .sticky {
-    position: fixed;
-    top: 0px;
-    z-index: 500;
-    max-width: 100vw;
-    max-height: 42vh;
-    overflow-y: auto;
+  // Allowing sticky only for size equal or above md (avoiding mobile troubles) :
+  @include media-breakpoint-up(md) {
+    .sticky {
+      position: fixed;
+      top: 0px;
+      z-index: 500;
+      max-width: 100vw;
+      max-height: 42vh;
+      overflow-y: auto;
+    }
   }
 }

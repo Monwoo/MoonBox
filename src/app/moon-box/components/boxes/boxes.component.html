@@ -82,8 +82,9 @@
             <mat-card-header (click)="expandMessage($event, messages.key, index)">
               <div mat-card-avatar>{{ msg.localTime }}</div>
               <mat-card-title>{{ msg.subject }}</mat-card-title>
-              <mat-card-subtitle class="container-fluid d-flex">
-                {{ msg.expeditorFullName }} <strong class="mx-3">=></strong> {{ msg.connectionUser }}
+              <mat-card-subtitle class="">
+                {{ msg.expeditorFullName }} <strong class="mx-3 d-block d-md-inline">=></strong>
+                {{ msg.connectionUser }}
               </mat-card-subtitle>
             </mat-card-header>
             <mat-card-content>
