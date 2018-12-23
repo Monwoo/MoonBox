@@ -3,6 +3,12 @@
 @import "~bootstrap/scss/_variables";
 @import "~bootstrap/scss/_mixins";
 
+::ng-deep {
+  body {
+    overflow-y: scroll;
+  }
+}
+
 :host ::ng-deep {
   dynamic-material-form-control div[role="group"] > dynamic-material-form-control {
     display: inline-block;
@@ -57,7 +63,7 @@
       top: 0px;
       z-index: 500;
       max-width: 100vw;
-      max-height: 42vh;
+      max-height: 80vh;
       overflow-y: auto;
     }
   }

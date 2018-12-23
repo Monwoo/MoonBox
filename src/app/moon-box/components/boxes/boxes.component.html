@@ -3,6 +3,7 @@
     <div class="global-count">{{ msgs.numResults }} / {{ msgs.totalCount }}</div>
 
     <form *ngIf="filters" class="condensed" [formGroup]="filters.group" #filtersFormRef #filtersForm="ngForm">
+      <button mat-button color="primary" type="button" (click)="toggleFilters($event)">...</button>
       <dynamic-material-form
         [group]="filters.group"
         [model]="filters.model"
@@ -20,7 +21,6 @@
         -->
         <ng-template modelId="fetchEnd">
           <!-- <pre>{{  index  | json }}</pre> -->
-          <button mat-button color="primary" type="button" (click)="toggleFilters($event)">...</button>
           <!--
             TODO v1.0.1 : allow all actions in one stickable place :
             <button

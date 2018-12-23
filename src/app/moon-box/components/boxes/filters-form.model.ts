@@ -133,6 +133,16 @@ export const FORM_LAYOUT = {
       container: 'condensable'
     }
   },
+  fetchStart: {
+    element: {
+      container: 'condensable'
+    }
+  },
+  fetchEnd: {
+    element: {
+      container: 'condensable'
+    }
+  },
   keepPasswordsInMemory: {
     element: {
       container: 'condensable'
