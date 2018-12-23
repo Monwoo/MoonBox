@@ -20,6 +20,36 @@
     right: 0px;
     padding: 10px;
   }
+
+  .mat-card-header {
+    @include media-breakpoint-down(md) {
+      flex-direction: column;
+    }
+
+    .mat-card-avatar {
+      height: auto;
+      width: auto;
+    }
+    .mat-card-title {
+      white-space: pre-wrap; /* Since CSS 2.1 */
+      white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+      white-space: -pre-wrap; /* Opera 4-6 */
+      white-space: -o-pre-wrap; /* Opera 7 */
+      word-wrap: break-word; /* Internet Explorer 5.5+ */
+      word-break: break-all;
+      color: inherit;
+    }
+    .mat-card-subtitle {
+      // white-space: pre-wrap; /* Since CSS 2.1 */
+      // white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+      // white-space: -pre-wrap; /* Opera 4-6 */
+      // white-space: -o-pre-wrap; /* Opera 7 */
+      // word-wrap: break-word; /* Internet Explorer 5.5+ */
+      // word-break: break-all;
+      font-size: 14px;
+      color: inherit;
+    }
+  }
   // Allowing sticky only for size equal or above md (avoiding mobile troubles) :
   @include media-breakpoint-up(md) {
     .sticky {

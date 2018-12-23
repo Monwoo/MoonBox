@@ -173,6 +173,7 @@
   "mb.param.notif.uploadErrorHasOccured": "Erreur de chargement du fichier",
   "mb.param.warningMsg": "Attention : démo v1.0.0 testé humainement uniquement. Pour limiter les risques, utilisez l'outil depuis un onglet de navigation privée.",
   "mb.secu-storage.setPassCode.success": "Pass code définit",
+  "mm.box-reader.notif.wrongUserOrPassword": "Mot de passe ou utilisateur erroné",
   "mm.box-reader.notif.fetchFail": "Echec de la lecture des messages",
   "mm.featureInProgress.mediasImportExport": "Import/export des médias en cours de développement... Non sauvegardable ni exportable actuellement.",
   "mm.param.configWarning.notTestedBrowser": "Votre ({{name}})[{{version}}] n'est pas forcément au même point que ({{testedName}})[{{testedVersion}}] pour ce MoonManager",
@@ -209,6 +210,7 @@
   "rgb(60,0,108)": "rgb(60,0,108)",
   "service.saveMediasToLocalStorage.label": "Conserver les médias en stockage pour import/export",
   "service.saveTimingsToLocalStorage.label": "Conserver les temps en stockage pour import/export",
+  "{{ label }} requis.": "{{ label }} requis.",
   "© Copyright Monwoo 2018, service@monwoo.com, données privées": "© Copyright Monwoo 2018, service@monwoo.com, données privées",
   "© Monwoo (Private data)": "© Monwoo (Private data)"
 }

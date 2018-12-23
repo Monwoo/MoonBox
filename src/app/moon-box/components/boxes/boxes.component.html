@@ -77,24 +77,20 @@
         <!-- : not accurate enouth yet : /{{ messages.value.totalCount }}) -->
       </div>
       <div class="col-12 text-md-left condensed">
-        <mat-card *ngFor="let msgKey of messages.value.sortedKey" class="bs box-reader">
+        <mat-card *ngFor="let msgKey of messages.value.sortedKey; let index = index" class="bs box-reader">
           <ng-template #boxContent let-msg="msg">
-            <mat-card-header (click)="expandMessage($event, messages.key, index)">
+            <mat-card-header (click)="expandMessage($event, msgKey, index)">
               <div mat-card-avatar>{{ msg.localTime }}</div>
               <mat-card-title>{{ msg.subject }}</mat-card-title>
               <mat-card-subtitle class="">
-                {{ msg.expeditorFullName }} <strong class="mx-3 d-block d-md-inline">=></strong>
+                <strong>{{ msg.expeditorFullName }}</strong> <strong class="mx-3 d-block d-md-inline">=></strong>
                 {{ msg.connectionUser }}
               </mat-card-subtitle>
             </mat-card-header>
-            <mat-card-content>
+            <mat-card-content *ngIf="!(isMsgCondensed(index) || _isMsgCondensed)">
               <span> {{ '[' + msg.expeditor + '] => ' + msg.to + ' | ' + msg.cc + ' | ' + msg.bcc }} </span>
               <ng-template #msgBody>
-                <div
-                  *ngIf="!(isMsgCondensed(index) || _isMsgCondensed)"
-                  class="condensable-lvl2"
-                  [innerHTML]="msg.iframeBody | safeHtml"
-                ></div>
+                <div class="condensable-lvl2" [innerHTML]="msg.iframeBody | safeHtml"></div>
               </ng-template>
               <ng-container *ngTemplateOutlet="msgBody"> </ng-container>
             </mat-card-content>
