@@ -24,6 +24,11 @@ export class MessagesService {
   public service: BehaviorSubject<MsgsStateType> = new BehaviorSubject(this.msgs);
   public numResults: number = 0;
   public totalCount: number = 0;
+  private suggestionDict = {};
+  // public _srcSuggestions: BehaviorSubject<string[]> = new BehaviorSubject(Object.keys(this.suggestionDict));
+  public async srcSuggestions() {
+    return Object.keys(this.suggestionDict);
+  }
   constructor() {}
 
   pushMessages(messages: any) {
@@ -44,6 +49,7 @@ export class MessagesService {
         this.msgs[msg.moonBoxGroup].totalCount += 1; // TODO : not accurate enough for now....
       }
       this.msgs[msg.moonBoxGroup].data[dataKey] = msg;
+      this.suggestionDict[msg.expeditor] = null;
     });
     // this.numResults += messages.numResults - alreadyCounted;
     // this.totalCount += messages.totalCount - alreadyCounted; // Accuracy ok
@@ -63,10 +69,13 @@ export class MessagesService {
         .sort()
         .reverse();
     });
+    // this.srcSuggestions.next(Object.keys(this.suggestionDict));
+    this.service.next(this.msgs);
   }
 
   clearMessages() {
     this.msgs = { ...initialState };
+    this.suggestionDict = {};
     this.totalCount = 0;
     this.numResults = 0;
     this.service.next(this.msgs);

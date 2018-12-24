@@ -152,6 +152,16 @@ export const FORM_LAYOUT = {
     element: {
       container: 'condensable'
     }
+  },
+  key: {
+    element: {
+      host: 'mw-30'
+    }
+  },
+  value: {
+    element: {
+      host: 'mw-30'
+    }
   }
 };
 
@@ -233,19 +243,18 @@ export const formModel = async (caller: any) => {
                   groupFactory: await (async () => {
                     const srcLbl = await fetchTrans(extract('Source'));
                     const assLbl = await fetchTrans(extract('Association'));
+                    const srcList = await caller.msgs.srcSuggestions();
+                    const assList = srcList;
                     return () => [
                       new DynamicInputModel({
                         id: 'key',
-                        label: srcLbl
-                        // TODO : auto fetch availables emails from loaded msgs headers
-                        // and use as sugestions
-                        // list: ["Alabama", "Alaska", "Arizona", "Arkansas"]
+                        label: srcLbl,
+                        list: srcList // ["Alabama", "Alaska", "Arizona", "Arkansas"]
                       }),
                       new DynamicInputModel({
                         id: 'value',
-                        label: assLbl
-                        // TODO : auto fetch availables emails from loaded msgs headers
-                        // and use as sugestions
+                        label: assLbl,
+                        list: assList
                       })
                     ];
                   })()

@@ -1,4 +1,4 @@
-<div *ngIf="!this.storage.isLocked">
+<div *ngIf="!this.storage.isLocked && this.filters">
   <mat-card [ngClass]="{ sticky: isSticky }">
     <div class="global-count">{{ msgs.numResults }} / {{ msgs.totalCount }}</div>
 

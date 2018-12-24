@@ -7,6 +7,11 @@
   body {
     overflow-y: scroll;
   }
+
+  .cdk-overlay-pane {
+    width: auto !important;
+    max-width: 80vw;
+  }
 }
 
 :host ::ng-deep {

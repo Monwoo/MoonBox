@@ -137,11 +137,16 @@ export class BoxesComponent implements OnInit {
     (async () => {
       this.filters = await contextDefaults(this);
       this.updateForm();
+      this.msgs.service.subscribe(messages => {
+        // need to update form model to update formfields suggestions
+        // TODO : better form design pattern to handle all that in simple form codes...
+        formModel(this).then(model => {
+          this.filters.model = model;
+        });
+      });
     })();
     this.renderer = this.rendererFactory.createRenderer(null, null);
     this.storage.setLockContainer(this.eltRef);
-    // this.msgs.service.subscribe((messages) => {
-    // });
     this.storage.getItem('boxesIdxs').subscribe((bIdxs: string[]) => {
       if (bIdxs) {
         this.boxesIdxs = bIdxs;

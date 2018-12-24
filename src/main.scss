@@ -156,6 +156,16 @@ a {
     width: 100%;
   }
 }
+.mw-30 {
+  min-width: 30%;
+
+  // TODO : should be able to put .w-100 class on mat field, need study :
+  // https://github.com/udos86/ng-dynamic-forms/blob/bfea1d8b/packages/core/src/model/misc/dynamic-form-control-layout.model.ts#L8
+  // Quick hack for now :
+  .mat-form-field {
+    min-width: 30%;
+  }
+}
 
 .float-right {
   float: right;
