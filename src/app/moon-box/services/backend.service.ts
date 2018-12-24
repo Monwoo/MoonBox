@@ -106,6 +106,9 @@ export class BackendService {
       throw new Error("Can't login with Unknown provider");
     }
 
+    // loginData._password = '*' + '#__hash'
+    // + (Math.random().toString(36) + '777777777').slice(2, 9) + btoa(loginData._password);
+
     return (
       this.http
         .post<any>(

@@ -8,6 +8,7 @@ import { LoadingLoaderService } from '@moon-manager/services/loading-loader.serv
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { LocalStorage } from '@ngx-pwa/local-storage';
 import { Logger } from '@app/core/logger.service';
+import { MessagesService } from '@moon-box/services/messages.service';
 import * as moment from 'moment';
 
 const logReview = new Logger('MonwooReview');
@@ -25,7 +26,8 @@ export class ParametersComponent implements OnInit {
     private notif: NotificationsService,
     private ll: LoadingLoaderService,
     public storage: SecuStorageService,
-    private localStorage: LocalStorage
+    private localStorage: LocalStorage,
+    public msgs: MessagesService
   ) {}
   dropzoneBckp = {
     url: '#', // Url set to avoid console Error, but will not be used in V1.0.0
@@ -183,14 +185,15 @@ export class ParametersComponent implements OnInit {
     // this.ll.showLoader();
     // // let changes = this.paramsForm.form.value;
     (async () => {
-      this.localStorage.clear().subscribe(() => {
-        this.i18nService.get(extract('mm.param.notif.cleaningParametersOk')).subscribe(t => {
-          this.notif.success(t);
-          this.ll.hideLoader();
-        });
-      }, this.errorHandler);
+      // TODO : reset secuStorage + ask for jwt server side token wipeout...
+      // TODO : backend logout ? is logout implemented ?
+      await this.storage.clear();
+      this.msgs.clearMessages();
+      this.i18nService.get(extract('mm.param.notif.cleaningParametersOk')).subscribe(t => {
+        this.notif.success(t);
+        // this.ll.hideLoader();
+      });
     })();
-    // TODO : reset secuStorage + ask for jwt server side token wipeout...
   }
 
   setLanguage(language: string) {

@@ -30,6 +30,8 @@ export class SecuStorageService {
   public lockTargetContainer: ViewContainerRef = null;
   public isLocked: boolean = false;
   private lockDialogRef: MatDialogRef<LockScreenComponent> = null;
+  private rawCode: string = '';
+  private lastRawCode: string = '';
 
   private eS: string = null;
   private lastEs: string = null;
@@ -45,6 +47,10 @@ export class SecuStorageService {
     private cookieService: CookieService,
     private localStorage: LocalStorage
   ) {
+    this.checkLock();
+  }
+
+  public checkLock() {
     try {
       // TODO : may have a mode without encryptionSecret: environment.clientSecret + this.passCode ?
       // what if update application in prod => will wipe out all conneted user datas...
@@ -61,7 +67,7 @@ export class SecuStorageService {
       this.checkLockScreen();
     } catch (error) {
       logReview.error(error);
-      // this.storage.isLocked = true;
+      this.storage.isLocked = true;
     }
   }
 
@@ -80,7 +86,7 @@ export class SecuStorageService {
         case 'lvl2':
           {
             if (!!this.eS && '' !== this.eS) {
-              this.storage = new SecureLS({ encodingType: 'aes', encryptionSecret: this.eS });
+              this.storage = new SecureLS({ encodingType: 'aes', encryptionSecret: this.eS + this.rawCode });
             } else {
               this.storage = new SecureLS({ encodingType: 'aes' });
             }
@@ -89,7 +95,7 @@ export class SecuStorageService {
         case 'lastEs':
           {
             if (!!this.lastEs && '' !== this.lastEs) {
-              this.storage = new SecureLS({ encodingType: 'aes', encryptionSecret: this.lastEs });
+              this.storage = new SecureLS({ encodingType: 'aes', encryptionSecret: this.lastEs + this.lastRawCode });
             } else {
               this.storage = new SecureLS({ encodingType: 'aes' });
             }
@@ -107,14 +113,15 @@ export class SecuStorageService {
       //   remove:(k:string)=>{},
       //   getAllKeys:()=><string[]>[],
       // };
-      (async () => {
-        localStorage.clear(); // Native one may work, next call may fail since encrypted data ?
-        this.localStorage.clear().subscribe(() => {
-          this.i18nService.get(extract('mb.param.notif.didCleanStorageDueErr')).subscribe(t => {
-            this.notif.error(t);
-          });
-        });
-      })();
+      // (async () => {
+      //   localStorage.clear(); // Native one may work, next call may fail since encrypted data ?
+      //   this.localStorage.clear().subscribe(() => {
+      //     this.i18nService.get(extract('mb.param.notif.didCleanStorageDueErr')).subscribe(t => {
+      //       this.notif.error(t);
+      //     });
+      //   });
+      // })();
+      this.storage.isLocked = true;
       logReview.error(error);
       // this.storage.isLocked = true;
     }
@@ -257,6 +264,16 @@ export class SecuStorageService {
     );
   }
 
+  public async clear() {
+    await this.localStorage.clear().toPromise();
+    this.pC = null;
+    this.eS = null;
+    this.cS = null;
+    this.lastEs = null;
+    this.rawCode = null;
+    this.lastRawCode = null;
+  }
+
   // Add a pass code feature to secu storage.
   public setPassCode(rawCode: string) {
     this.pC = rawCode && '' !== rawCode ? <string>Md5.hashStr(rawCode) : null;
@@ -265,6 +282,8 @@ export class SecuStorageService {
     this.storage.set('pC', this.pC);
     this.storage.set('cS', this.cS);
     this.lastEs = this.eS;
+    this.lastRawCode = this.rawCode;
+    this.rawCode = rawCode;
     if (this.pC && '' !== this.pC) {
       this.eS = this.cS + this.pC;
     } else {
@@ -286,6 +305,7 @@ export class SecuStorageService {
       });
     }
     this.setupStorage('lvl2');
+    this.storage.set('rawCode', rawCode); // Setting passCode under level 2 secu, keeping real code hard to know...
 
     this.i18nService.get(extract('mb.secu-storage.setPassCode.success')).subscribe(t => {
       this.notif.success(t);
@@ -298,14 +318,15 @@ export class SecuStorageService {
     try {
       i = this.storage.get(key);
     } catch (error) {
-      (async () => {
-        localStorage.clear(); // Native one may work, next call may fail since encrypted data ?
-        this.localStorage.clear().subscribe(() => {
-          this.i18nService.get(extract('mb.param.notif.didCleanStorageDueErr')).subscribe(t => {
-            this.notif.error(t);
-          });
-        });
-      })();
+      // (async () => {
+      //   localStorage.clear(); // Native one may work, next call may fail since encrypted data ?
+      //   this.localStorage.clear().subscribe(() => {
+      //     this.i18nService.get(extract('mb.param.notif.didCleanStorageDueErr')).subscribe(t => {
+      //       this.notif.error(t);
+      //     });
+      //   });
+      // })();
+      this.storage.isLocked = true;
       logReview.error(error);
     }
     return of<T>(null === i ? failback : i);
@@ -315,5 +336,9 @@ export class SecuStorageService {
   }
   public removeItem<T>(key: string) {
     return of<T>(this.storage.remove(key));
+  }
+
+  public getItemHash(key: string) {
+    return localStorage.getItem(key);
   }
 }
