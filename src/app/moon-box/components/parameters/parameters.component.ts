@@ -10,6 +10,7 @@ import { LocalStorage } from '@ngx-pwa/local-storage';
 import { Logger } from '@app/core/logger.service';
 import { MessagesService } from '@moon-box/services/messages.service';
 import * as moment from 'moment';
+import { environment } from '@env/environment';
 
 const logReview = new Logger('MonwooReview');
 
@@ -151,6 +152,24 @@ export class ParametersComponent implements OnInit {
       bckp['pC'] = localStorage.getItem('pC');
       bckp['lvl2'] = localStorage.getItem('lvl2');
       bckp['language'] = localStorage.getItem('language');
+      let dbgData = {};
+      if (!environment.production) {
+        // Object.keys(bckp).reduce((acc:any, k:string) => {
+        //   acc[k] = null;
+        //   return acc;
+        // }, {});
+        const keys = Object.keys(bckp);
+        const lvl2Keys: string[] = this.storage.getLvl2Keys();
+        for (let i = 0; i < keys.length; i++) {
+          const key = keys[i];
+          if (lvl2Keys.includes(key)) {
+            dbgData[key] = await this.storage.getItem<string[]>(key, []).toPromise();
+          } else {
+            dbgData[key] = localStorage.getItem(key);
+          }
+        }
+        dbgData['boxes'] = [];
+      }
       bckp['boxes'] = [];
       const boxesIdxs = await this.storage.getItem<string[]>('boxesIdxs', []).toPromise();
       for (let i = 0; i < boxesIdxs.length; i++) {
@@ -159,6 +178,16 @@ export class ParametersComponent implements OnInit {
           id: b,
           data: localStorage.getItem('moon-box-' + b)
         });
+        if (!environment.production) {
+          dbgData['boxes'].push({
+            id: b,
+            data: await this.storage.getItem<string[]>('moon-box-' + b, null).toPromise()
+          });
+        }
+      }
+      if (!environment.production) {
+        // Redondant ? really safe only if switch ?
+        logReview.debug('Backuping data : ', dbgData);
       }
       exportData(bckp);
     })();

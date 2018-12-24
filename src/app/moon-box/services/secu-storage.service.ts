@@ -298,6 +298,26 @@ export class SecuStorageService {
     return isValid;
   }
 
+  public getLvl2Keys() {
+    // return [
+    //   "lvl2",
+    // ];
+    return this.storage.getAllKeys().filter((k: string) => {
+      return {
+        ...{ [k]: true },
+        ...{
+          language: false,
+          _secure__ls__metadata: false,
+          lastEs: false,
+          lvl1: false,
+          cS: false,
+          eS: false,
+          pC: false
+        }
+      }[k];
+    });
+  }
+
   // Add a pass code feature to secu storage.
   public setPassCode(rawCode: string, migrateData = true) {
     this.pC = rawCode && '' !== rawCode ? <string>Md5.hashStr(btoa(rawCode)) : null;
@@ -318,20 +338,23 @@ export class SecuStorageService {
     if (migrateData && this.lastEs !== this.eS) {
       let secuData = {};
       this.setupStorage('lastEs');
-      this.storage.getAllKeys().forEach((k: string) => {
+      this.getLvl2Keys().forEach((k: string) => {
         if (!this.openDataKey.includes(k) && !this.lvl1SecuDataKey.includes(k)) {
           secuData[k] = this.storage.get(k);
           this.storage.remove(k);
         }
       });
       this.setupStorage('lvl2');
+      logReview.debug('Migrate data to lvl2 : ', secuData);
+
       Object.keys(secuData).forEach((k: string) => {
         this.storage.set(k, secuData[k]);
       });
     }
     this.lastEs = this.eS;
-    const lvl2Ok = this.storage.remove('lvl2'); // Ensuring storage lvl2 get's encoded under new encryption key
-    this.setupStorage('lvl2');
+    // no need to reset lvl2 anymore since part of getLvl2Keys
+    // const lvl2Ok = this.storage.remove('lvl2'); // Ensuring storage lvl2 get's encoded under new encryption key
+    // this.setupStorage('lvl2');
     // Below = no meanings, since rawCode needed to open level 2....
     // this.storage.set('rawCode', rawCode); // Setting passCode under level 2 secu, keeping real code hard to know...
 
