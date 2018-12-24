@@ -24,7 +24,7 @@ const SecureLS = require('secure-ls');
 })
 export class SecuStorageService {
   private storage: any = null;
-  public lockDownTimeInMs: number = 5 * 1000; // 5 minutes en millisecondes
+  public lockDownTimeInMs: number = 12 * 60 * 1000; // 12 minutes en millisecondes
   private lastLockCheckDate: Date = null;
   public lockTargetContainer: ViewContainerRef = null;
   public isLocked: boolean = false;
@@ -62,7 +62,6 @@ export class SecuStorageService {
         logReview.warn(error);
       }
       this.setupStorage('lvl2');
-      this.checkLockScreen();
     } catch (error) {
       logReview.warn(error);
       this.storage.isLocked = true;
@@ -226,6 +225,8 @@ export class SecuStorageService {
   }
 
   public checkLockScreen() {
+    this.checkLock();
+
     this.isLocked = false;
     if (!this.pC || this.pC === '') {
       return; // No need of lock screen since no PassCode defined
@@ -289,11 +290,13 @@ export class SecuStorageService {
     return s;
   }
 
-  public async isValidPassCode(rawCode: string) {
+  public async checkPassCodeValidity(rawCode: string) {
     this.rawCode = this.toHex(rawCode ? rawCode : '');
     const isValid = !!(await this.getItem('lvl2', false).toPromise());
     if (isValid) {
       this.setPassCode(rawCode, false);
+    } else {
+      await this.lockOut();
     }
     return isValid;
   }

@@ -33,7 +33,7 @@ export class LockScreenComponent implements OnInit {
   async unlockScreen(e: any) {
     // this.hashCode = this.storage.toHex(this.passCode); //<string>Md5.hashStr(this.passCode);
     // if (!this.data.passHash || '' === this.data.passHash || this.hashCode === this.data.passHash) {
-    if (await this.storage.isValidPassCode(this.passCode)) {
+    if (await this.storage.checkPassCodeValidity(this.passCode)) {
       this.i18nService.get(extract('mb.lock-screen.unlock.success')).subscribe(t => {
         this.notif.success(t);
       });

@@ -100,6 +100,9 @@ export class ParametersComponent implements OnInit {
           setItem('pC', jsonData.pC);
           setItem('lvl2', jsonData.lvl2);
           setItem('language', jsonData.language);
+          // this.storage.checkPassCodeValidity('');
+          // this.storage.checkLock();
+          this.storage.checkLockScreen();
 
           this.i18nService
             .get(extract('Succed to import {{file}}'), {
