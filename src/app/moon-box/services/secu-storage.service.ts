@@ -290,14 +290,16 @@ export class SecuStorageService {
   }
 
   public async isValidPassCode(rawCode: string) {
-    rawCode = this.toHex(rawCode ? rawCode : '');
-    this.rawCode = rawCode;
-    const isValid = await this.getItem('lvl2', false).toPromise();
-    return !!isValid;
+    this.rawCode = this.toHex(rawCode ? rawCode : '');
+    const isValid = !!(await this.getItem('lvl2', false).toPromise());
+    if (isValid) {
+      this.setPassCode(rawCode, false);
+    }
+    return isValid;
   }
 
   // Add a pass code feature to secu storage.
-  public setPassCode(rawCode: string) {
+  public setPassCode(rawCode: string, migrateData = true) {
     this.pC = rawCode && '' !== rawCode ? <string>Md5.hashStr(btoa(rawCode)) : null;
     // https://developer.mozilla.org/fr/docs/D%C3%A9coder_encoder_en_base64
     rawCode = this.toHex(rawCode ? rawCode : '');
@@ -313,7 +315,7 @@ export class SecuStorageService {
       this.eS = null;
     }
     this.storage.set('eS', this.eS);
-    if (this.lastEs !== this.eS) {
+    if (migrateData && this.lastEs !== this.eS) {
       let secuData = {};
       this.setupStorage('lastEs');
       this.storage.getAllKeys().forEach((k: string) => {
