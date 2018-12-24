@@ -73,6 +73,8 @@ class ImapDataProvider extends DataProvider
     }
     protected function extractRandSeed(/*$seed, */$str) {
         $app = $this->app;
+        if ('' === $str) return ''; // Avoiding 'Cypher is too short error'
+
         $pass = $app['session']->get('randPass');
         $key = $app['session']->get('sessionClientKey');
         $protected_key = KeyProtectedByPassword::loadFromAsciiSafeString($key);
@@ -93,7 +95,7 @@ class ImapDataProvider extends DataProvider
             // intentionally modified by Eve trying to carry out an attack.
         
             // ... handle this case in a way that's suitable to your application ...
-            $app['logger']->error("Fail to decode", $ex);
+            $app['logger']->error("Fail to decode", [$ex]);
             throw $ex;
         }
     }
@@ -108,7 +110,7 @@ class ImapDataProvider extends DataProvider
         $app = $this->app;
         // var_dump(json_decode(base64_decode($app['cache']->fetch($key)))); exit;
         return json_decode(base64_decode($this->extractRandSeed(
-            $app['cache']->fetch($key)
+            (string) $app['cache']->fetch($key)
         )), true);
     }
 
@@ -759,6 +761,25 @@ class ImapDataProvider extends DataProvider
                 // */
                 $msgUniqueIdPath = str_replace('[body]', '[msgUniqueId]', $bodyPath);
                 $msgUniqueId = $app->fetchByPath($editData, $msgUniqueIdPath);
+                if (!$msgUniqueId) {
+                    $app['logger']->debug("Fail to fetch : " . $$msgUniqueIdPath, [$editData]);
+                    $status = [
+                        'errors' => [["Code under dev.", "Give a donnation with mention : "
+                        . "'MoonBoxDev-FailBodyFetch' for www.monwoo.com to improve it."]],
+                    ];
+                    $self->actionResponse = $app->json([
+                        'status' => $status,
+                        'numResults' => 0,
+                        'msgsOrderedByDate' => [],
+                        'msgsByMoonBoxGroup' => [],
+                        'totalCount' => 0,
+                        'offsetStart' => 0,
+                        'offsetLimit' => 0,
+                        'currentPage' => 0,
+                        'nextPage' => 0,
+                    ]);
+                    return true;        
+                }
                 $imapId = $this->storage->getNumberByUniqueId($msgUniqueId);
                 // the imapId stored in msg is linked to search query, need to use the msgUniqueId instead
                 // $imapIdPath = str_replace('[body]', '[imapId]', $bodyPath);
