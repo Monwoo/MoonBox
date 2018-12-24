@@ -357,10 +357,20 @@ export class BoxesComponent implements OnInit {
       box.loadNext(e);
     });
   }
-  msgOpenedIdx = {};
+  msgsOpenedIdx = {};
   expandMessages(e: any, k: string, idx: number) {
-    logReview.debug('TODO');
+    if (this.isMsgsCondensed(idx)) {
+      this.msgsOpenedIdx[idx] = true;
+    } else {
+      this.msgsOpenedIdx[idx] = false;
+    }
   }
+  _isMsgsCondensed = true;
+  isMsgsCondensed(idx: number) {
+    this._isMsgsCondensed = !this.msgsOpenedIdx[idx];
+    return this._isMsgsCondensed;
+  }
+  msgOpenedIdx = {};
   expandMessage(e: any, k: string, idx: number) {
     if (this.isMsgCondensed(idx)) {
       this.msgOpenedIdx[idx] = true;

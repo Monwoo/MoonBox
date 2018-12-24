@@ -77,7 +77,7 @@
         <strong>{{ messages.key }}</strong> ({{ messages.value.numResults }})
         <!-- : not accurate enouth yet : /{{ messages.value.totalCount }}) -->
       </div>
-      <div class="col-12 text-md-left condensed">
+      <div class="col-12 text-md-left condensed" *ngIf="!isMsgsCondensed(groupIndex)">
         <mat-card *ngFor="let msgKey of messages.value.sortedKey; let index = index" class="bs box-reader">
           <ng-template #boxContent let-msg="msg">
             <mat-card-header (click)="expandMessage($event, msgKey, index)">
