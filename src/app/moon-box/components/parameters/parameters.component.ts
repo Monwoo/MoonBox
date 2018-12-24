@@ -149,7 +149,7 @@ export class ParametersComponent implements OnInit {
       bckp['pC'] = localStorage.getItem('pC');
       bckp['language'] = localStorage.getItem('language');
       bckp['boxes'] = [];
-      const boxesIdxs = await this.storage.getItem<string[]>('boxesIdxs').toPromise();
+      const boxesIdxs = await this.storage.getItem<string[]>('boxesIdxs', []).toPromise();
       for (let i = 0; i < boxesIdxs.length; i++) {
         const b = boxesIdxs[i];
         bckp['boxes'].push({
@@ -187,6 +187,7 @@ export class ParametersComponent implements OnInit {
     // // let changes = this.paramsForm.form.value;
     // TODO : reset secuStorage + ask for jwt server side token wipeout...
     // TODO : backend logout ? is logout implemented ?
+    this.passCode = '';
     await this.storage.clear();
     this.msgs.clearMessages();
     this.i18nService.get(extract('mm.param.notif.cleaningParametersOk')).subscribe(t => {

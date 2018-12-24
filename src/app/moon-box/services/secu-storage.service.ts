@@ -88,6 +88,8 @@ export class SecuStorageService {
             } else {
               this.storage = new SecureLS({ encodingType: 'aes' });
             }
+            const lvl2Ok = this.storage.get('lvl2') || 'ok'; // Ensuring storage reading is set correctly (This line will throw error if none)
+            this.storage.set('lvl2', lvl2Ok); // Forcing storage update on new setup by setting an item in the storage
           }
           break;
         case 'lastEs':
@@ -102,6 +104,8 @@ export class SecuStorageService {
         default:
           break;
       }
+      // const lastLvl = this.storage.get("lvl", false); // Ensuring storage reading is set correctly (This line will throw error if none)
+      // this.storage.set("lvl", secuLvl); // Forcing storage update on new setup by setting an item in the storage
     } catch (error) {
       // Falback to auto-restore viable context for app to still run and let
       // user to access parameters => reset btn...
@@ -256,11 +260,35 @@ export class SecuStorageService {
     this.lastRawCode = null;
   }
 
+  // https://gist.github.com/valentinkostadinov/5875467
+  public toHex(s: string) {
+    var h = '';
+    for (var i = 0; i < s.length; i++) {
+      h += s.charCodeAt(i).toString(16);
+    }
+    return h;
+  }
+
+  public fromHex(h: string) {
+    var s = '';
+    for (var i = 0; i < h.length; i += 2) {
+      s += String.fromCharCode(parseInt(h.substr(i, 2), 16));
+    }
+    return s;
+  }
+
+  public async isValidPassCode(rawCode: string) {
+    rawCode = this.toHex(rawCode ? rawCode : '');
+    this.rawCode = rawCode;
+    const isValid = await this.getItem('lvl2', false).toPromise();
+    return !!isValid;
+  }
+
   // Add a pass code feature to secu storage.
   public setPassCode(rawCode: string) {
-    this.pC = rawCode && '' !== rawCode ? <string>Md5.hashStr(rawCode) : null;
+    this.pC = rawCode && '' !== rawCode ? <string>Md5.hashStr(btoa(rawCode)) : null;
     // https://developer.mozilla.org/fr/docs/D%C3%A9coder_encoder_en_base64
-    rawCode = btoa(rawCode ? rawCode : '');
+    rawCode = this.toHex(rawCode ? rawCode : '');
     if (!this.cS) this.cS = environment.clientSecret;
     this.setupStorage('lvl1');
     this.storage.set('pC', this.pC);

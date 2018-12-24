@@ -4,6 +4,7 @@ import { Md5 } from 'ts-md5/dist/md5';
 import { I18nService } from '@app/core';
 import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
+import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 
 export interface DialogData {
   passHash: string;
@@ -23,14 +24,16 @@ export class LockScreenComponent implements OnInit {
     public dialogRef: MatDialogRef<LockScreenComponent>,
     @Inject(MAT_DIALOG_DATA) private data: DialogData,
     private i18nService: I18nService,
-    private notif: NotificationsService
+    private notif: NotificationsService,
+    public storage: SecuStorageService
   ) {}
 
   ngOnInit() {}
 
-  unlockScreen(e: any) {
-    this.hashCode = <string>Md5.hashStr(this.passCode);
-    if (!this.data.passHash || '' === this.data.passHash || this.hashCode === this.data.passHash) {
+  async unlockScreen(e: any) {
+    // this.hashCode = this.storage.toHex(this.passCode); //<string>Md5.hashStr(this.passCode);
+    // if (!this.data.passHash || '' === this.data.passHash || this.hashCode === this.data.passHash) {
+    if (await this.storage.isValidPassCode(this.passCode)) {
       this.i18nService.get(extract('mb.lock-screen.unlock.success')).subscribe(t => {
         this.notif.success(t);
       });
