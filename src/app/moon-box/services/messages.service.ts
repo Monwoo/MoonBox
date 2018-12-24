@@ -20,7 +20,7 @@ export const initialState: MsgsStateType = {};
   providedIn: 'root'
 })
 export class MessagesService {
-  private msgs: MsgsStateType = initialState;
+  private msgs: MsgsStateType = { ...initialState };
   public service: BehaviorSubject<MsgsStateType> = new BehaviorSubject(this.msgs);
   public numResults: number = 0;
   public totalCount: number = 0;
@@ -66,7 +66,9 @@ export class MessagesService {
   }
 
   clearMessages() {
-    this.msgs = initialState;
+    this.msgs = { ...initialState };
+    this.totalCount = 0;
+    this.numResults = 0;
     this.service.next(this.msgs);
   }
 }

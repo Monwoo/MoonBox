@@ -3,14 +3,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { HttpHeaders } from '@angular/common/http';
-import { pluck, share, shareReplay, tap } from 'rxjs/operators';
-import { forkJoin, of, interval } from 'rxjs';
+import { pluck, catchError, shareReplay, tap } from 'rxjs/operators';
+import { forkJoin, of, Observable } from 'rxjs';
 import { environment } from '@env/environment';
 import { LocalStorage } from '@ngx-pwa/local-storage';
 import { NotificationsService } from 'angular2-notifications';
 import { extract } from '@app/core';
 import { I18nService } from '@app/core';
 import { FormType as LoginFormType } from '@moon-box/components/box-reader/login-form.model';
+import { CookieService } from 'ngx-cookie-service';
 import * as moment from 'moment';
 import { Logger } from '@app/core/logger.service';
 const logReview = new Logger('MonwooReview');
@@ -72,7 +73,8 @@ export class BackendService {
     private http: HttpClient,
     private storage: LocalStorage,
     private i18nService: I18nService,
-    private notif: NotificationsService
+    private notif: NotificationsService,
+    private cookieService: CookieService
   ) {
     this.generateApiUsername();
   }
@@ -84,15 +86,49 @@ export class BackendService {
       '@moon-box.monwoo.com';
   }
 
+  protected clearLocalSession() {
+    // Clear session connection with the backend on frontend side :
+    this.storage.removeItem('access_token');
+    this.cookieService.delete('PHPSESSID'); // may fail some times, below to ensure removal :
+    // Clear session connection with the backend on backend front Api side :
+    // Inspired from :
+    // https://stackoverflow.com/questions/2144386/how-to-delete-a-cookie/2138471#2138471
+    // System D logout in case network fails :
+    let expDate = new Date();
+    expDate.setTime(0);
+    let cookie = 'PHPSESSID=;';
+    if (environment.moonBoxBackendDomain) {
+      cookie += ' domain=' + environment.moonBoxBackendDomain + ';';
+    }
+    if (environment.moonBoxBackendBasePath) {
+      cookie += ' path=' + environment.moonBoxBackendBasePath + ';';
+    }
+    cookie += ' expires=' + expDate.toUTCString() + '; Max-Age=-99999999;';
+    logReview.debug('Removing Cookie with : ', cookie);
+    document.cookie = cookie;
+  }
+
   logout() {
     this.generateApiUsername(); // Switching current api username, in case logout call to server did fail to reach...
-    return this.http.get(this.apiBaseUrl + 'api/moon-box/logout', {
-      ...httpOptions,
-      ...{
-        params: new HttpParams()
-        // .set('ctx', ctx)
-      }
-    });
+    // https://www.learnrxjs.io/operators/error_handling/catch.html
+    // regular log out (may fail if network issue) :
+    return this.http
+      .get(this.apiBaseUrl + 'api/moon-box/logout', {
+        ...httpOptions,
+        ...{
+          params: new HttpParams()
+          // .set('ctx', ctx)
+        }
+      })
+      .pipe(
+        tap((resp: any) => {
+          this.clearLocalSession();
+        }),
+        catchError((error: any, caught: Observable<any>) => {
+          this.clearLocalSession();
+          return of('Did fail regular logout');
+        })
+      );
   }
 
   login(loginData: LoginFormType) {

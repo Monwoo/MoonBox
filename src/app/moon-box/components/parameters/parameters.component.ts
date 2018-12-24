@@ -20,7 +20,7 @@ const logReview = new Logger('MonwooReview');
 })
 export class ParametersComponent implements OnInit {
   langPlaceholder: string = extract('Langue');
-  passCode: string;
+  passCode: string = '';
   constructor(
     private i18nService: I18nService,
     private notif: NotificationsService,
@@ -69,7 +69,7 @@ export class ParametersComponent implements OnInit {
           !jsonData.hasOwnProperty('pC') ||
           !jsonData.hasOwnProperty('language')
         ) {
-          this.i18nService.get(extract('Fail to import backup file : BAD Format...')).subscribe(t => {
+          this.i18nService.get(extract('mb.param.notif.backupCorruptErr')).subscribe(t => {
             // logReview.warn(t);
             this.notif.warn(t);
           });
@@ -78,6 +78,7 @@ export class ParametersComponent implements OnInit {
         }
 
         (async () => {
+          await this.resetToFactory(null);
           const setItem = (idx: string, value: any) => {
             if (value) {
               localStorage.setItem(idx, value);
@@ -181,19 +182,17 @@ export class ParametersComponent implements OnInit {
       });
   };
 
-  resetConfigAction(e: any) {
+  async resetToFactory(e: any) {
     // this.ll.showLoader();
     // // let changes = this.paramsForm.form.value;
-    (async () => {
-      // TODO : reset secuStorage + ask for jwt server side token wipeout...
-      // TODO : backend logout ? is logout implemented ?
-      await this.storage.clear();
-      this.msgs.clearMessages();
-      this.i18nService.get(extract('mm.param.notif.cleaningParametersOk')).subscribe(t => {
-        this.notif.success(t);
-        // this.ll.hideLoader();
-      });
-    })();
+    // TODO : reset secuStorage + ask for jwt server side token wipeout...
+    // TODO : backend logout ? is logout implemented ?
+    await this.storage.clear();
+    this.msgs.clearMessages();
+    this.i18nService.get(extract('mm.param.notif.cleaningParametersOk')).subscribe(t => {
+      this.notif.success(t);
+      // this.ll.hideLoader();
+    });
   }
 
   setLanguage(language: string) {

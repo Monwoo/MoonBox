@@ -10,7 +10,6 @@ import { LockScreenComponent } from '@moon-box/components/lock-screen/lock-scree
 import { I18nService } from '@app/core';
 import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
-import { CookieService } from 'ngx-cookie-service';
 import { BackendService } from '@moon-box/services/backend.service';
 
 import { Logger } from '@app/core/logger.service';
@@ -44,7 +43,6 @@ export class SecuStorageService {
     private ngZone: NgZone,
     private i18nService: I18nService,
     private notif: NotificationsService,
-    private cookieService: CookieService,
     private localStorage: LocalStorage
   ) {
     this.checkLock();
@@ -66,7 +64,7 @@ export class SecuStorageService {
       this.setupStorage('lvl2');
       this.checkLockScreen();
     } catch (error) {
-      logReview.error(error);
+      logReview.warn(error);
       this.storage.isLocked = true;
     }
   }
@@ -122,7 +120,7 @@ export class SecuStorageService {
       //   });
       // })();
       this.storage.isLocked = true;
-      logReview.error(error);
+      logReview.warn(error);
       // this.storage.isLocked = true;
     }
   }
@@ -173,37 +171,20 @@ export class SecuStorageService {
     });
   }
 
-  public showLockScreen(disableClose: boolean = true) {
+  protected async lockOut() {
+    this.setupStorage('lvl1'); // setting up lvl1 will remove lvl2 credentials, avoiding usage of storage while user is locked through pass code
+    await this.backend.logout();
+    this.isLocked = true;
+    this.lastLockCheckDate = null;
+  }
+
+  public async showLockScreen(disableClose: boolean = true) {
     if (this.lockDialogRef) {
       // this.lockDialogRef.close();
       return; // Lock screen is already displayed, avoid touchy side effect of quick dev algo...
     }
 
-    // regular log out (may fail if network issue) :
-    this.backend.logout();
-    // System D logout in case network fails :
-    // Clear session connection with the backend on frontend side :
-    this.cookieService.delete('PHPSESSID');
-    this.removeItem('access_token');
-    // Clear session connection with the backend on backend front Api side :
-    // Inspired from :
-    // https://stackoverflow.com/questions/2144386/how-to-delete-a-cookie/2138471#2138471
-    let expDate = new Date();
-    expDate.setTime(0);
-    let cookie = 'PHPSESSID=;';
-    if (environment.moonBoxBackendDomain) {
-      cookie += ' domain=' + environment.moonBoxBackendDomain + ';';
-    }
-    if (environment.moonBoxBackendBasePath) {
-      cookie += ' path=' + environment.moonBoxBackendBasePath + ';';
-    }
-    cookie += ' expires=' + expDate.toUTCString() + '; Max-Age=-99999999;';
-    logReview.debug('Removing Cookie with : ', cookie);
-    document.cookie = cookie;
-
-    this.isLocked = true;
-
-    this.lastLockCheckDate = null;
+    await this.lockOut();
     // https://material.angular.io/components/dialog/api
     this.lockDialogRef = this.dialog.open(LockScreenComponent, {
       width: '250px',
@@ -265,6 +246,7 @@ export class SecuStorageService {
   }
 
   public async clear() {
+    await this.lockOut();
     await this.localStorage.clear().toPromise();
     this.pC = null;
     this.eS = null;
@@ -277,6 +259,8 @@ export class SecuStorageService {
   // Add a pass code feature to secu storage.
   public setPassCode(rawCode: string) {
     this.pC = rawCode && '' !== rawCode ? <string>Md5.hashStr(rawCode) : null;
+    // https://developer.mozilla.org/fr/docs/D%C3%A9coder_encoder_en_base64
+    rawCode = btoa(rawCode ? rawCode : '');
     if (!this.cS) this.cS = environment.clientSecret;
     this.setupStorage('lvl1');
     this.storage.set('pC', this.pC);
@@ -305,7 +289,8 @@ export class SecuStorageService {
       });
     }
     this.setupStorage('lvl2');
-    this.storage.set('rawCode', rawCode); // Setting passCode under level 2 secu, keeping real code hard to know...
+    // Below = no meanings, since rawCode needed to open level 2....
+    // this.storage.set('rawCode', rawCode); // Setting passCode under level 2 secu, keeping real code hard to know...
 
     this.i18nService.get(extract('mb.secu-storage.setPassCode.success')).subscribe(t => {
       this.notif.success(t);
@@ -316,6 +301,7 @@ export class SecuStorageService {
   public getItem<T>(key: string, failback: any = null) {
     let i = null;
     try {
+      this.setupStorage('lvl2');
       i = this.storage.get(key);
     } catch (error) {
       // (async () => {
@@ -327,14 +313,16 @@ export class SecuStorageService {
       //   });
       // })();
       this.storage.isLocked = true;
-      logReview.error(error);
+      logReview.warn(error);
     }
     return of<T>(null === i ? failback : i);
   }
   public setItem<T>(key: string, value: any) {
+    this.setupStorage('lvl2');
     return of<T>(this.storage.set(key, value));
   }
   public removeItem<T>(key: string) {
+    this.setupStorage('lvl2');
     return of<T>(this.storage.remove(key));
   }
 
