@@ -6,7 +6,7 @@ import { forkJoin, of, interval } from 'rxjs';
 import { Md5 } from 'ts-md5/dist/md5';
 import { LocalStorage } from '@ngx-pwa/local-storage';
 import { MatDialog, MatDialogRef } from '@angular/material';
-import { LockScreenComponent } from '@moon-box/components/lock-screen/lock-screen.component';
+import { LockScreenComponent } from '@moon-box/components/lock-screen/lock-screen.component'; // TODO : remove circular référence by injecting in providers from module file ?
 import { I18nService } from '@app/core';
 import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
@@ -79,12 +79,18 @@ export class SecuStorageService {
         case 'lvl1':
           {
             this.storage = new SecureLS({ encodingType: 'aes' });
+            const lvlOk = this.storage.get('lvl1') || 'ok'; // Ensuring storage reading is set correctly (This line will throw error if none)
+            this.storage.set('lvl1', lvlOk); // Forcing storage update on new setup by setting an item in the storage
           }
           break;
         case 'lvl2':
           {
             if (!!this.eS && '' !== this.eS) {
-              this.storage = new SecureLS({ encodingType: 'aes', encryptionSecret: this.eS + this.rawCode });
+              this.storage = new SecureLS({
+                encodingType: 'rc4',
+                isCompression: true,
+                encryptionSecret: this.eS + this.rawCode
+              });
             } else {
               this.storage = new SecureLS({ encodingType: 'aes' });
             }
@@ -95,10 +101,16 @@ export class SecuStorageService {
         case 'lastEs':
           {
             if (!!this.lastEs && '' !== this.lastEs) {
-              this.storage = new SecureLS({ encodingType: 'aes', encryptionSecret: this.lastEs + this.lastRawCode });
+              this.storage = new SecureLS({
+                encodingType: 'rc4',
+                isCompression: true,
+                encryptionSecret: this.lastEs + this.lastRawCode
+              });
             } else {
               this.storage = new SecureLS({ encodingType: 'aes' });
             }
+            const lvlOk = this.storage.get('lastEs') || 'ok'; // Ensuring storage reading is set correctly (This line will throw error if none)
+            this.storage.set('lastEs', lvlOk); // Forcing storage update on new setup by setting an item in the storage
           }
           break;
         default:
@@ -293,7 +305,6 @@ export class SecuStorageService {
     this.setupStorage('lvl1');
     this.storage.set('pC', this.pC);
     this.storage.set('cS', this.cS);
-    this.lastEs = this.eS;
     this.lastRawCode = this.rawCode;
     this.rawCode = rawCode;
     if (this.pC && '' !== this.pC) {
@@ -316,6 +327,8 @@ export class SecuStorageService {
         this.storage.set(k, secuData[k]);
       });
     }
+    this.lastEs = this.eS;
+    const lvl2Ok = this.storage.remove('lvl2'); // Ensuring storage lvl2 get's encoded under new encryption key
     this.setupStorage('lvl2');
     // Below = no meanings, since rawCode needed to open level 2....
     // this.storage.set('rawCode', rawCode); // Setting passCode under level 2 secu, keeping real code hard to know...

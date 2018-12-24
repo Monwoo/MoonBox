@@ -67,6 +67,7 @@ export class ParametersComponent implements OnInit {
           !jsonData.hasOwnProperty('cS') ||
           !jsonData.hasOwnProperty('eS') ||
           !jsonData.hasOwnProperty('pC') ||
+          !jsonData.hasOwnProperty('lvl2') ||
           !jsonData.hasOwnProperty('language')
         ) {
           this.i18nService.get(extract('mb.param.notif.backupCorruptErr')).subscribe(t => {
@@ -96,6 +97,7 @@ export class ParametersComponent implements OnInit {
           setItem('cS', jsonData.cS);
           setItem('eS', jsonData.eS);
           setItem('pC', jsonData.pC);
+          setItem('lvl2', jsonData.lvl2);
           setItem('language', jsonData.language);
 
           this.i18nService
@@ -147,6 +149,7 @@ export class ParametersComponent implements OnInit {
       bckp['cS'] = localStorage.getItem('cS');
       bckp['eS'] = localStorage.getItem('eS');
       bckp['pC'] = localStorage.getItem('pC');
+      bckp['lvl2'] = localStorage.getItem('lvl2');
       bckp['language'] = localStorage.getItem('language');
       bckp['boxes'] = [];
       const boxesIdxs = await this.storage.getItem<string[]>('boxesIdxs', []).toPromise();
