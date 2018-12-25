@@ -197,7 +197,9 @@ if (preg_match('/^cli/', php_sapi_name())) {
         // quickly customize ColoredLineFormatter to output yml with
         // new lines inside :
         public function convertToString($data) {
-            return Yaml::dump($data, 4);
+            $output = Yaml::dump($data, 4);
+            return (substr_count($output, "\n" ) > 1) ? "\n$output" : $output;
+
         }
         public function replaceNewlines($str) {
             return $str;
@@ -345,7 +347,43 @@ $firewalls = array_merge($firewalls, [
     ),
 ]);
 
-$app['security.firewalls'] = $firewalls;
+// $app['security.firewalls'] = $firewalls;
+$app['security.firewalls'] = array(
+    'login' => [
+        'pattern' => 'login|register|oauth',
+        'anonymous' => true,
+        // 'methods' => ['GET', 'POST', 'OPTIONS'],
+    ],
+    'cors-handshake' => [
+        'pattern' => '^.*$',
+        'anonymous' => true,
+        'methods' => ['OPTIONS'],
+    ],
+    'api-moon-box' => [
+        'pattern' => '^/api/moon-box/.*$',
+        'methods' => ['GET', 'POST'],
+        // 'anonymous' => true,
+        'logout' => array('logout_path' => '/api/moon-box/logout'),
+        'users' => $app['users'], // useless since check app.users inside lib ?
+        'jwt' => array(
+            'use_forward' => true,
+            'require_previous_session' => true,
+            'stateless' => true,
+        )
+    ],
+    'secured' => array(
+        'pattern' => '^.*$',
+        'methods' => ['GET', 'POST'],
+        'logout' => array('logout_path' => '/logout'),
+        'users' => $app['users'], // useless since check app.users inside lib ?
+        'jwt' => array(
+            'use_forward' => true,
+            'require_previous_session' => true,
+            'stateless' => true,
+        )
+    ),
+);
+
 
 $ctlrs = $app['controllers'];
 
@@ -360,10 +398,11 @@ $app->before(function($request, $app) {
     }
 });
 
-$app->register(new Silex\Provider\SecurityServiceProvider(), [
-    // https://github.com/silexphp/Silex/issues/1044
-    // 'security.firewalls' => $app['security.firewalls'],
-]);
+// $app->register(new Silex\Provider\SecurityServiceProvider(), [
+//     // https://github.com/silexphp/Silex/issues/1044
+//     'security.firewalls' => $app['security.firewalls'],
+// ]);
+$app->register(new Silex\Provider\SecurityServiceProvider());
 $app->register(new Silex\Provider\SecurityJWTServiceProvider());
 $app->register(new Silex\Provider\LocaleServiceProvider());
 $app->register(new Silex\Provider\TranslationServiceProvider());

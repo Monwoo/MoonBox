@@ -294,7 +294,7 @@ class ImapDataProvider extends DataProvider
         // ];
         // * DEBUG
         $app['log.review']->debug("Starting connection {$connection['username']}", [
-            '$connection' => $connection,
+            '$connection' => $app->obfuskData($connection),
         ]);
         $imap = null;
         $password = null;
@@ -384,7 +384,7 @@ class ImapDataProvider extends DataProvider
         if (!$localUser) {
             $app['log.review']->debug("Unknown userData : " . $dataUsername, [
                 'apiUser' => $apiUser->getUsername(),
-                'localUsers' => $localUsers,
+                'localUsers' => $app->obfuskData($localUsers),
             ]);
             $status = [
                 'errors' => [["Unknown userData", $dataUsername]],
@@ -429,7 +429,7 @@ class ImapDataProvider extends DataProvider
           ],
         ];
         $app['log.review']->debug("ImapData $action : ", [
-            'conf' => $self->defaultConfig,
+            'conf' => $app->obfuskData($self->defaultConfig),
             'apiUserName' => $token->getUsername(),
             // 'user' => $dataUsername,  // TODO : need remove password from data before debug display... if not in passwordDebug mode..
             // 'localUsers' => $localUsers,
@@ -659,12 +659,12 @@ class ImapDataProvider extends DataProvider
                     }
                     $status['folders'] = $folders;
                     // * DEBUG
-                    $app['log.review']->debug("Did open MailBox {$connection['username']}" . json_encode([
+                    $app['log.review']->debug("Did open MailBox {$connection['username']}", [
                         'mailBoxFolders' => $folders,
                         'totalCountOfMsg' => $totalCountOfMsg,
                         // 'msgsOrderedByDate' => $msgsOrderedByDate,
                         'imapQuery' => $imapQuery,
-                    ]));
+                    ]);
                     // */
                 } catch (\Throwable $e) {
                     $errMsg = 'Exception '.get_class($e).': '.$e->getMessage();
@@ -751,17 +751,18 @@ class ImapDataProvider extends DataProvider
                 $bodyHTML = null;
                 $self->startImapProtocole($connection, $accessToken);
                 // * DEBUG
-                $app['log.review']->debug("Loading content at $bodyPath for {$connection['username']}", [
+                $app['log.review']->debug("Loading content at $bodyPath for {$connection['username']}",
+                $app->obfuskData([
                     'msg' => $app->fetchByPath($editData,
                     str_replace('[body]', '', $bodyPath)),
                     'connection' => $connection,
                     // 'msgIds' => $msgIds,
-                ]);
+                ]));
                 // */
                 $msgUniqueIdPath = str_replace('[body]', '[msgUniqueId]', $bodyPath);
                 $msgUniqueId = $app->fetchByPath($editData, $msgUniqueIdPath);
                 if (!$msgUniqueId) {
-                    $app['log.review']->debug("Fail to fetch : " . $$msgUniqueIdPath, [$editData]);
+                    $app['log.review']->debug("Fail to fetch : " . $msgUniqueIdPath, $app->obfuskData([$editData]));
                     $status = [
                         'errors' => [["Code under dev.", "Give a donnation with mention : "
                         . "'MoonBoxDev-FailBodyFetch' for www.monwoo.com to improve it."]],
