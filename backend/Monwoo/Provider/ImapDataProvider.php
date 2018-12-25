@@ -95,7 +95,7 @@ class ImapDataProvider extends DataProvider
             // intentionally modified by Eve trying to carry out an attack.
         
             // ... handle this case in a way that's suitable to your application ...
-            $app['logger']->error("Fail to decode", [$ex]);
+            $app['log.review']->error("Fail to decode", [$ex]);
             throw $ex;
         }
     }
@@ -132,7 +132,7 @@ class ImapDataProvider extends DataProvider
             $data = [];
             $self->dataset = &$data;
             /* DEBUG
-            $app['logger']->debug('Imap Data Will transform');
+            $app['log.review']->debug('Imap Data Will transform');
             // */
             // $app["{$self->manager_route_name}.data"] = $data; // Always empty ?
             $self->updateGeneratedData();
@@ -205,7 +205,7 @@ class ImapDataProvider extends DataProvider
             $debugBacklog .= $response . "|\n";
             if ($is_plus) {
                 // * DEBUG
-                $app['logger']->debug('Imap Auth got an extra server challenge', [
+                $app['log.review']->debug('Imap Auth got an extra server challenge', [
                     'response' => $response,
                 ]);
                 // */
@@ -214,7 +214,7 @@ class ImapDataProvider extends DataProvider
             } else {
                 if (preg_match('/^NO /i', $response) ||
                 preg_match('/^BAD /i', $response)) {
-                    $app['logger']->error('Imap Auth got got failure response', [
+                    $app['log.review']->error('Imap Auth got got failure response', [
                         'response' => $response,
                         // https://developers.google.com/drive/v3/web/handle-errors#401_invalid_credentials
                         'googleImapErr' => base64_decode(explode('|', $debugBacklog)[0]),
@@ -246,7 +246,7 @@ class ImapDataProvider extends DataProvider
         if ($app['prodDebug']) {
             $self = $this;
             $app = $self->app;
-            $app['logger']->debug("Decoding pass", [
+            $app['log.review']->debug("Decoding pass", [
                 'p' => $password,
             ]);
         }
@@ -254,14 +254,14 @@ class ImapDataProvider extends DataProvider
         return $password;
     }
     protected function passwordEncode($password) {
-        // $app['logger']->debug("InPass : " . $password);
+        // $app['log.review']->debug("InPass : " . $password);
         if (!$password) {
             return null;
         }
         if (0 === strpos($password, '*#__key')) {
             // Decode encoding algo of js frontend side if front end did have js to encode password
             $password = base64_decode(substr($password, 7));
-            // $app['logger']->debug("Pass : " . $password);
+            // $app['log.review']->debug("Pass : " . $password);
 
             // var_dump($password); exit;
         }
@@ -293,7 +293,7 @@ class ImapDataProvider extends DataProvider
         //     'ssl' => true,
         // ];
         // * DEBUG
-        $app['logger']->debug("Starting connection {$connection['username']}", [
+        $app['log.review']->debug("Starting connection {$connection['username']}", [
             '$connection' => $connection,
         ]);
         $imap = null;
@@ -311,12 +311,12 @@ class ImapDataProvider extends DataProvider
             // TODO : do not seem to work with google imap connection,
             if ($self->imapGoogleAuthenticate($imap, $connection['username'], $imapAuthToken)) {
                 // * DEBUG
-                $app['logger']->debug("Succed to connect to google IMAP {$connection['username']}", [
+                $app['log.review']->debug("Succed to connect to google IMAP {$connection['username']}", [
                     '$connection' => $connection,
                 ]);
                 // * /
             } else {
-                $app['logger']->error("Fail to connect to Email {$connection['username']}", [
+                $app['log.review']->error("Fail to connect to Email {$connection['username']}", [
                     'connection' => $connection,
                     'accessToken' => $accessToken, // TODO : use $password to get imapGoogle token access ?
                     'imapAuthToken' => $imapAuthToken,
@@ -324,11 +324,11 @@ class ImapDataProvider extends DataProvider
             }
             */
         } else {
-            // $app['logger']->debug("Will try Imap : "
-            // . $app->json([
+            // $app['log.review']->debug("Will try Imap : ",
+            // [
             //     'connection' => $connection,
             //     'password' => $password,
-            // ])->getContent());
+            // ]);
 
             $imap = new \Zend\Mail\Protocol\Imap();
             $imap->connect($connection['mailhost'], '993', 'SSL');
@@ -342,7 +342,7 @@ class ImapDataProvider extends DataProvider
         $this->imap = $imap;
         // TODO assert witout imap_errors not available evrywhere
         // $imapErr = imap_errors();
-        // $app['logger']->assert($this->storage,
+        // $app['log.review']->assert($this->storage,
         // "Inbox should have been set", $imapErr);
         // Tree view of mailbox :
         // $folders = new \RecursiveIteratorIterator(
@@ -364,7 +364,7 @@ class ImapDataProvider extends DataProvider
         //   $r = new Response('', 200);
         //   AddingCors::addCors($request, $r);
         //   // TODO : why failback needed ? before check in index.php should have catch it right ?
-        //   $app['logger']->debug("Allowing options Failback");
+        //   $app['log.review']->debug("Allowing options Failback");
         //   $self->actionResponse = $r;
         //   return true;
         // }
@@ -382,10 +382,10 @@ class ImapDataProvider extends DataProvider
         // $localUser = $localUsers[$token->getUsername()];
         $localUser = $localUsers[$dataUsername];
         if (!$localUser) {
-            $app['logger']->debug("Unknown userData : " . $dataUsername . ' for ' . $app->json([
+            $app['log.review']->debug("Unknown userData : " . $dataUsername, [
                 'apiUser' => $apiUser->getUsername(),
                 'localUsers' => $localUsers,
-            ])->getContent());
+            ]);
             $status = [
                 'errors' => [["Unknown userData", $dataUsername]],
             ];
@@ -399,7 +399,7 @@ class ImapDataProvider extends DataProvider
         // var_dump($self->stableConnectors->contains($localUser['connector'])); exit('dd');
 
         if (!$self->stableConnectors->contains($localUser['connector'])) {
-            $app['logger']->debug("ImapData Connector not stable : " . $localUser['connector']);
+            $app['log.review']->debug("ImapData Connector not stable : " . $localUser['connector']);
             $status = [
                 'errors' => [["ImapData Connector not stable", $localUser['connector']]],
             ];
@@ -428,13 +428,12 @@ class ImapDataProvider extends DataProvider
               ],
           ],
         ];
-        $app['logger']->debug("ImapData $action : "
-        . $app->json([
+        $app['log.review']->debug("ImapData $action : ", [
             'conf' => $self->defaultConfig,
             'apiUserName' => $token->getUsername(),
-            'user' => $dataUsername,
-            'localUsers' => $localUsers,
-        ])->getContent());
+            // 'user' => $dataUsername,  // TODO : need remove password from data before debug display... if not in passwordDebug mode..
+            // 'localUsers' => $localUsers,
+        ]);
 
         $self->context['dataProvider'] = $self;
         $order_by = $request->get('order_by') ?: 'time'; // TODO : use it ? no way on ids for now...
@@ -653,14 +652,14 @@ class ImapDataProvider extends DataProvider
                             $errTrace = $e->getTrace();
                             // $app['session']->getFlashBag()->add('error'
                             // , "Faild to load MSG $i for {$connection['username']}");
-                            $app['logger']->error("Fail to load Imap {$connection['username']}"
+                            $app['log.review']->error("Fail to load Imap {$connection['username']}"
                             , [$errMsg, $errPos, $errTrace]);
                             array_push($status['errors'], $errMsg);
                         }
                     }
                     $status['folders'] = $folders;
                     // * DEBUG
-                    $app['logger']->debug("Did open MailBox {$connection['username']}" . json_encode([
+                    $app['log.review']->debug("Did open MailBox {$connection['username']}" . json_encode([
                         'mailBoxFolders' => $folders,
                         'totalCountOfMsg' => $totalCountOfMsg,
                         // 'msgsOrderedByDate' => $msgsOrderedByDate,
@@ -674,7 +673,7 @@ class ImapDataProvider extends DataProvider
                     $errTitle = "Fail to load Imap {$connection['username']}";
                     // $app['session']->getFlashBag()->add('error'
                     // , "Faild to load Imap {$connection['username']}");
-                    $app['logger']->error($errTitle
+                    $app['log.review']->error($errTitle
                     , [$errMsg, $errPos, $errTrace]);
                     array_push($status['errors'], [$errTitle, $errMsg]);
                 }
@@ -752,7 +751,7 @@ class ImapDataProvider extends DataProvider
                 $bodyHTML = null;
                 $self->startImapProtocole($connection, $accessToken);
                 // * DEBUG
-                $app['logger']->debug("Loading content at $bodyPath for {$connection['username']}", [
+                $app['log.review']->debug("Loading content at $bodyPath for {$connection['username']}", [
                     'msg' => $app->fetchByPath($editData,
                     str_replace('[body]', '', $bodyPath)),
                     'connection' => $connection,
@@ -762,7 +761,7 @@ class ImapDataProvider extends DataProvider
                 $msgUniqueIdPath = str_replace('[body]', '[msgUniqueId]', $bodyPath);
                 $msgUniqueId = $app->fetchByPath($editData, $msgUniqueIdPath);
                 if (!$msgUniqueId) {
-                    $app['logger']->debug("Fail to fetch : " . $$msgUniqueIdPath, [$editData]);
+                    $app['log.review']->debug("Fail to fetch : " . $$msgUniqueIdPath, [$editData]);
                     $status = [
                         'errors' => [["Code under dev.", "Give a donnation with mention : "
                         . "'MoonBoxDev-FailBodyFetch' for www.monwoo.com to improve it."]],
@@ -785,7 +784,7 @@ class ImapDataProvider extends DataProvider
                 // $imapIdPath = str_replace('[body]', '[imapId]', $bodyPath);
                 // $imapId = $app->fetchByPath($editData, $imapIdPath);
                 $msg = $this->storage->getMessage(intval($imapId));
-                $app['logger']->assert($msg,
+                $app['log.review']->assert($msg,
                 "Loading msg $imapId for {$connection['username']} FAIL");
                 $msgFlags = $msg->getFlags();
                 if ($msg->isMultipart()) {
@@ -803,7 +802,7 @@ class ImapDataProvider extends DataProvider
                                 if ($bodyHTML && $bodyHTML != '') break;
                             }
                         } catch (\Throwable $e) {
-                            $app['logger']->error("Fail to load message part"
+                            $app['log.review']->error("Fail to load message part"
                             , ['part' => $part, 'msg' => $msg]);
                         }
                     }
@@ -884,7 +883,7 @@ class ImapDataProvider extends DataProvider
         unset($app["{$self->dataset_id}"]);
         $self->initDefaultAugmentedData($data);
         // * DEBUG
-        $app['logger']->debug('Imap Did Update Generated Data');
+        $app['log.review']->debug('Imap Did Update Generated Data');
         // */
         $app["{$self->dataset_id}"] = $data;
     }
@@ -905,7 +904,7 @@ class ImapDataProvider extends DataProvider
         $data = $app["{$self->dataset_id}"];
         $self->initDefaultAugmentedData($data);
         // * DEBUG
-        $app['logger']->debug('Imap Data Did transform Data');
+        $app['log.review']->debug('Imap Data Did transform Data');
         // */
         // $locale = $app['locale'];//$app['translator']->getLocale();
         // $app['cache']->store("data_$locale", $data);

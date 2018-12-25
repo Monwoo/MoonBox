@@ -5,20 +5,23 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RequestMatcher;
+use Symfony\Component\HttpKernel\Profiler\Profiler;
+use Symfony\Component\HttpKernel\Log\Logger as ConsoleLogger;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\User\InMemoryUserProvider;
 use Symfony\Component\Security\Core\User\User;
-use Monwoo\Middleware\AddingCors;
-use Monolog\Logger;
-use Symfony\Component\HttpKernel\Log\Logger as ConsoleLogger;
-
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Filesystem\Filesystem;
-use Monolog\Handler\AbstractProcessingHandler as AbstractMonologHandler;
-use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Bridge\Monolog\Processor\DebugProcessor;
+use Monolog\Logger;
+use Monolog\Handler as MH;
+use Bramus\Monolog\Formatter\ColoredLineFormatter;
+
 use Psr\Log\LogLevel;
+
+use Monwoo\Middleware\AddingCors;
 
 $root_dir = $root_dir ?? __DIR__;
 require_once __DIR__ . '/config.php';
@@ -37,7 +40,7 @@ $app = new class([
     },
     'debug' => $prodDebug || $config['debug'],
     'prodDebug' => $prodDebug,
-    'logger' => new class($config['loggerName']) extends \Monolog\Logger {
+    'log.review' => new class($config['loggerName']) extends \Monolog\Logger {
         public function assert($ok, $msg, $extra = null) {
             // TODO psySh => could break there ? XDebug ?
             $self = $this;
@@ -53,6 +56,20 @@ $app = new class([
     'accessor' => PropertyAccess::createPropertyAccessor(),
 ]) extends Silex\Application {
     use Silex\Application\UrlGeneratorTrait;
+
+    public function obfuskData(&$src, $fields=["password"], $mask="*****") {
+        $output = [];
+        foreach ($src as $key => &$value) {
+            if (in_array($key, $fields)) {
+                $output[$key] = $mask;
+            } else if (is_array($value)) {
+                $output[$key] = $this->obfuskData($value, $fields);
+            } else {
+                $output[$key] = $value;
+            }
+        }
+        return $output;
+    }
 
     public function fetchByPath($fetchSrc, $path, $default = null) {
         $path = $this->applyPathTransformers($path);
@@ -118,10 +135,10 @@ $app->register(new Silex\Provider\SessionServiceProvider(), [
     ],
 ]);
 
+$app->register(new Silex\Provider\MonologServiceProvider());
 
 $logLvl = $app['debug'] ? Logger::DEBUG : Logger::ERROR;
-
-$mySaveToFileHandler = new class ($app, $logLvl) extends AbstractMonologHandler {
+$mySaveToFileHandler = new class ($app, $logLvl) extends MH\AbstractProcessingHandler {
     public function __construct($app, $level = Logger::DEBUG, $bubble = true) {
         parent::__construct($level, $bubble);
         $self = $this;
@@ -163,12 +180,64 @@ $mySaveToFileHandler = new class ($app, $logLvl) extends AbstractMonologHandler 
         }
     }
 };
-$app['logger']->pushHandler($mySaveToFileHandler);
+// $app['logger']->pushHandler($mySaveToFileHandler);
+// adapted by Miguel Monwoo from :
+// Code/Prototype/src/Monwoo/CVVideo/CVApplication.php
+$logLvl = $app['debug'] ? LogLevel::DEBUG : LogLevel::ERROR;
+$app['logger']->pushHandler(new MH\RotatingFileHandler($app['cache_dir'] . '/logs.yml', 0,
+$logLvl, true, 0644));
+// var_dump(php_sapi_name()); exit;
+// 'cli' from command, 'cli-server' from builtin php server
+if (preg_match('/^cli/', php_sapi_name())) {
+    $cliLogLvl = LogLevel::DEBUG;
+    $colorCliHandler = new MH\StreamHandler('php://stdout'
+    , $cliLogLvl);
+    $colorCliHandler->setFormatter(new class()
+    extends ColoredLineFormatter {
+        // quickly customize ColoredLineFormatter to output yml with
+        // new lines inside :
+        public function convertToString($data) {
+            return Yaml::dump($data, 4);
+        }
+        public function replaceNewlines($str) {
+            return $str;
+        }
+    });
+    $app['logger']->pushHandler($colorCliHandler);
+    $app['log.review']->pushHandler($colorCliHandler);
+}
+// $app['logger']->pushHandler(new \Monolog\Handler\SyslogHandler());
+$mailHandler = new MH\NativeMailerHandler('dev@monwoo.com',
+'MoonBox logger', 0, LogLevel::INFO); // Keep all INFO logs in buffer until error
+// https://github.com/Seldaek/monolog/blob/master/src/Monolog/Handler/BufferHandler.php
+$bufferHandler = new MH\BufferHandler($mailHandler, 1000);
+$fingersCrossedHandler = new MH\FingersCrossedHandler($bufferHandler,
+LogLevel::ERROR, 1000);
+$app['logger']->pushHandler($fingersCrossedHandler);
+// TODO : keep event in verry verbose mode only. to much useless info in console otherwise
+// unset($app['monolog.listener']);
+$app['logger']->pushHandler(new class() extends MH\NullHandler {
+    public function handle(array $record)
+    {
+        // var_dump($record['channel']);// exit;
+        // var_dump(strpos($record['message']
+        // , 'Notified event "{event}" to listener "{listener}"'));// exit;
+        // return $record['channel'] !== 'event';
+        return strpos($record['message']
+        , 'Notified event "{event}" to listener "{listener}"') === 0;
+    }
+});
+// Review logger capabilities :
+$app['log.review']->pushHandler(new MH\RotatingFileHandler($app['cache_dir'] . '/logs-review.yml', 0,
+$logLvl, true, 0644));
+
+// function_exists('xdebug_break') && \xdebug_break();
+
 if ($app['debug']) {
     $app['logger']->pushProcessor(new DebugProcessor());
     $app['consoleLogger'] = new ConsoleLogger(LogLevel::DEBUG);
 }
-$app['logger']->debug("Backend {Action}", ['Action' => "Init"]);
+$app['log.review']->debug("Backend {Action}", ['Action' => "Init"]);
 
 $appCacheDir = $app['cache_dir'] . '/app';
 if (!is_dir($appCacheDir)) {
@@ -216,19 +285,36 @@ $app['users'] = function () use ($app) { // TODO : why need to be called 'users'
             'username' => $key,
         ];
     });
-    $app['logger']->debug("Loading Users : " . $app->json($users)->getContent());
+    $app['log.review']->debug("Loading Users : ", $users);
 
     return new InMemoryUserProvider(
         $users
     );
 };
-
-$app['security.firewalls'] = array(
+$firewalls = [
     'login' => [
         'pattern' => 'login|register|oauth',
         'anonymous' => true,
         // 'methods' => ['GET', 'POST', 'OPTIONS'],
     ],
+];
+if ($app['debug'] && !$prodDebug) {
+    $firewalls[] = [
+        // 'debug-profiler' => [
+        //     'pattern' => new RequestMatcher('^/_profiler.*$'),
+        //     // 'pattern' => new RequestMatcher('^/api', "TODO : host string fetch there"),
+        //     'http' => true,
+        //     'anonymous' => true,
+        //     // 'methods' => ['GET', 'POST', 'OPTIONS'],
+        // ],    
+        // 'cors-handshake-2' => [
+        //     'pattern' => '^.*$',
+        //     'anonymous' => true,
+        //     'methods' => ['OPTIONS'],
+        // ],
+    ];
+}
+$firewalls = array_merge($firewalls, [
     'cors-handshake' => [
         'pattern' => '^.*$',
         'anonymous' => true,
@@ -257,22 +343,27 @@ $app['security.firewalls'] = array(
             'stateless' => true,
         )
     ),
-);
+]);
+
+$app['security.firewalls'] = $firewalls;
 
 $ctlrs = $app['controllers'];
 
 $app->before(function($request, $app) {
-    // $app['logger']->debug("BEFORE");
+    // $app['log.review']->debug("BEFORE");
     // return new Response('d', 200);        
     if ('OPTIONS' === $request->getMethod()) {
         $r = new Response('', 200);
         AddingCors::addCors($request, $r);
-        $app['logger']->debug("Allowing options");
+        $app['log.review']->debug("Allowing options");
         return $r;        
     }
 });
 
-$app->register(new Silex\Provider\SecurityServiceProvider());
+$app->register(new Silex\Provider\SecurityServiceProvider(), [
+    // https://github.com/silexphp/Silex/issues/1044
+    // 'security.firewalls' => $app['security.firewalls'],
+]);
 $app->register(new Silex\Provider\SecurityJWTServiceProvider());
 $app->register(new Silex\Provider\LocaleServiceProvider());
 $app->register(new Silex\Provider\TranslationServiceProvider());
@@ -287,10 +378,12 @@ if ($app['debug']) {
         // Due to current integration of .phar building process...
         // Avoiding possible un-solved issue by avoiding twig for now...
         // Ps : laravel system based on .blade teplates ?
+        $app->register(new Silex\Provider\HttpFragmentServiceProvider());
         $app->register(new Silex\Provider\TwigServiceProvider());
         $app->register(new Silex\Provider\WebProfilerServiceProvider());
     }
 }
+
 
 // $app->post('/api/login', function(Request $request) use ($app){
 $ctlrs->match('/api/login', function(Request $request) use ($app){
@@ -344,7 +437,7 @@ $ctlrs->match('/api/login', function(Request $request) use ($app){
       );
 
       $app['session']->set('apiUsers', $apiUsers);
-      $app['logger']->debug($apiUsername . " Having Api Users : " . $app->json($apiUsers)->getContent());
+      $app['log.review']->debug($apiUsername . " Having Api Users : ", $app->obfuskData($apiUsers));
 
       $response = [
         'success' => true,
@@ -361,7 +454,7 @@ $ctlrs->match('/api/login', function(Request $request) use ($app){
 })->bind('api.login')->method('OPTIONS|POST');
 
 $ctlrs->match('/api/messages', function() use ($app){
-  $app['logger']->debug("Listing Messages");
+  $app['log.review']->debug("Listing Messages");
   $jwt = 'no';
   $token = $app['security.token_storage']->getToken();
   if ($token instanceof Silex\Component\Security\Http\Token\JWTToken) {
@@ -394,12 +487,12 @@ $ctlrs->match('/api/messages', function() use ($app){
 })->bind('api.messages')->method('OPTIONS|GET');;
 
 $app->after(function($request, Response $response) use ($app) {
-    $app['logger']->debug("Adding Cors");
+    $app['log.review']->debug("Adding Cors");
     AddingCors::addCors($request, $response);
 });
 
 if (isset($shouldOnlySetup)) {
-    $app['logger']->debug("App setup OK");
+    $app['log.review']->debug("App setup OK");
 } else {
     $app->run();
 }

@@ -20,6 +20,7 @@
   },
   "require": {
     "awurth/silex-user": "^1.0",
+    "bramus/monolog-colored-line-formatter": "^2.0",
     "cnam/security-jwt-service-provider": "2.*",
     "defuse/php-encryption": "^2.2",
     "monolog/monolog": "^1.19",

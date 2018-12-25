@@ -214,6 +214,8 @@
 
 * https://github.com/defuse/php-encryption/blob/master/docs/Tutorial.md
 
+* https://github.com/bramus/monolog-colored-line-formatter
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
@@ -251,7 +253,7 @@ symfony/monolog-bridge symfony/filesystem
 symfony/translation zendframework/zend-mail
 moust/silex-cache silex/web-profiler awurth/silex-user
 symfony/console symfony/finder symfony/process:^3.4
-defuse/php-encryption
+defuse/php-encryption bramus/monolog-colored-line-formatter
 )
 
 # clean all and rebuild :
