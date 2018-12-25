@@ -20,6 +20,8 @@ import { DynamicFormArrayModel, DynamicFormLayout, DynamicFormService, validate 
 // import { LocalStorage } from '@ngx-pwa/local-storage';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { MessagesService } from '@moon-box/services/messages.service';
+import { pluck, delay, last, tap } from 'rxjs/operators';
+import { forkJoin, of, from } from 'rxjs';
 
 import { shallowMerge } from '@moon-manager/tools';
 import { NotificationsService } from 'angular2-notifications';
@@ -223,8 +225,18 @@ export class BoxesComponent implements OnInit {
   }
 
   addBox() {
-    this.boxesIdxs.push(this.newRandomIndex());
+    const boxId = this.newRandomIndex();
+    this.boxesIdxs.push(boxId);
     this.updateBoxesLookup();
+    of(() => {
+      const targetBox = this.boxViews.find((item, index, src) => {
+        return boxId === item.id;
+      });
+      targetBox.toggleConfigs(); // auto expand freshly added box
+    })
+      .pipe(delay(200))
+      .subscribe((callback: any) => callback());
+
     // DO NOT Save data here since might be called with storage locked, giving empty value while it's
     // juste that the store is locked
     // Do it in if case :
