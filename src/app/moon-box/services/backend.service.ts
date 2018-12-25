@@ -16,7 +16,7 @@ import * as moment from 'moment';
 import { Logger } from '@app/core/logger.service';
 const logReview = new Logger('MonwooReview');
 
-export type ProviderID = 'OVH' | 'GoDaddy' | 'LWS' | 'YopMail' | 'Yahoo' | 'Unknown';
+export type ProviderID = 'OVH' | 'GoDaddy' | 'LWS' | 'YopMail' | 'Yahoo' | 'Unknown' | 'GoogleApi';
 
 const httpOptions = {
   headers: new HttpHeaders({
@@ -65,6 +65,11 @@ export class BackendService {
     Unknown: {
       name: extract('Unknown'),
       serverUrl: '',
+      serverPort: ''
+    },
+    GoogleApi: {
+      name: extract('Api Google'),
+      serverUrl: '<MoonBox backend>',
       serverPort: ''
     }
   };
@@ -132,15 +137,15 @@ export class BackendService {
   }
 
   login(loginData: LoginFormType) {
-    if (loginData.selectedProvider === 'Unknown') {
-      this.i18nService.get(extract('mb.backend.connector.unknown')).subscribe(t => {
-        this.notif.warn('Backend', t, {
-          timeOut: 6000
-        });
-      });
+    // if (loginData.selectedProvider === 'Unknown') {
+    //   this.i18nService.get(extract('mb.backend.connector.unknown')).subscribe(t => {
+    //     this.notif.warn('Backend', t, {
+    //       timeOut: 6000
+    //     });
+    //   });
 
-      throw new Error("Can't login with Unknown provider");
-    }
+    //   throw new Error("Can't login with Unknown provider");
+    // }
 
     // loginData._password = '*' + '#__hash'
     // + (Math.random().toString(36) + '777777777').slice(2, 9) + btoa(loginData._password);
@@ -175,17 +180,44 @@ export class BackendService {
     );
   }
 
-  fetchMsg(username: string, page: number = 1, limit: number = 21) {
-    return this.http.get(this.apiBaseUrl + 'api/moon-box/data_imap/submit_refresh', {
-      ...httpOptions,
-      ...{
-        params: new HttpParams()
-          // .set('ctx', JSON.stringify(ctx))
-          .set('limit', limit.toString())
-          .set('page', page.toString())
-          .set('username', username) // TODO : may be better to submit by post ?
-      }
-    });
+  fetchMsg(provider: string, username: string, page: number = 1, limit: number = 21) {
+    return (
+      this.http
+        .post<any>(
+          this.apiBaseUrl + 'api/messages',
+          {
+            provider: provider,
+            username: username
+          },
+          {
+            ...httpOptions,
+            ...{
+              params: new HttpParams()
+                // .set('ctx', JSON.stringify(ctx))
+                .set('limit', limit.toString())
+                .set('page', page.toString())
+            }
+          }
+        )
+        // this is just the HTTP call,
+        // we still need to handle the reception of the token
+        .pipe(
+          tap(_ => {
+            logReview.debug('Did fetch messages for : ', username);
+          })
+        )
+    );
+
+    // return this.http.get(this.apiBaseUrl + 'api/moon-box/data_imap/submit_refresh', {
+    //   ...httpOptions,
+    //   ...{
+    //     params: new HttpParams()
+    //       // .set('ctx', JSON.stringify(ctx))
+    //       .set('limit', limit.toString())
+    //       .set('page', page.toString())
+    //       .set('username', username) // TODO : may be better to submit by post ?
+    //   }
+    // });
 
     // return forkJoin(
     //   this.http.post(this.apiBaseUrl + 'api/login', ctx.auth, httpPostOptions).pipe(

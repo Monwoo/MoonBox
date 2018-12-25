@@ -6,6 +6,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RequestMatcher;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\HttpKernel\Log\Logger as ConsoleLogger;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
@@ -20,6 +21,7 @@ use Monolog\Handler as MH;
 use Bramus\Monolog\Formatter\ColoredLineFormatter;
 
 use Psr\Log\LogLevel;
+use \Ds\Vector;
 
 use Monwoo\Middleware\AddingCors;
 
@@ -499,38 +501,76 @@ $ctlrs->match('/api/login', function(Request $request) use ($app){
   return $app->json($response, ($response['success'] == true ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST));
 })->bind('api.login')->method('OPTIONS|POST');
 
-$ctlrs->match('/api/messages', function() use ($app){
-  $app['log.review']->debug("Listing Messages");
-  $jwt = 'no';
-  $token = $app['security.token_storage']->getToken();
-  if ($token instanceof Silex\Component\Security\Http\Token\JWTToken) {
-      $jwt = 'yes';
-  }
-  $granted = 'no';
-  if($app['security.authorization_checker']->isGranted('ROLE_ADMIN')) {
-      $granted = 'yes';
-  }
-  $granted_user = 'no';
-  if($app['security.authorization_checker']->isGranted('ROLE_USER')) {
-      $granted_user = 'yes';
-  }
-  $granted_super = 'no';
-  if($app['security.authorization_checker']->isGranted('ROLE_SUPER_ADMIN')) {
-      $granted_super = 'yes';
-  }
-  $user = $token->getUser();
-  $localApiUsers = $app['session']->get('apiUsers', []);
-  $localUsers = $localApiUsers[$token->getUsername()];
+$ctlrs->match('/api/messages', function(Request $request) use ($app){
+   $payload = json_decode($request->getContent(), true);
+   $provider = $payload['provider'];
+ 
+    $providersRoutes = [
+        'OVH' => 'DataProvider.data_imap',
+        'GoDaddy' => 'DataProvider.data_imap',
+        'LWS' => 'DataProvider.data_imap',
+        'Yahoo' => 'DataProvider.data_imap',
+        'Unknown' => 'DataProvider.data_imap',
+        'GoogleApi' => 'DataProvider.data_gapi',
+    ];
+    $stableConnectors = new Vector(array_keys($providersRoutes));
 
-  return $app->json([
-      'hello' => $token->getUsername(),
-      'users' => $localUsers,
-      'auth' => $jwt,
-      'granted' => $granted,
-      'granted_user' => $granted_user,
-      'granted_super' => $granted_super,
-  ]);
-})->bind('api.messages')->method('OPTIONS|GET');;
+    if ($stableConnectors->contains($provider)) {
+        // https://silex.symfony.com/doc/2.0/cookbook/sub_requests.html
+        // from MoonShop : Core/Provider/MoonShopBackupProvider.php
+        // https://stackoverflow.com/questions/11227285/getting-all-request-parameters-in-symfony-2
+        // https://api.symfony.com/2.8/Symfony/Component/HttpFoundation/Request.html
+        // https://api.symfony.com/4.1/Symfony/Component/BrowserKit/Request.html
+        // https://api.symfony.com/3.4/Symfony/Component/HttpFoundation/Request.html
+        // https://api.symfony.com/4.1/Symfony/Component/HttpFoundation/Request.html
+        $subRequest = Request::create($app->path($providersRoutes[$provider], [
+            'action' => 'submit_refresh',
+            'param' => null,
+            'username' => $request->get('username'),
+        ]), 'GET'/*$request->getMethod()*/, $payload/*$request->request->all()*/,
+        $request->cookies->all(), $request->files->all(),
+        $request->server->all());
+
+        // $request->query->all() ??
+        if ($request->getSession()) {
+            $subRequest->setSession($request->getSession());
+        }
+        
+        $response = $app->handle($subRequest, HttpKernelInterface::SUB_REQUEST, false);
+        return $response;
+    }
+
+    $app['log.review']->debug("Listing Messages");
+    $jwt = 'no';
+    $token = $app['security.token_storage']->getToken();
+    if ($token instanceof Silex\Component\Security\Http\Token\JWTToken) {
+        $jwt = 'yes';
+    }
+    $granted = 'no';
+    if($app['security.authorization_checker']->isGranted('ROLE_ADMIN')) {
+        $granted = 'yes';
+    }
+    $granted_user = 'no';
+    if($app['security.authorization_checker']->isGranted('ROLE_USER')) {
+        $granted_user = 'yes';
+    }
+    $granted_super = 'no';
+    if($app['security.authorization_checker']->isGranted('ROLE_SUPER_ADMIN')) {
+        $granted_super = 'yes';
+    }
+    $user = $token->getUser();
+    $localApiUsers = $app['session']->get('apiUsers', []);
+    $localUsers = $localApiUsers[$token->getUsername()];
+
+    return $app->json([
+        'hello' => $token->getUsername(),
+        'users' => $localUsers,
+        'auth' => $jwt,
+        'granted' => $granted,
+        'granted_user' => $granted_user,
+        'granted_super' => $granted_super,
+    ]);
+})->bind('api.messages')->method('OPTIONS|POST|GET');;
 
 $app->after(function($request, Response $response) use ($app) {
     $app['log.review']->debug("Adding Cors");

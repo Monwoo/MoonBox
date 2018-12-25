@@ -193,37 +193,39 @@ export class BoxReaderComponent implements OnInit {
 
   readMessages(page = 1) {
     if (this.formGroup) {
-      this.backend.fetchMsg(this.formGroup.value._username, page).subscribe((messages: any) => {
-        if (!messages.status || messages.status.errors.length) {
-          logReview.warn('BoxReader fetch errors ', messages.status ? messages.status.errors : messages);
-          if (
-            messages.status &&
-            messages.status.errors.reduce((acc: boolean, err: string[]) => {
-              if ('Exception Exception: cannot login, wrong user or password' === err[1]) {
-              }
-            })
-          ) {
-            this.i18nService.get(extract('mm.box-reader.notif.wrongUserOrPassword')).subscribe(t => {
-              this.notif.warn(t);
-              this.formGroup.controls['_username'].setErrors({ incorrect: true });
-              this.formGroup.controls['_username'].markAsTouched();
-              this.formGroup.controls['_password'].setErrors({ incorrect: true });
-            });
+      this.backend
+        .fetchMsg(this.loginData.selectedProvider, this.formGroup.value._username, page)
+        .subscribe((messages: any) => {
+          if (!messages.status || messages.status.errors.length) {
+            logReview.warn('BoxReader fetch errors ', messages.status ? messages.status.errors : messages);
+            if (
+              messages.status &&
+              messages.status.errors.reduce((acc: boolean, err: string[]) => {
+                if ('Exception Exception: cannot login, wrong user or password' === err[1]) {
+                }
+              })
+            ) {
+              this.i18nService.get(extract('mm.box-reader.notif.wrongUserOrPassword')).subscribe(t => {
+                this.notif.warn(t);
+                this.formGroup.controls['_username'].setErrors({ incorrect: true });
+                this.formGroup.controls['_username'].markAsTouched();
+                this.formGroup.controls['_password'].setErrors({ incorrect: true });
+              });
+            } else {
+              this.i18nService.get(extract('mm.box-reader.notif.fetchFail')).subscribe(t => {
+                this.notif.warn(t);
+                // this.ll.hideLoader();
+              });
+            }
           } else {
-            this.i18nService.get(extract('mm.box-reader.notif.fetchFail')).subscribe(t => {
-              this.notif.warn(t);
-              // this.ll.hideLoader();
-            });
+            this.hasMoreMsgs = messages.numResults !== messages.totalCount; // TODO : pagination etc...
+            // TODO : better data structure to auto fix multiple reads of same page issue...
+            this.messages = shallowMerge(1, this.messages, messages);
+            logReview.debug('BoxReader did fetch msgs ', this.messages);
+            this.msgs.pushMessages(messages);
+            this.updateIFrames();
           }
-        } else {
-          this.hasMoreMsgs = messages.numResults !== messages.totalCount; // TODO : pagination etc...
-          // TODO : better data structure to auto fix multiple reads of same page issue...
-          this.messages = shallowMerge(1, this.messages, messages);
-          logReview.debug('BoxReader did fetch msgs ', this.messages);
-          this.msgs.pushMessages(messages);
-          this.updateIFrames();
-        }
-      }, this.errorHandler);
+        }, this.errorHandler);
     } else {
       logReview.warn('Algo issue, trying to read msg when form is not yet ready');
     }
