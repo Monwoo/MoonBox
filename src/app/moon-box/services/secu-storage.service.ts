@@ -11,6 +11,7 @@ import { I18nService } from '@app/core';
 import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
 import { BackendService } from '@moon-box/services/backend.service';
+import { BehaviorSubject } from 'rxjs';
 
 import { Logger } from '@app/core/logger.service';
 const logReview = new Logger('MonwooReview');
@@ -31,6 +32,7 @@ export class SecuStorageService {
   private lockDialogRef: MatDialogRef<LockScreenComponent> = null;
   private rawCode: string = '';
   private lastRawCode: string = '';
+  public onUnlock: BehaviorSubject<void> = new BehaviorSubject(null);
 
   private eS: string = null;
   private lastEs: string = null;
@@ -68,7 +70,7 @@ export class SecuStorageService {
     }
   }
 
-  protected setupStorage(secuLvl: 'lvl1' | 'lvl2' | 'lastEs') {
+  public setupStorage(secuLvl: 'lvl1' | 'lvl2' | 'lastEs') {
     try {
       if (this.debugStorage) {
         this.storage = new SecureLS({ encodingType: '', isCompression: false });
@@ -295,6 +297,7 @@ export class SecuStorageService {
     const isValid = !!(await this.getItem('lvl2', false).toPromise());
     if (isValid) {
       this.setPassCode(rawCode, false);
+      this.onUnlock.next(null);
     } else {
       await this.lockOut();
     }
@@ -360,6 +363,7 @@ export class SecuStorageService {
     // this.setupStorage('lvl2');
     // Below = no meanings, since rawCode needed to open level 2....
     // this.storage.set('rawCode', rawCode); // Setting passCode under level 2 secu, keeping real code hard to know...
+    this.setupStorage('lvl2');
 
     this.i18nService.get(extract('mb.secu-storage.setPassCode.success')).subscribe(t => {
       this.notif.success(t);

@@ -118,6 +118,9 @@ export class BoxReaderComponent implements OnInit {
     //   this.updateForm();
     // });
     this.updateForm();
+    this.storage.onUnlock.subscribe(() => {
+      this.updateForm();
+    });
   }
 
   toggleConfigs() {

@@ -147,6 +147,14 @@ export class BoxesComponent implements OnInit {
     })();
     this.renderer = this.rendererFactory.createRenderer(null, null);
     this.storage.setLockContainer(this.eltRef);
+    this.refreshBoxesIdxs();
+    this.storage.onUnlock.subscribe(() => {
+      this.refreshBoxesIdxs();
+    });
+  }
+
+  refreshBoxesIdxs() {
+    this.storage.setupStorage('lvl2'); // TODO: why need to set lvl 2, need better storage design pattern...
     this.storage.getItem('boxesIdxs').subscribe((bIdxs: string[]) => {
       if (bIdxs) {
         this.boxesIdxs = bIdxs;
@@ -154,6 +162,7 @@ export class BoxesComponent implements OnInit {
         this.addBox();
       }
     }, this.errorHandler);
+    return this;
   }
 
   initShadowStickySizes() {
@@ -216,8 +225,12 @@ export class BoxesComponent implements OnInit {
   addBox() {
     this.boxesIdxs.push(this.newRandomIndex());
     this.updateBoxesLookup();
-
-    this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: string[]) => {}, this.errorHandler);
+    // DO NOT Save data here since might be called with storage locked, giving empty value while it's
+    // juste that the store is locked
+    // Do it in if case :
+    if (!this.storage.isLocked) {
+      this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: string[]) => {}, this.errorHandler);
+    }
   }
   async removeBox(e: any, idxToRemove: string) {
     // let boxIds = this.boxesIdxs;
