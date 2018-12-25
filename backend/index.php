@@ -57,7 +57,7 @@ $app = new class([
 ]) extends Silex\Application {
     use Silex\Application\UrlGeneratorTrait;
 
-    public function obfuskData(&$src, $fields=["password"], $mask="*****") {
+    public function obfuskData($src, $fields=["password"], $mask="*****") {
         $output = [];
         foreach ($src as $key => &$value) {
             if (in_array($key, $fields)) {
@@ -293,59 +293,59 @@ $app['users'] = function () use ($app) { // TODO : why need to be called 'users'
         $users
     );
 };
-$firewalls = [
-    'login' => [
-        'pattern' => 'login|register|oauth',
-        'anonymous' => true,
-        // 'methods' => ['GET', 'POST', 'OPTIONS'],
-    ],
-];
-if ($app['debug'] && !$prodDebug) {
-    $firewalls[] = [
-        // 'debug-profiler' => [
-        //     'pattern' => new RequestMatcher('^/_profiler.*$'),
-        //     // 'pattern' => new RequestMatcher('^/api', "TODO : host string fetch there"),
-        //     'http' => true,
-        //     'anonymous' => true,
-        //     // 'methods' => ['GET', 'POST', 'OPTIONS'],
-        // ],    
-        // 'cors-handshake-2' => [
-        //     'pattern' => '^.*$',
-        //     'anonymous' => true,
-        //     'methods' => ['OPTIONS'],
-        // ],
-    ];
-}
-$firewalls = array_merge($firewalls, [
-    'cors-handshake' => [
-        'pattern' => '^.*$',
-        'anonymous' => true,
-        'methods' => ['OPTIONS'],
-    ],
-    'api-moon-box' => [
-        'pattern' => '^/api/moon-box/.*$',
-        'methods' => ['GET', 'POST'],
-        // 'anonymous' => true,
-        'logout' => array('logout_path' => '/api/moon-box/logout'),
-        'users' => $app['users'], // useless since check app.users inside lib ?
-        'jwt' => array(
-            'use_forward' => true,
-            'require_previous_session' => true,
-            'stateless' => true,
-        )
-    ],
-    'secured' => array(
-        'pattern' => '^.*$',
-        'methods' => ['GET', 'POST'],
-        'logout' => array('logout_path' => '/logout'),
-        'users' => $app['users'], // useless since check app.users inside lib ?
-        'jwt' => array(
-            'use_forward' => true,
-            'require_previous_session' => true,
-            'stateless' => true,
-        )
-    ),
-]);
+// $firewalls = [
+//     'login' => [
+//         'pattern' => 'login|register|oauth',
+//         'anonymous' => true,
+//         // 'methods' => ['GET', 'POST', 'OPTIONS'],
+//     ],
+// ];
+// if ($app['debug'] && !$prodDebug) {
+//     $firewalls[] = [
+//         // 'debug-profiler' => [
+//         //     'pattern' => new RequestMatcher('^/_profiler.*$'),
+//         //     // 'pattern' => new RequestMatcher('^/api', "TODO : host string fetch there"),
+//         //     'http' => true,
+//         //     'anonymous' => true,
+//         //     // 'methods' => ['GET', 'POST', 'OPTIONS'],
+//         // ],    
+//         // 'cors-handshake-2' => [
+//         //     'pattern' => '^.*$',
+//         //     'anonymous' => true,
+//         //     'methods' => ['OPTIONS'],
+//         // ],
+//     ];
+// }
+// $firewalls = array_merge($firewalls, [
+//     'cors-handshake' => [
+//         'pattern' => '^.*$',
+//         'anonymous' => true,
+//         'methods' => ['OPTIONS'],
+//     ],
+//     'api-moon-box' => [
+//         'pattern' => '^/api/moon-box/.*$',
+//         'methods' => ['GET', 'POST'],
+//         // 'anonymous' => true,
+//         'logout' => array('logout_path' => '/api/moon-box/logout'),
+//         'users' => $app['users'], // useless since check app.users inside lib ?
+//         'jwt' => array(
+//             'use_forward' => true,
+//             'require_previous_session' => true,
+//             'stateless' => true,
+//         )
+//     ],
+//     'secured' => array(
+//         'pattern' => '^.*$',
+//         'methods' => ['GET', 'POST'],
+//         'logout' => array('logout_path' => '/logout'),
+//         'users' => $app['users'], // useless since check app.users inside lib ?
+//         'jwt' => array(
+//             'use_forward' => true,
+//             'require_previous_session' => true,
+//             'stateless' => true,
+//         )
+//     ),
+// ]);
 
 // $app['security.firewalls'] = $firewalls;
 $app['security.firewalls'] = array(
@@ -371,6 +371,13 @@ $app['security.firewalls'] = array(
             'stateless' => true,
         )
     ],
+    'debug-profiler' => [
+        'pattern' => new RequestMatcher('^/_profiler.*$'),
+        // 'pattern' => new RequestMatcher('^/api', "TODO : host string fetch there"),
+        'http' => true,
+        'anonymous' => true,
+        // 'methods' => ['GET', 'POST', 'OPTIONS'],
+    ],    
     'secured' => array(
         'pattern' => '^.*$',
         'methods' => ['GET', 'POST'],
