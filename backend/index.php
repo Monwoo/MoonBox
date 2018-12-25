@@ -416,6 +416,7 @@ $app->register(new Silex\Provider\SecurityJWTServiceProvider());
 $app->register(new Silex\Provider\LocaleServiceProvider());
 $app->register(new Silex\Provider\TranslationServiceProvider());
 $app->register(new Monwoo\Provider\ImapDataProvider());
+$app->register(new Monwoo\Provider\GApiDataProvider());
 
 if ($app['debug']) {
     $app['profiler.cache_dir'] = $app['cache_dir'] . '/profiler';

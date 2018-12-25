@@ -399,9 +399,9 @@ class ImapDataProvider extends DataProvider
         // var_dump($self->stableConnectors->contains($localUser['connector'])); exit('dd');
 
         if (!$self->stableConnectors->contains($localUser['connector'])) {
-            $app['log.review']->debug("ImapData Connector not stable : " . $localUser['connector']);
+            $app['log.review']->debug("{$self->dataset_name} Connector not stable : " . $localUser['connector']);
             $status = [
-                'errors' => [["ImapData Connector not stable", $localUser['connector']]],
+                'errors' => [["{$self->dataset_name} Connector not stable", $localUser['connector']]],
             ];
             $self->actionResponse = $app->json([
                 'status' => $status,
@@ -428,7 +428,7 @@ class ImapDataProvider extends DataProvider
               ],
           ],
         ];
-        $app['log.review']->debug("ImapData $action : ", [
+        $app['log.review']->debug("{$self->dataset_name} $action : ", [
             'conf' => $app->obfuskData($self->defaultConfig),
             'apiUserName' => $token->getUsername(),
             // 'user' => $dataUsername,  // TODO : need remove password from data before debug display... if not in passwordDebug mode..
