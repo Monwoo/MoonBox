@@ -157,17 +157,20 @@ class ImapDataProvider extends DataProvider
         $iframePath = $app->url($self->actionRouteName(), [
             'action' => 'msg_body',
             'param' => $srcPath,
-            'username' => $dataUsername,
+            // 'username' => $dataUsername,
         ]);
         // https://blog.dareboost.com/fr/2015/07/securiser-une-iframe-attribut-sandbox/
         // https://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/
         // https://developers.google.com/web/fundamentals/web-components/shadowdom
+        // https://stackoverflow.com/questions/11878947/auto-login-remote-site-inner-in-iframe
+        // https://developer.mozilla.org/fr/docs/Web/HTML/Element/iframe
         $iframeStyle = 'min-height:250px;max-height:800px;width:100%';
+        $dataUsername = rawurlencode($dataUsername);
         return "<iframe
         src='$loadingPictPath'
         data-didLoad='0'
         data-src='$iframePath'
-         
+        data-username='$dataUsername'
         frameborder='0'
         style='$iframeStyle'
         ></iframe>";
@@ -819,55 +822,7 @@ class ImapDataProvider extends DataProvider
                 // TODO : edit store lock ?? what if multiple save same time ?
                 $self->storeInCache($self->getUserDataStoreKey(), $editData);
             }
-            // $msgBody = preg_replace([
-            //     '/<html*>/', '/<\/html>/'
-            // ], ['', ''], $msgBody);
-            // $msgBody = preg_replace(['/<html.*>/', '/<\/html>/'
-            // , '/<head.*>/', '/<body.*>/', '/<\/body>/'],
-            // ['', '', '', '', ''], $msgBody);
-            // $msgHead = "<head></head>";
-            // $msgBody = explode('</head>', $msgBody);
-            // if (count($msgBody) > 1) {
-            //     //$msgHead = "<head>" . $msgBody[0] . "</head>";
-            //     $msgHead = $msgBody[0];
-            //     $msgBody = $msgBody[1];
-            // } else {
-            //     $msgBody = $msgBody[0];
-            // }
-            // http://www.aaronpeters.nl/blog/iframe-loading-techniques-performance?%3E#dynamic
-            // To avoid iframe blocking main page load : load quick, then use JS
-            // to append resulting contents
-            // TODO : have loading indicator take iframe space until succed to load or err msg if fail
-            $body = "<html>
-            <head>
-            <script type='text/javascript'>
-            function loadData() {
-                var d = document;d.getElementsByTagName('head')[0].
-                appendChild(d.createElement('script')).innerHTML =
-                'document.open();'
-                + 'document.write(JSON.parse(decodeURIComponent('
-                + '  \"" . rawurlencode(json_encode($msgBody)) . "\"'
-                + ')));'
-                + 'document.close();';
-                // 'var html = document.getElementsByTagName(\"html\")[0];'
-                // + 'html.innerHTML = JSON.parse(decodeURIComponent('
-                // + '  \"" . rawurlencode(json_encode($msgBody)) ."\"'
-                //+ '));';
-            }
-            </script>
-            </head>
-            <body onload='loadData()' " .
-            // "var head = document.getElementsByTagName('head')[0];" .
-            // "head.innerHTML = JSON.parse(decodeURIComponent(" .
-            // "  '" . rawurlencode(json_encode($msgHead)) ."'" .
-            // '));' .
-            // "var body = document.getElementsByTagName('body')[0];" .
-            // "body.innerHTML = JSON.parse(decodeURIComponent(" .
-            // "  '" . rawurlencode(json_encode($msgBody)) ."'" .
-            // '));' .
-            '>' .
-            '</body></html>';
-            $resp = new Response($body , 200);
+            $resp = new Response($msgBody , 200);
             $resp->headers->set('Content-Type', 'text/html');
             $self->actionResponse = $resp;
         } else if ('auth' === $action) {

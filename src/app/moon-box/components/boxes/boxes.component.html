@@ -74,7 +74,7 @@
   <div *ngFor="let messages of (msgs.service | async | keyvalue); let groupIndex = index" class="container-fluid">
     <mat-card class="row">
       <div class="col-12 text-left" (click)="expandMessages($event, messages.key, groupIndex)">
-        <strong>{{ messages.key }}</strong> ({{ messages.value.numResults }})
+        <strong>{{ messages.key }}</strong> ({{ messages.value.totalCount }})
         <!-- : not accurate enouth yet : /{{ messages.value.totalCount }}) -->
       </div>
       <div class="col-12 text-md-left condensed" *ngIf="!isMsgsCondensed(groupIndex)">

@@ -118,7 +118,7 @@ export class BackendService {
     // https://www.learnrxjs.io/operators/error_handling/catch.html
     // regular log out (may fail if network issue) :
     return this.http
-      .get(this.apiBaseUrl + 'api/moon-box/logout', {
+      .get(this.apiBaseUrl + '/api/moon-box/logout', {
         ...httpOptions,
         ...{
           params: new HttpParams()
@@ -153,7 +153,7 @@ export class BackendService {
     return (
       this.http
         .post<any>(
-          this.apiBaseUrl + 'api/login',
+          this.apiBaseUrl + '/api/login',
           {
             ...loginData,
             ...{
@@ -184,7 +184,7 @@ export class BackendService {
     return (
       this.http
         .post<any>(
-          this.apiBaseUrl + 'api/messages',
+          this.apiBaseUrl + '/api/messages',
           {
             provider: provider,
             username: username

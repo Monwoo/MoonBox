@@ -22,6 +22,7 @@ import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { MessagesService } from '@moon-box/services/messages.service';
 import { pluck, delay, last, tap } from 'rxjs/operators';
 import { forkJoin, of, from } from 'rxjs';
+import { LocalStorage } from '@ngx-pwa/local-storage';
 
 import { shallowMerge } from '@moon-manager/tools';
 import { NotificationsService } from 'angular2-notifications';
@@ -33,6 +34,7 @@ import { Logger } from '@app/core/logger.service';
 const logReview = new Logger('MonwooReview');
 
 import * as moment from 'moment';
+import { environment } from '@env/environment';
 
 export const MY_FORMATS = {
   parse: {
@@ -130,6 +132,7 @@ export class BoxesComponent implements OnInit {
     private i18nService: I18nService,
     private formService: DynamicFormService,
     public storage: SecuStorageService,
+    private localStorage: LocalStorage,
     private ngZone: NgZone,
     private notif: NotificationsService,
     public eltRef: ViewContainerRef,
@@ -152,6 +155,7 @@ export class BoxesComponent implements OnInit {
     this.refreshBoxesIdxs();
     this.storage.onUnlock.subscribe(() => {
       this.refreshBoxesIdxs();
+      this.updateForm();
     });
   }
 
@@ -225,22 +229,22 @@ export class BoxesComponent implements OnInit {
   }
 
   addBox() {
-    const boxId = this.newRandomIndex();
-    this.boxesIdxs.push(boxId);
-    this.updateBoxesLookup();
-    of(() => {
-      const targetBox = this.boxViews.find((item, index, src) => {
-        return boxId === item.id;
-      });
-      targetBox.toggleConfigs(); // auto expand freshly added box
-    })
-      .pipe(delay(200))
-      .subscribe((callback: any) => callback());
-
-    // DO NOT Save data here since might be called with storage locked, giving empty value while it's
+    // DO NOT Load/Save data with storage locked, giving empty value while it's
     // juste that the store is locked
     // Do it in if case :
     if (!this.storage.isLocked) {
+      const boxId = this.newRandomIndex();
+      this.boxesIdxs.push(boxId);
+      this.updateBoxesLookup();
+      of(() => {
+        const targetBox = this.boxViews.find((item, index, src) => {
+          return boxId === item.id;
+        });
+        targetBox.toggleConfigs(); // auto expand freshly added box
+      })
+        .pipe(delay(200))
+        .subscribe((callback: any) => callback());
+
       this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: string[]) => {}, this.errorHandler);
     }
   }
@@ -343,7 +347,7 @@ export class BoxesComponent implements OnInit {
         }
       );
     } else {
-      this.filters.group.patchValue(this.filters.data);
+      // this.filters.group.patchValue(this.filters.data);
     }
   }
 
@@ -400,7 +404,8 @@ export class BoxesComponent implements OnInit {
     if (this.isMsgCondensed(idx)) {
       this.msgOpenedIdx[idx] = true;
       // TODO : refactor to put iframe refresh in backend service; ok for now :
-      this.boxViews.first.updateIFrames();
+      // this.boxViews.first.updateIFrames();
+      this.updateIFrames();
     } else {
       this.msgOpenedIdx[idx] = false;
     }
@@ -409,5 +414,64 @@ export class BoxesComponent implements OnInit {
   isMsgCondensed(idx: number) {
     this._isMsgCondensed = !this.msgOpenedIdx[idx];
     return this._isMsgCondensed;
+  }
+
+  isProcessingIFrames = false;
+  public updateIFrames() {
+    if (this.isProcessingIFrames) {
+      // logReview.debug('Frame updates already in process, postponing action');
+      of(() => {
+        this.updateIFrames();
+      })
+        .pipe(delay(500))
+        .subscribe((callback: any) => callback());
+      return;
+    }
+    this.isProcessingIFrames = true;
+    of(() => {
+      let iframes = document.querySelectorAll('iframe[data-didload="0"]');
+      if (!iframes.length) {
+        this.isProcessingIFrames = false;
+        return;
+      }
+      from(iframes) // TODO : refactor and bundle down in backend.service => Async Worker Stack design pattern
+        .pipe(
+          delay(1000),
+          tap((f: HTMLIFrameElement) => {
+            // this.renderer.setAttribute(f, 'src', f.getAttribute('data-src'));
+            const target = environment.moonBoxBackendUrl + '/api/iframe';
+            if (!parseInt(f.getAttribute('data-didLoad'))) {
+              // https://stackoverflow.com/questions/22194409/failed-to-execute-postmessage-on-domwindow-the-target-origin-provided-does/40000073
+              f.setAttribute('src', target);
+              f.onload = e => {
+                logReview.debug('IFrame src did load : ', target);
+                (async () => {
+                  f.contentWindow.postMessage(
+                    {
+                      endpoint: f.getAttribute('data-src'),
+                      // 'credentials': await this.storage
+                      // .getItem<any>('access_token').toPromise(),
+                      credentials: await this.localStorage.getItem<any>('access_token').toPromise(),
+                      post: {
+                        username: decodeURIComponent(f.getAttribute('data-username'))
+                      }
+                    },
+                    target
+                  );
+                })();
+              };
+              f.setAttribute('data-didLoad', '1');
+            }
+          }),
+          last(() => {
+            this.isProcessingIFrames = false;
+            logReview.debug('IFrame updates OK');
+            return true;
+          })
+        )
+        .subscribe(() => {});
+    })
+      .pipe(delay(200))
+      .subscribe((callback: any) => callback());
   }
 }

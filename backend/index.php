@@ -28,9 +28,14 @@ use Monwoo\Middleware\AddingCors;
 $root_dir = $root_dir ?? __DIR__;
 require_once __DIR__ . '/config.php';
 $prodDebug = $prodDebug ?? false;
-
 // DEBUG MediumRisk, un-cmt for prod
 $prodDebug = false; // Un-comment this line to disallow prodDebug feature showing sensitive datas
+
+if ($config['debug']) {
+    require_once __DIR__ . '/config.dev.php';
+} else {
+    require_once __DIR__ . '/config.prod.php';
+}
 
 $app = new class([
     'randSeedSize' => 2,
@@ -41,6 +46,7 @@ $app = new class([
         return $seed + 1;
     },
     'debug' => $prodDebug || $config['debug'],
+    'frontEndBaseUrl' => $config['frontEndBaseUrl'],
     'prodDebug' => $prodDebug,
     'log.review' => new class($config['loggerName']) extends \Monolog\Logger {
         public function assert($ok, $msg, $extra = null) {
@@ -441,7 +447,7 @@ $ctlrs->match('/api/login', function(Request $request) use ($app){
   // var_dump($vars);exit;
   try {
       if (empty($vars['apiUsername'])) { // || empty($vars['apiUsername'])) {
-          throw new UsernameNotFoundException(sprintf('Api Username "%s" does not exist.', $vars['apiUsername']));
+          throw new UsernameNotFoundException(sprintf('Api Username "%s" does not exist.', $vars));
       }
       // $token = $app['security.token_storage']->getToken();
       $apiUsername = $vars['apiUsername']; // $token->getUsername()
@@ -572,6 +578,25 @@ $ctlrs->match('/api/messages', function(Request $request) use ($app){
         'granted_super' => $granted_super,
     ]);
 })->bind('api.messages')->method('OPTIONS|POST|GET');;
+
+
+$ctlrs->match('/api/iframe', function(Request $request) use ($app){
+    // https://stackoverflow.com/questions/26621679/web-api-cors-basic-ntlm-401-with-firefox-chrome
+    // https://dzone.com/articles/sending-data-to-another-domain-using-postmessage
+    $body = "<html>
+    <head>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+    <script type='text/javascript'>
+    " . file_get_contents(__DIR__ . '/iframe.js') . "
+    </script>
+    </head>
+    <body>
+    <img src='{$app["frontEndBaseUrl"]}/assets/simple-pre-loader/images/loader-128x/Preloader_3.gif'></img>
+    </body></html>";
+    $resp = new Response($body , 200);
+    $resp->headers->set('Content-Type', 'text/html');
+    return $resp;
+})->bind('api.iframe')->method('OPTIONS|POST|GET');;
 
 $app->after(function($request, Response $response) use ($app) {
     $app['log.review']->debug("Adding Cors");

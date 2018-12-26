@@ -233,6 +233,9 @@ export class BoxReaderComponent implements OnInit {
 
   isProcessingIFrames = false;
   public updateIFrames() {
+    return;
+    // TODO Refactor : finish removing updateIFrames from view components level...
+
     if (this.isProcessingIFrames) {
       // logReview.debug('Frame updates already in process');
       return;

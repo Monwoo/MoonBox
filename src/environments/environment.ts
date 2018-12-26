@@ -10,7 +10,7 @@ export const environment = {
   version: env.npm_package_version + '-dev',
   // serverUrl: '/api',
   serverUrl: '/',
-  moonBoxBackendUrl: 'http://localhost:6901/',
+  moonBoxBackendUrl: 'http://localhost:6901',
   moonBoxBackendDomain: 'localhost',
   moonBoxBackendBasePath: '/',
   defaultLanguage: 'fr-FR',

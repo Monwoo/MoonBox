@@ -45,7 +45,9 @@ export class MessagesService {
       if (this.msgs[msg.moonBoxGroup].data[dataKey]) {
         alreadyCounted++;
       } else {
-        this.msgs[msg.moonBoxGroup].numResults += 1;
+        if ('_' !== msg.moonBoxGroup) {
+          this.msgs[msg.moonBoxGroup].numResults += 1;
+        }
         this.msgs[msg.moonBoxGroup].totalCount += 1; // TODO : not accurate enough for now....
       }
       this.msgs[msg.moonBoxGroup].data[dataKey] = msg;
