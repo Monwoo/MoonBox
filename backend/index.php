@@ -42,6 +42,8 @@ $app = new class([
     'randSeedInit' => function ($seed) {
         return 1;
     },
+    'data_gapi.credentialFile' => $root_dir . '/'
+    . $config['gApiCredentialPath'],
     'randSeedFreq' => function ($seed) {
         return $seed + 1;
     },

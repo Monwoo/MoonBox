@@ -6,5 +6,6 @@ $config = [
     'loggerName' => "MoonBoxLog",
     'sessionTimeOut' => 21 * 24 * 60, // Session life time in secondes
     'authTimeOut' => 21 * 60, // Session life time in secondes
+    'gApiCredentialPath' => "client_secret.json",
 ];
 

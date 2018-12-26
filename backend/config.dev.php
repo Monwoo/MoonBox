@@ -3,3 +3,4 @@
 
 // $config['debug-session'] = true;
 $config['frontEndBaseUrl'] = "http://localhost:4200";
+$config['gApiCredentialPath'] = "client_secret.dev.json";

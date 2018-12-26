@@ -3,7 +3,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { HttpHeaders } from '@angular/common/http';
-import { pluck, catchError, shareReplay, tap } from 'rxjs/operators';
+import { map, catchError, shareReplay, tap } from 'rxjs/operators';
 import { forkJoin, of, Observable } from 'rxjs';
 import { environment } from '@env/environment';
 import { LocalStorage } from '@ngx-pwa/local-storage';
@@ -202,9 +202,19 @@ export class BackendService {
         // this is just the HTTP call,
         // we still need to handle the reception of the token
         .pipe(
-          tap(_ => {
-            logReview.debug('Did fetch messages for : ', username);
+          map(async msgs => {
+            if (msgs.needAuthRedirect) {
+              return await this.promptGApiAuth(msgs);
+            }
+            return msgs;
+          }),
+          tap(msgs => {
+            logReview.debug('Did fetch messages for : ', username, ' => ', msgs);
           })
+          // catchError((err, caugth) => {
+          //   logReview.error('Having fetch error : ', err);
+          //   throw err;
+          // }),
         )
     );
 
@@ -227,5 +237,38 @@ export class BackendService {
     //   ),
     //   this.http.get(this.apiBaseUrl + 'api/messages')
     // );
+  }
+
+  promptGApiAuth(config: any) {
+    /*Return messages*/
+    return new Promise<any>((resolve, reject) => {
+      // http://embed.plnkr.co/dz1A1h/
+      // http://stackoverflow.com/questions/18064543/compile-angular-on-an-element-after-angular-compilation-has-already-happened
+      // https://medium.com/@adrianfaciu/using-the-angular-router-to-navigate-to-external-links-15cc585b7b88
+      // const authWindow = window.open(config.redirect, '_blank', 'toolbar=0,width=300,height=200');
+      const authWindow = window.open(config.redirect, '_blank', 'toolbar=0');
+      if (authWindow) {
+        authWindow.onload = e => {
+          logReview.error('Did open authentification window');
+          resolve({});
+        };
+        authWindow.onclose = e => {
+          logReview.error('User did close auth window');
+          resolve({});
+        };
+        authWindow.onunload = e => {
+          logReview.error('Auth window unload');
+          resolve({});
+        };
+      } else {
+        this.i18nService.get(extract('mb.backend.notif.failOpenAuthWindow')).subscribe(t => {
+          this.notif.error('Backend', t, {
+            timeOut: 6000
+          });
+        });
+        logReview.error('Fail to open authentification windoww', config);
+        reject();
+      }
+    });
   }
 }

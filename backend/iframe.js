@@ -1,8 +1,8 @@
 $(document).ready(function() {
-  console.log('IFrame ready');
+  // console.log('IFrame ready');
   window.addEventListener('message', authListener);
   function authListener(e) {
-    console.log('Having msg ', e);
+    // console.log('Having msg ', e);
     var data = e.data;
     var endpoint = data.endpoint;
     var credentials = data.credentials;

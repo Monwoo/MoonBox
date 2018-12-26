@@ -110,20 +110,30 @@ class GApiDataProvider extends ImapDataProvider
               ],
           ],
         ];
+        $credentialPath = $app[
+            "{$self->dataset_id}.credentialFile"
+        ];
         $app['log.review']->debug("GoogleApiData $action : ", [
             'conf' => $app->obfuskData($self->defaultConfig),
             'apiUserName' => $token->getUsername(),
+            'credentials' => $credentialPath,
         ]);
 
         // Work in progress, done by Miguel Monwoo,
 
         // TODO : work in progress
         // Inspired from MonwooMarket/silexDemo/src/MonwooConnector/Provider/ImapDataProvider.php
+        // $langGen = $app['locale.url_generator'];
+        // $redirect_uri = $langGen->generate($locale,
+        // $self->actionRouteName(), [
+        //     'action' => 'auth',
+        // ], UrlGeneratorInterface::ABSOLUTE_URL);
+        $redirect_uri = $app->url($self->actionRouteName(), [
+            'action' => 'auth',
+        ]);
 
         $client = new \Google_Client();
-        $client->setAuthConfig($app[
-            "{$self->manager_route_name}.gapi_credential"
-        ]);
+        $client->setAuthConfig($credentialPath);
         $client->setRedirectUri($redirect_uri);
         $client->addScope(\Google_Service_Gmail::GMAIL_READONLY); // For gapi connections
         // $client->addScope(\Google_Service_Gmail::MAIL_GOOGLE_COM); // For google imap connections : https://mail.google.com/
@@ -147,7 +157,7 @@ class GApiDataProvider extends ImapDataProvider
                         $self->setSession('access_token', $accessToken);
                     } else {
                         // * DEBUG
-                        $app['debug.logger']->debug('Refresh Access token fail', [
+                        $app['log.review']->debug('Refresh Access token fail', [
                             'accessToken' => $accessToken,
                         ]);
                         // */
@@ -155,7 +165,7 @@ class GApiDataProvider extends ImapDataProvider
                     }
                 } else {
                     // * DEBUG
-                    $app['debug.logger']->debug('Fetching Refresh Access token fail', [
+                    $app['log.review']->debug('Fetching Refresh Access token fail', [
                         'accessToken' => $accessToken,
                     ]);
                     // */
@@ -164,11 +174,21 @@ class GApiDataProvider extends ImapDataProvider
             }
         } else {
             // * DEBUG
-            $app['debug.logger']->debug('Last saved Access token is badly build', [
+            $app['log.review']->debug('Last saved Access token is badly build', [
                 'accessToken' => $accessToken,
             ]);
             // */
             $accessToken = false;
+        }
+        if (!$accessToken) {
+            // Need re-auth action to get access token OK
+            $authUrl = $client->createAuthUrl();
+            // $self->actionResponse = $app->redirect($authUrl);
+            $self->actionResponse = $app->json([
+                'needAuthRedirect' => true,
+                'redirect' => $authUrl,
+            ]);
+            return true; // We did consume the required action, need G Api access
         }
 
         $self->context['dataProvider'] = $self;

@@ -216,6 +216,8 @@
 
 * https://github.com/bramus/monolog-colored-line-formatter
 
+* https://developers.google.com/apis-explorer/?hl=fr#p/gmail/v1/
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
@@ -254,6 +256,7 @@ symfony/translation zendframework/zend-mail
 moust/silex-cache silex/web-profiler awurth/silex-user
 symfony/console symfony/finder symfony/process:^3.4
 defuse/php-encryption bramus/monolog-colored-line-formatter
+google/apiclient
 )
 
 # clean all and rebuild :
