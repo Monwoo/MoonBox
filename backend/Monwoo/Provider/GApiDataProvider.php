@@ -62,6 +62,16 @@ class GApiDataProvider extends ImapDataProvider
         $self->context = [];
         $self->actionResponse = null;
 
+        if ('auth' === $action) {
+            // Comming back from secured auth with Auth token
+            // TODO : need to store token in session linked to last used session ID....
+            $self->actionResponse = $app->json([
+                'message' => "Dev in progress."
+                //'status' => $status,
+            ]);
+            return true;
+        }
+
         $token = $app['security.token_storage']->getToken();
         $apiUser = $token->getUser();
         $dataUsername = $request->get('username');
@@ -619,8 +629,6 @@ class GApiDataProvider extends ImapDataProvider
             $resp = new Response($body , 200);
             $resp->headers->set('Content-Type', 'text/html');
             $self->actionResponse = $resp;
-        } else if ('auth' === $action) {
-            // Comming back from secured auth with Auth token
         } else {
             $success = parent::handleAction($action, $param);
         }

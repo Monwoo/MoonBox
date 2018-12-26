@@ -113,13 +113,13 @@ export class BoxReaderComponent implements OnInit {
     private msgs: MessagesService
   ) {
     this.renderer = this.rendererFactory.createRenderer(null, null);
-    // formDefaults(this).then(d => {
-    //   this.loginData = d;
-    //   this.updateForm();
-    // });
-    this.updateForm();
-    this.storage.onUnlock.subscribe(() => {
-      this.updateForm();
+    formDefaults(this).then(defData => {
+      this.loginData = defData;
+
+      this.loadFormFromStorage();
+      this.storage.onUnlock.subscribe(() => {
+        this.loadFormFromStorage();
+      });
     });
   }
 
@@ -158,35 +158,45 @@ export class BoxReaderComponent implements OnInit {
     this.updateForm();
   }
 
+  isFormUpdating = false; // TODO : better design pattern with task chancelation and re-spawn from start ?
   async updateForm() {
+    if (this.isFormUpdating) {
+      // re-spawn ?
+      return;
+    }
+    this.isFormUpdating = true;
+    // Re-generate form : TODO remove code duplication
     formModel(this).then((fm: DynamicFormModel) => {
       this.formModel = fm;
       this.formGroup = this.formService.createFormGroup(this.formModel);
+      logReview.debug('Patching form : ', this.loginData);
+      this.formGroup.patchValue(this.loginData);
+      this.isFormUpdating = false;
+    });
+  }
 
-      // Load from params from local storage ? :
+  loadFormFromStorage() {
+    return new Promise<boolean>((resolve, reject) => {
       if (this.loginData.keepInMemory) {
         this.storage.getItem<FormType>('moon-box-' + this.id, {}).subscribe(
           loginData => {
             (async () => {
               // Called if data is valid or null
-              let freshDefaults = shallowMerge(1, await formDefaults(this), loginData);
-              this.loginData = <FormType>shallowMerge(1, freshDefaults, this.loginData);
+              let freshDefaults = shallowMerge(1, await formDefaults(this), this.loginData);
+              this.loginData = <FormType>shallowMerge(1, freshDefaults, loginData);
               // transforms... ?
-              this.loginData.keepInMemory = true;
+              // this.loginData.keepInMemory = true;
               let transforms = this.loginData;
               this.loginData = <FormType>shallowMerge(1, this.loginData, transforms);
-              logReview.debug('Patching form : ', this.loginData);
-              this.ngZone.run(() => {
-                this.formGroup.patchValue(this.loginData);
-              });
+              await this.updateForm();
+              resolve();
             })();
           },
           error => {
+            reject();
             logReview.warn('Fail to fetch config for ', this.loginData);
           }
         );
-      } else {
-        this.formGroup.patchValue(this.loginData);
       }
     });
   }

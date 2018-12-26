@@ -369,6 +369,10 @@ $app['security.firewalls'] = array(
         'anonymous' => true,
         'methods' => ['OPTIONS'],
     ],
+    'api-moon-box-gauth' => [
+        'pattern' => 'api/moon-box/data_gapi/auth',
+        'anonymous' => true,        
+    ],
     'api-moon-box' => [
         'pattern' => '^/api/moon-box/.*$',
         'methods' => ['GET', 'POST'],

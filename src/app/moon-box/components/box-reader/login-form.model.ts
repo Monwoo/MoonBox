@@ -126,20 +126,24 @@ export const formModel = async (caller: any) => {
           placeholder: await fetchTrans(extract('Email')),
           value: d._username
         }),
-        new DynamicInputModel({
-          id: '_password',
-          label: await fetchTrans(extract('Mot de passe')),
-          inputType: 'password',
-          placeholder: await fetchTrans(extract('Password')),
-          value: d._password,
-          validators: {
-            required: null,
-            minLength: 1
-          },
-          errorMessages: {
-            required: await fetchTrans(extract('{{ label }} requis.'))
-          }
-        }),
+        ...('GoogleApi' === caller.loginData.selectedProvider
+          ? []
+          : [
+              new DynamicInputModel({
+                id: '_password',
+                label: await fetchTrans(extract('Mot de passe')),
+                inputType: 'password',
+                placeholder: await fetchTrans(extract('Password')),
+                value: d._password,
+                validators: {
+                  required: null,
+                  minLength: 1
+                },
+                errorMessages: {
+                  required: await fetchTrans(extract('{{ label }} requis.'))
+                }
+              })
+            ]),
         // new DynamicCheckboxModel({
         //   id: 'keepInMemory',
         //   label: await fetchTrans(extract('Conserver la session (Accès au Navigateur == accès aux data)')),
@@ -153,10 +157,15 @@ export const formModel = async (caller: any) => {
               id: 'mailhost',
               label: await fetchTrans(extract('Url du server'))
             }),
-            new DynamicInputModel({
-              id: 'mailport',
-              label: await fetchTrans(extract('Port du server'))
-            })
+            // TODO : based on backend modifiers per providers ?
+            ...('GoogleApi' === caller.loginData.selectedProvider
+              ? []
+              : [
+                  new DynamicInputModel({
+                    id: 'mailport',
+                    label: await fetchTrans(extract('Port du server'))
+                  })
+                ])
           ]
         })
       ]);
