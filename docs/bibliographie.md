@@ -218,6 +218,9 @@
 
 * https://developers.google.com/apis-explorer/?hl=fr#p/gmail/v1/
 
+* http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#static-method-combineLatest
+* https://stackoverflow.com/questions/40587792/wait-for-a-promise-to-resolve-with-rxjs
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

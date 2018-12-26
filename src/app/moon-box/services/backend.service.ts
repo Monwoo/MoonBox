@@ -3,8 +3,8 @@
 import { Injectable, HostListener, NgZone } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { HttpHeaders } from '@angular/common/http';
-import { map, catchError, shareReplay, tap } from 'rxjs/operators';
-import { forkJoin, of, Observable } from 'rxjs';
+import { concatMap, catchError, shareReplay, tap } from 'rxjs/operators';
+import { from, of, Observable } from 'rxjs';
 import { environment } from '@env/environment';
 import { LocalStorage } from '@ngx-pwa/local-storage';
 import { NotificationsService } from 'angular2-notifications';
@@ -206,11 +206,18 @@ export class BackendService {
         // this is just the HTTP call,
         // we still need to handle the reception of the token
         .pipe(
-          map(async msgs => {
-            if (msgs.needAuthRedirect) {
-              return await this.promptGApiAuth(msgs, provider, username, page, limit);
-            }
-            return msgs;
+          concatMap(msgs => {
+            return from(
+              new Promise(resolve => {
+                (async () => {
+                  if (msgs.needAuthRedirect) {
+                    resolve(await this.promptGApiAuth(msgs, provider, username, page, limit));
+                  } else {
+                    resolve(msgs);
+                  }
+                })();
+              })
+            );
           }),
           tap(msgs => {
             logReview.debug('Did fetch messages for : ', username, ' => ', msgs);
@@ -246,9 +253,9 @@ export class BackendService {
   @HostListener('window:message', ['$event'])
   authListener(e: any) {
     let data = e.data;
-    let from = data.from;
+    let dfrom = data.from;
     let succed = data.succed;
-    if ('GApiAuthResponse' === from) {
+    if ('GApiAuthResponse' === dfrom) {
       logReview.debug('Having GApiAuthResponse', e);
       if (succed) {
         this.fetchMsg(
@@ -258,7 +265,15 @@ export class BackendService {
           this._queryResolution.number
         )
           .pipe(
-            tap(async msgs => await this.resolveLastApiAuth(msgs)),
+            concatMap(msgs => {
+              return from(
+                new Promise(resolve => {
+                  (async () => {
+                    resolve(await this.resolveLastApiAuth(msgs));
+                  })();
+                })
+              );
+            }),
             catchError(async (error: any, caught: Observable<any>) => {
               await this.rejectLastApiAuth();
               throw error;
@@ -269,7 +284,7 @@ export class BackendService {
       } else {
         this.i18nService
           .get(extract('mb.backend.notif.connection fail {from}'), {
-            from: from
+            from: dfrom
           })
           .subscribe(t => {
             this.notif.error('Backend', t, {
@@ -302,21 +317,23 @@ export class BackendService {
   _queryResolution: any;
   async resolveLastApiAuth(resolution: any) {
     logReview.debug('Resolve last auth', resolution);
+    let res: any = {};
     if (this.lastApiAuthWindow) {
-      this._resolveLastApiAuth(resolution);
+      res = await this._resolveLastApiAuth(resolution);
       this._resolveLastApiAuth = null;
       this._rejectLastApiAuth = null;
       this.lastApiAuthWindow.close();
       this.lastApiAuthWindow = null;
       this._queryResolution = {};
     }
+    return res;
   }
   lastApiAuthWindow: any = null;
-  async promptGApiAuth(config: any, provider: string, username: string, page: number = 1, limit: number = 21) {
-    await this.rejectLastApiAuth();
+  promptGApiAuth(config: any, provider: string, username: string, page: number = 1, limit: number = 21) {
     /*Return messages*/
     return new Promise<any>((resolve, reject) => {
       (async () => {
+        await this.rejectLastApiAuth();
         // http://embed.plnkr.co/dz1A1h/
         // http://stackoverflow.com/questions/18064543/compile-angular-on-an-element-after-angular-compilation-has-already-happened
         // https://medium.com/@adrianfaciu/using-the-angular-router-to-navigate-to-external-links-15cc585b7b88
@@ -327,6 +344,7 @@ export class BackendService {
         this.lastApiAuthWindow = window.open(config.redirect, '_blank', 'toolbar=0');
         if (this.lastApiAuthWindow) {
           this.ngZone.run(() => {
+            // Avoiding iframe cors issue ? or error poping for other reason ?
             this.lastApiAuthWindow.onload = (e: any) => {
               logReview.error('Did open authentification window');
               // this.rejectLastApiAuth = null;
