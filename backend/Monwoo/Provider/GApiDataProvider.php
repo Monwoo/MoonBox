@@ -278,9 +278,9 @@ class GApiDataProvider extends ImapDataProvider
         $order_by = $request->get('order_by') ?: 'time'; // TODO : use it ? no way on ids for now...
         $order_dir = $request->get('order_dir') == 'DESC' ? 'DESC' : 'ASC';
         $limit = (int)($request->get('limit') ?: 20);
-        $page = (int)($request->get('page') ?: 1);
-        $offset = ($page - 1) * $limit;
-        $self->offsetStart = $offset;
+        $page = ($request->get('page') ?: 1);
+        // $offset = ($page - 1) * $limit;
+        // $self->offsetStart = $offset;
         $self->offsetLimit = $limit;
         if ('submit_refresh' === $action) {
             $status = [
@@ -338,6 +338,10 @@ class GApiDataProvider extends ImapDataProvider
                     // Print the labels in the user's account.
                     // https://developers.google.com/gmail/api/v1/reference/users/labels#resource
                     // https://developers.google.com/gmail/api/quickstart/php
+                    // https://github.com/googleapis/google-api-php-client-services/blob/a016ea7b6d47e1fd1f43d89ebd80059d4bfadb32/src/Google/Service/Gmail/Label.php
+                    // https://github.com/googleapis/google-api-php-client-services/blob/a016ea7b6d47e1fd1f43d89ebd80059d4bfadb32/src/Google/Service/Gmail/LabelColor.php
+                    // https://developers.google.com/resources/api-libraries/documentation/gmail/v1/php/latest/
+                    // https://developers.google.com/gmail/api/v1/reference/
                     $user = 'me';
                     $results = $service->users_labels->listUsersLabels($user);
 
@@ -346,7 +350,7 @@ class GApiDataProvider extends ImapDataProvider
                         $app['log.review']->debug("No labels found");
                     } else {
                         foreach ($results->getLabels() as $label) {
-                            $app['log.review']->debug("Label found : ", [$label]);
+                            // $app['log.review']->debug("Label found : ", [$label]);
                             $loadedFolder = [
                                 'name' => $label->getName(),
                                 'messageListVisibility' => strval($label->getMessageListVisibility()),
@@ -354,12 +358,73 @@ class GApiDataProvider extends ImapDataProvider
                                 'type' => strval($label->getType()),
                                 'messagesTotal' => strval($label->getMessagesTotal()),
                                 'messagesUnread' => strval($label->getMessagesUnread()),
-                                // 'color' => $label->getColor()->getTextColor(),
-                                // 'bgColor' => $label->getColor()->backgroundColor(),
+                                'color' => $label->getColor()  ? $label->getColor()->getTextColor() : '',
+                                'bgColor' => $label->getColor() ? $label->getColor()->getBackgroundColor() : '',
                             ];
                             $folders[] = $loadedFolder;
                         }
                     }
+        
+                    // https://stackoverflow.com/questions/24503483/reading-messages-from-gmail-in-php-using-gmail-api
+                    // https://developers.google.com/gmail/api/v1/reference/users/messages/list
+                    // https://developers.google.com/gmail/api/v1/reference/users/messages/get
+                    // http://techblog-mike.hateblo.jp/entry/2015/06/04/230602
+                    // https://developers.google.com/gmail/api/v1/reference/users/messages/modify#php
+                    // https://github.com/googleapis/google-api-php-client-services/search?q=getNextPageToken&unscoped_q=getNextPageToken
+
+                    $listQuery = [];
+                    $listQuery['maxResults'] = $limit; // Return Only 5 Messages
+                    // $listQuery['labelIds'] = ['INBOX', 'SPAM']; // Only show messages in Inbox & same show no msg, bad ID format ? not label name ?
+                    $listQuery['includeSpamTrash'] = true;
+                    if ($page !== 1) {
+                        $listQuery['pageToken'] = $page;
+                    }
+                    $query = '';
+                    if (isset($localUser['periode'])
+                    && isset($localUser['periode']['fetchStartStr'])
+                    && $localUser['periode']['fetchStartStr']) {
+                        $startDate = \DateTime::createFromFormat('Y/m/d',
+                        $localUser['periode']['fetchStartStr'])
+                        ->format('Y/M/d');
+                        $query .= "after:$startDate ";
+                    }
+                    if (isset($localUser['periode'])
+                    && isset($localUser['periode']['fetchEndStr'])
+                    && $localUser['periode']['fetchEndStr']) {
+                        $endDate = \DateTime::createFromFormat('Y/m/d',
+                        $localUser['periode']['fetchEndStr'])
+                        ->format('Y/M/d');
+                        $query .= "before:$endDate ";
+                    }
+                    if (isset($localUser['params'])
+                    && isset($localUser['params']['keywordsSubject'])
+                    && count($localUser['params']['keywordsSubject']) > 0) {
+                        $keywords = implode($localUser['params']['keywordsSubject'], " ");
+                        $query .= "subject:($keywords) ";
+                    }
+                    if (isset($localUser['params'])
+                    && isset($localUser['params']['keywordsBody'])
+                    && count($localUser['params']['keywordsBody']) > 0) {
+                        $keywords = implode($localUser['params']['keywordsBody'], " ");
+                        $query .= "$keywords ";
+                    }
+                    if (isset($localUser['params'])
+                    && isset($localUser['params']['avoidwords'])
+                    && count($localUser['params']['avoidwords']) > 0) {
+                        $keywords = implode($localUser['params']['avoidwords'], " ");
+                        $query .= "-\{$keywords\} ";
+                    }
+                    if ("" !== $query) {
+                        $listQuery['pageToken'] = $query;
+                    }
+
+                    $app['log.review']->debug("Gapi Query : ", $listQuery);
+                    // https://github.com/googleapis/google-api-php-client-services/blob/a016ea7b6d47e1fd1f43d89ebd80059d4bfadb32/src/Google/Service/Gmail/Resource/UsersMessages.php
+                    // https://github.com/googleapis/google-api-php-client-services/blob/a016ea7b6d47e1fd1f43d89ebd80059d4bfadb32/src/Google/Service/Gmail/ListMessagesResponse.php
+                    $messages = $service->users_messages->listUsersMessages('me',$listQuery);
+                    $list = $messages->getMessages();
+                    // $messageId = $list[0]->getId(); // Grab first Message
+    
                     $app['log.review']->debug("TODO : dev");
                     $status = [
                         'errors' => [["Code under dev.", "Give a donnation with mention : "
@@ -367,77 +432,21 @@ class GApiDataProvider extends ImapDataProvider
                     ];
                     $self->actionResponse = $app->json([
                         'status' => $status,
-                        'numResults' => 0,
+                        'list' => $list,
+                        'numResults' => count($list),
                         'msgsOrderedByDate' => [],
                         'msgsByMoonBoxGroup' => [],
-                        'totalCount' => 0,
-                        'offsetStart' => 0,
-                        'offsetLimit' => 0,
-                        'currentPage' => 0,
-                        'nextPage' => 0,
+                        'totalCount' => $messages->getResultSizeEstimate(),
+                        'offsetLimit' => $limit,
+                        'currentPage' => $page,
+                        'nextPage' => $messages->getNextPageToken(),
                         'folders' => $folders,
                     ]);
                     return true;
-        
-                    // Build IMAP search query
-                    // http://php.net/manual/fr/function.imap-search.php
-                    // https://framework.zend.com/apidoc/2.1/classes/Zend.Mail.Storage.Imap.html
-                    $imapQuery = [];
-                    if (isset($localUser['periode'])
-                    && isset($localUser['periode']['fetchStartStr'])
-                    && $localUser['periode']['fetchStartStr']) {
-                        $startDate = \DateTime::createFromFormat('Y/m/d',
-                        $localUser['periode']['fetchStartStr'])
-                        ->format('d-M-Y');
-                        $imapQuery[] = "SINCE \"$startDate\"";
-                    }
-                    if (isset($localUser['periode'])
-                    && isset($localUser['periode']['fetchEndStr'])
-                    && $localUser['periode']['fetchEndStr']) {
-                        $endDate = \DateTime::createFromFormat('Y/m/d',
-                        $localUser['periode']['fetchEndStr'])
-                        ->format('d-M-Y');
-                        $imapQuery[] = "BEFORE \"$endDate\"";
-                    }
-                    if (isset($localUser['params'])
-                    && isset($localUser['params']['keywordsSubject'])) {
-                        foreach ($localUser['params']['keywordsSubject'] as $keyword) {
-                            $imapQuery[] = "SUBJECT \"$keyword\"";
-                            // TODO : need to multiple fetch with other possible keyword position
-                            // $imapQuery[] = "TEXT \"$keyword\"";
-                            // Will only search in subject for v1
-                            // $imapQuery[] = "FROM \"$keyword\"";
-                            // $imapQuery[] = "TO \"$keyword\"";
-                            // $imapQuery[] = "CC \"$keyword\"";
-                            // $imapQuery[] = "BCC \"$keyword\"";
-                            // $imapQuery[] = "BODY \"$keyword\"";
-                            // $imapQuery[] = "KEYWORD \"$keyword\"";
-                        }
-                    }
-                    if (isset($localUser['params'])
-                    && isset($localUser['params']['keywordsBody'])) {
-                        foreach ($localUser['params']['keywordsBody'] as $keyword) {
-                            $imapQuery[] = "TEXT \"$keyword\"";
-                        }
-                    }
-                    if (isset($localUser['params'])
-                    && isset($localUser['params']['avoidwords'])) {
-                        // TODO : not realy working... well, do not check body or part words :
-                        foreach ($localUser['params']['avoidwords'] as $avoidword) {
-                            $imapQuery[] = "UNKEYWORD \"$avoidword\"";
-                        }
-                    }
-                    if (!count($imapQuery)) {
-                        $imapQuery[] = "ALL";
-                    }
-                    // TODO : http://php.net/manual/en/function.imap-listscan.php ?
-                    // https://github.com/HvyIndustries/crane-php-stubs/blob/master/imap.php
-                    // http://www.csi.sssup.it/docs/php4/en-html-manual/ref.imap.html
-                    // http://php.net/manual/en/function.imap-fetchstructure.php
-
+ 
                     // SE_UID option like in http://www.php.net/manual/en/function.imap-search.php ?
                     $msgIds = $this->imap->search($imapQuery);
-                    if ("ASC" === $order_dir) {
+                    if ("ASC" === $order_dir) { // + TODO : need to rewrite query ??
                         $msgIds = array_reverse($msgIds);
                     }
                     $totalCountOfMsg = count($msgIds);
@@ -594,10 +603,10 @@ class GApiDataProvider extends ImapDataProvider
                 'msgsOrderedByDate' => $msgsOrderedByDate,
                 'msgsByMoonBoxGroup' => $msgsByMoonBoxGroup,
                 'totalCount' => $totalCount,
-                'offsetStart' => $self->offsetStart,
+                // 'offsetStart' => $self->offsetStart,
                 'offsetLimit' => $self->offsetLimit,
                 'currentPage' => $page,
-                'nextPage' => ($self->offsetStart + $numResults < $totalCount) ? $page + 1 : null,
+                // 'nextPage' => ($self->offsetStart + $numResults < $totalCount) ? $page + 1 : null,
             ]);
         } else if ('msg_body' === $action) { // TODO: why not protected by JWT ? Only by php session id for now...
             $param = explode('<|>', $param);
