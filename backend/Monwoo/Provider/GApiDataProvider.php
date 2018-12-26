@@ -61,13 +61,54 @@ class GApiDataProvider extends ImapDataProvider
         $success = true;
         $self->context = [];
         $self->actionResponse = null;
+        $credentialPath = $app[
+            "{$self->dataset_id}.credentialFile"
+        ];
+
+        $client = new \Google_Client();
+        $client->setAuthConfig($credentialPath);
 
         if ('auth' === $action) {
+            $statePayload = rawurldecode($request->get('state')); // TODO : real generated token state ?
             // Comming back from secured auth with Auth token
             // TODO : need to store token in session linked to last used session ID....
+            $dataByAuthStates = $app['session']->get('apiDataByAuthStates', []);
+            $data = $dataByAuthStates["$statePayload"];
+            if (!$data) {
+                throw new \Exception("Auth Issue");
+            }
+            unset($dataByAuthStates["$statePayload"]);
+            $dataByAuthStates = $app['session']->set('apiDataByAuthStates', $dataByAuthStates);
+            $apiUsers = $app['session']->get('apiUsers', []);
+            // $apiUser = &$apiUsers[$data['apiUsername']];
+            // $localUsers = &$apiUser['dataUsers'];
+            // $localUser = &$localUsers[$data['localUsername']];
+            $localUser = $apiUsers[$data['apiUsername']]['dataUsers'][$data['localUsername']];
+
+            $code = $request->get('code');
+            // $app->assert($code,
+            // "Auth Token must be difined on Api returns");
+            $app['log.review']->debug('Did get Auth2 token', [$code]);
+            $accessToken = $client->fetchAccessTokenWithAuthCode($code);
+            if (array_key_exists('access_token', $accessToken)) {
+                $localUser['accessToken'] = $accessToken;
+                $app['monolog']->debug('Auth2 access OK', [
+                    'accessToken' => $accessToken,
+                ]);
+            } else {
+                $app['monolog']->error('Did fail google api access',
+                $accessToken);
+                $localUser['accessToken'] = false;
+            }
+
+            $apiUsers[$data['apiUsername']]['dataUsers'][$data['localUsername']] = $localUser;
+            $app['session']->set('apiUsers', $apiUsers);
+
             $self->actionResponse = $app->json([
-                'message' => "Dev in progress."
-                //'status' => $status,
+                'message' => "Dev in progress.",
+                'localUser' => $app->obfuskData($localUser),
+                'apiUsers' => $app->obfuskData($apiUsers),
+                'data' => $data,
             ]);
             return true;
         }
@@ -120,9 +161,6 @@ class GApiDataProvider extends ImapDataProvider
               ],
           ],
         ];
-        $credentialPath = $app[
-            "{$self->dataset_id}.credentialFile"
-        ];
         $app['log.review']->debug("GoogleApiData $action : ", [
             'conf' => $app->obfuskData($self->defaultConfig),
             'apiUserName' => $token->getUsername(),
@@ -142,8 +180,6 @@ class GApiDataProvider extends ImapDataProvider
             'action' => 'auth',
         ]);
 
-        $client = new \Google_Client();
-        $client->setAuthConfig($credentialPath);
         $client->setRedirectUri($redirect_uri);
         $client->addScope(\Google_Service_Gmail::GMAIL_READONLY); // For gapi connections
         // $client->addScope(\Google_Service_Gmail::MAIL_GOOGLE_COM); // For google imap connections : https://mail.google.com/
@@ -192,7 +228,20 @@ class GApiDataProvider extends ImapDataProvider
         }
         if (!$accessToken) {
             // Need re-auth action to get access token OK
+            $authAccessTotalCount = $app['session']->get('authAccessTotalCount', 1);
+            $app['session']->set('authAccessTotalCount', $authAccessTotalCount + 1);
+            $dataByAuthStates = $app['session']->get('apiDataByAuthStates', []);
+            $statePayload = $authAccessTotalCount; // rawurlencode($authAccessTotalCount);
+            $dataByAuthStates["$statePayload"] = [
+                'apiUsername' => $token->getUsername(),
+                'localUsername' => $dataUsername,
+            ];
+            $app['session']->set('apiDataByAuthStates', $dataByAuthStates);
+            $client->setState("$statePayload");
             $authUrl = $client->createAuthUrl();
+
+            // $statePayload = rawurlencode($localUser['username']); // TODO : real generated token state ?
+            // Well username do not need to be Gid, so payload ok for now...
             // $self->actionResponse = $app->redirect($authUrl);
             $self->actionResponse = $app->json([
                 'needAuthRedirect' => true,
