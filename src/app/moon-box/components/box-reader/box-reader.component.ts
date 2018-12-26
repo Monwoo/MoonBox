@@ -219,7 +219,9 @@ export class BoxReaderComponent implements OnInit {
                 this.notif.warn(t);
                 this.formGroup.controls['_username'].setErrors({ incorrect: true });
                 this.formGroup.controls['_username'].markAsTouched();
-                this.formGroup.controls['_password'].setErrors({ incorrect: true });
+                if (this.formGroup.controls['_password']) {
+                  this.formGroup.controls['_password'].setErrors({ incorrect: true });
+                }
               });
             } else {
               this.i18nService.get(extract('mm.box-reader.notif.fetchFail')).subscribe(t => {

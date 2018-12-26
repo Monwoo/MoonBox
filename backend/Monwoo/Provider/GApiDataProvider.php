@@ -103,6 +103,7 @@ class GApiDataProvider extends ImapDataProvider
 
             $apiUsers[$data['apiUsername']]['dataUsers'][$data['localUsername']] = $localUser;
             $app['session']->set('apiUsers', $apiUsers);
+            $app['log.review']->debug('Did update apiUsers', $app->obfuskData(['users'=>$apiUsers]));
 
             // $self->actionResponse = $app->json([
             //     'message' => "Dev in progress.",
@@ -134,6 +135,9 @@ class GApiDataProvider extends ImapDataProvider
         $localUsers = $apiUsers[$apiUser->getUsername()]['dataUsers'];
         
         $localUser = $localUsers[$dataUsername];
+        $app['log.review']->debug("Did load userData : ", $app->obfuskData([
+            $localUser
+        ]));
         if (!$localUser) {
             $app['log.review']->debug("Unknown userData : " . $dataUsername, [
                 'apiUser' => $apiUser->getUsername(),
@@ -199,12 +203,14 @@ class GApiDataProvider extends ImapDataProvider
         // $client->addScope(\Google_Service_Gmail::MAIL_GOOGLE_COM); // For google imap connections : https://mail.google.com/
         // $client->setApplicationName("Monwoo Imap Data Connector");
         $client->setApplicationName("MoonBox Connector by Monwoo");
+        $client->setPrompt('select_account consent');
         $client->setAccessType('offline');
         // TODO : Can have only one gapi account access for now, ok, only need one gmail and multiple regular imap account for now
         // TODO : need improve design to handle access_token by connection
         // and find a way to iterate over connextion loading with auth system
         // in the middle...
         $accessToken = $localUser['accessToken']; // $self->getSession('access_token'); // Better secu if from file than from session ? well, token is already random generated stuff
+        // var_dump($localUser); exit('==');
         // $accessToken = false; // TODO : have a way to manually reset accessToken & mail cache
         if (isset($accessToken['access_token'])) {
             $client->setAccessToken($accessToken);
@@ -264,6 +270,10 @@ class GApiDataProvider extends ImapDataProvider
             return true; // We did consume the required action, need G Api access
         }
 
+        /////////// Access token is valid //////////
+        $service = new \Google_Service_Gmail($client);
+
+
         $self->context['dataProvider'] = $self;
         $order_by = $request->get('order_by') ?: 'time'; // TODO : use it ? no way on ids for now...
         $order_dir = $request->get('order_dir') == 'DESC' ? 'DESC' : 'ASC';
@@ -318,41 +328,57 @@ class GApiDataProvider extends ImapDataProvider
             $moonBoxEmailsGrouping = $localUser['params']['moonBoxEmailsGrouping'] ?? [];
             // var_dump($connections); exit();
 
-            $app['log.review']->debug("TODO : dev");
-            $status = [
-                'errors' => [["Code under dev.", "Give a donnation with mention : "
-                . "'MoonBoxDev-GApiConnection' for www.monwoo.com to improve it."]],
-            ];
-            $self->actionResponse = $app->json([
-                'status' => $status,
-                'numResults' => 0,
-                'msgsOrderedByDate' => [],
-                'msgsByMoonBoxGroup' => [],
-                'totalCount' => 0,
-                'offsetStart' => 0,
-                'offsetLimit' => 0,
-                'currentPage' => 0,
-                'nextPage' => 0,
-            ]);
+            // TODO : allow multiple connection ? comming from code refactoring,
+            // having only one connection and multiples apiUser with multiples users
+            if (count($connections) > 1) {
+                $app['log.review']->error("Algo not ready for multiples connections");
+            }
             foreach ($connections as $connectionName => $connection) {
                 try {
-                    $self->connectToGmail($connection, $accessToken);
+                    // Print the labels in the user's account.
+                    // https://developers.google.com/gmail/api/v1/reference/users/labels#resource
+                    // https://developers.google.com/gmail/api/quickstart/php
+                    $user = 'me';
+                    $results = $service->users_labels->listUsersLabels($user);
+
                     $folders = [];
-                		$foldersRoot = $this->storage->getFolders();
-                    $foldersIt = new \RecursiveIteratorIterator(
-                        $foldersRoot,
-                        \RecursiveIteratorIterator::SELF_FIRST
-                    );
-                    foreach ($foldersIt as $localName => $folder) {
-                        $localName = str_pad('', $foldersIt->getDepth()
-                        , '-', STR_PAD_LEFT) . $localName;
-                        $loadedFolder = [
-                            'name' => $localName,
-                            'folder' => strval($folder),
-                            'isSelectable' => $folder->isSelectable(),
-                        ];
-                        $folders[] = $loadedFolder;
+                    if (count($results->getLabels()) == 0) {
+                        $app['log.review']->debug("No labels found");
+                    } else {
+                        foreach ($results->getLabels() as $label) {
+                            $app['log.review']->debug("Label found : ", [$label]);
+                            $loadedFolder = [
+                                'name' => $label->getName(),
+                                'messageListVisibility' => strval($label->getMessageListVisibility()),
+                                'labelListVisibility' => strval($label->getLabelListVisibility()),
+                                'type' => strval($label->getType()),
+                                'messagesTotal' => strval($label->getMessagesTotal()),
+                                'messagesUnread' => strval($label->getMessagesUnread()),
+                                // 'color' => $label->getColor()->getTextColor(),
+                                // 'bgColor' => $label->getColor()->backgroundColor(),
+                            ];
+                            $folders[] = $loadedFolder;
+                        }
                     }
+                    $app['log.review']->debug("TODO : dev");
+                    $status = [
+                        'errors' => [["Code under dev.", "Give a donnation with mention : "
+                        . "'MoonBoxDev-GApiConnection' for www.monwoo.com to improve it."]],
+                    ];
+                    $self->actionResponse = $app->json([
+                        'status' => $status,
+                        'numResults' => 0,
+                        'msgsOrderedByDate' => [],
+                        'msgsByMoonBoxGroup' => [],
+                        'totalCount' => 0,
+                        'offsetStart' => 0,
+                        'offsetLimit' => 0,
+                        'currentPage' => 0,
+                        'nextPage' => 0,
+                        'folders' => $folders,
+                    ]);
+                    return true;
+        
                     // Build IMAP search query
                     // http://php.net/manual/fr/function.imap-search.php
                     // https://framework.zend.com/apidoc/2.1/classes/Zend.Mail.Storage.Imap.html
