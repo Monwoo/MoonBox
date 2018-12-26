@@ -70,7 +70,7 @@ $app = new class([
     public function obfuskData($src, $fields=["password"], $mask="*****") {
         $output = [];
         foreach ($src as $key => &$value) {
-            if (in_array($key, $fields)) {
+            if (in_array($key, $fields, true)) {
                 $output[$key] = $mask;
             } else if (is_array($value)) {
                 $output[$key] = $this->obfuskData($value, $fields);

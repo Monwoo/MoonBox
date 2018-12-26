@@ -419,62 +419,36 @@ class GApiDataProvider extends ImapDataProvider
                     }
 
                     $app['log.review']->debug("Gapi Query : ", $listQuery);
+                    // https://stackoverflow.com/questions/24503483/reading-messages-from-gmail-in-php-using-gmail-api
+                    // https://developers.google.com/gmail/api/v1/reference/users/messages/modify#php
+                    // https://developers.google.com/gmail/api/v1/reference/users/messages
                     // https://github.com/googleapis/google-api-php-client-services/blob/a016ea7b6d47e1fd1f43d89ebd80059d4bfadb32/src/Google/Service/Gmail/Resource/UsersMessages.php
                     // https://github.com/googleapis/google-api-php-client-services/blob/a016ea7b6d47e1fd1f43d89ebd80059d4bfadb32/src/Google/Service/Gmail/ListMessagesResponse.php
                     $messages = $service->users_messages->listUsersMessages('me',$listQuery);
                     $list = $messages->getMessages();
                     // $messageId = $list[0]->getId(); // Grab first Message
-    
-                    $app['log.review']->debug("TODO : dev");
-                    $status = [
-                        'errors' => [["Code under dev.", "Give a donnation with mention : "
-                        . "'MoonBoxDev-GApiConnection' for www.monwoo.com to improve it."]],
-                    ];
-                    $self->actionResponse = $app->json([
-                        'status' => $status,
-                        'list' => $list,
-                        'numResults' => count($list),
-                        'msgsOrderedByDate' => [],
-                        'msgsByMoonBoxGroup' => [],
-                        'totalCount' => $messages->getResultSizeEstimate(),
-                        'offsetLimit' => $limit,
-                        'currentPage' => $page,
-                        'nextPage' => $messages->getNextPageToken(),
-                        'folders' => $folders,
-                    ]);
-                    return true;
- 
-                    // SE_UID option like in http://www.php.net/manual/en/function.imap-search.php ?
-                    $msgIds = $this->imap->search($imapQuery);
-                    if ("ASC" === $order_dir) { // + TODO : need to rewrite query ??
-                        $msgIds = array_reverse($msgIds);
+                    if ("ASC" === $order_dir) { // + TODO : need to rewrite query ?? not used for v1.0.0 demo
+                        $list = array_reverse($list);
                     }
-                    $totalCountOfMsg = count($msgIds);
-                    $totalCount += $totalCountOfMsg;
-                    $msgIds = array_slice($msgIds, $self->offsetStart, $self->offsetLimit);
-                    $numResultsOfMsg = count($msgIds);
-                    // $numResults = max($totalCountOfMsg, $numResults);
-                    $numResults += $numResultsOfMsg; // max($totalCountOfMsg, $numResults);
-                    // for ($it = $totalCountOfMsg - $offset;
-                    // $it > 0 && $it > $totalCountOfMsg - $offset - $limit; $it-- ) {
-                    //     $i = $msgIds[$it - 1];
-                    foreach ($msgIds as $i) {
+                    $numResults += count($list);
+                    $totalCount += $messages->getResultSizeEstimate();
+        
+                    foreach ($list as $shadowMsg) {
+                        $msgQueryId = $shadowMsg->getId();
+                        $fetchQuery = [
+                            'format' => 'metadata'
+                        ];
                         try {
-                            // https://docs.zendframework.com/zend-mail/read/
-                            // https://framework.zend.com/manual/2.4/en/modules/zend.mail.message.html
-                            // Zend\Mail\Storage\Message instance
-                            $msgStore = $this->storage->getMessage($i);
-                            // https://framework.zend.com/manual/2.1/en/modules/zend.mail.read.html
-                            $msg = $msgStore;
+                            $message = $service->users_messages->get($user, $msgQueryId, $fetchQuery);
                             $headers = [];
-                            foreach ($msg->getHeaders() as $header) {
+                            foreach ($message->getPayload()->getHeaders() as $header) {
                                 // $headers[] = $header->toString();
                                 // or grab values: $header->getFieldName(), $header->getFieldValue()
-                                $headers[$header->getFieldName()] = $header->getFieldValue();
+                                $headers[$header->getName()] = $header->getValue();
                             }
-                            $subject = $msg->subject;//htmlentities($msg->subject);
-                            $msgFlags = $msg->getFlags();
-                            // $body = $msg->mail->getBody(); // or get raw message and instanciate imap msg with it...;
+                            $subject = $headers["Subject"];//$message->subject;//htmlentities($message->subject);
+                            $msgFlags = "TODO";//$message->getFlags();
+
                             // TODO : use Carbon/Date ?
                             // https://stackoverflow.com/questions/13421635/failed-to-parse-time-string-at-position-41-i-double-timezone-specification
                             $dateStr = substr($headers['Date'], 0, 31);
@@ -497,24 +471,24 @@ class GApiDataProvider extends ImapDataProvider
                                 'subject' => $subject,
                                 'msgFlags' => $msgFlags,
                                 // Computed on demand with next action :
-                                // 'body' => $body, // htmlentities($msg->getBody()),
+                                // 'body' => $body, // htmlentities($message->getBody()),
                                 'localTime' => $localTime, //$msgHeaders->getInternalDate(), // will be used for timeline ordering
-                                'headers' => Yaml::dump($headers, 4),
+                                // 'headers' => Yaml::dump($headers, 4),
+                                'headers' => $headers,
                                 'expeditor' => $expeditor,
-                                'haveMoonShopEvent' => false, // TODO : grouped hash table extract from MoonShopEvents DB + check key exist for this value
                                 'timestamp' => $timestamp, //$msgHeaders->getInternalDate(), // will be used for timeline ordering
-                                // 'to' => $msg->getTo(),
-                                // 'replyTo' => $msg->getReplyTo(), // TODO getReplyTo
+                                // 'to' => $message->getTo(),
+                                // 'replyTo' => $message->getReplyTo(), // TODO getReplyTo
                                 'to' => isset($headers['To']) ? $headers['To'] : '',
                                 // : (isset($headers['Reply-To']) ? $headers['Reply-To'] : ''),
-                                // 'cc' => $msg->getCc(), // isset($headers['Cc']) ? $headers['Cc'] : '',
-                                // 'bcc' => $msg->getBcc(), // isset($headers['Bcc']) ? $headers['Bcc'] : '',
+                                // 'cc' => $message->getCc(), // isset($headers['Cc']) ? $headers['Cc'] : '',
+                                // 'bcc' => $message->getBcc(), // isset($headers['Bcc']) ? $headers['Bcc'] : '',
                                 'cc' => isset($headers['Cc']) ? $headers['Cc'] : '',
                                 'bcc' => isset($headers['Bcc']) ? $headers['Bcc'] : '',
                                 'tags' => '', // [], // : TODO : load from cache, build with key index as : "$expeditor.$msgId"
                                 // 'msg' => $msgPayload, // TODO : Normalized Mail message to display summary in ui + id for fetching
                                 'msgId' => $msgId,
-                                'msgUniqueId' => $this->storage->getUniqueId($i), // Bounded to wich query ? not foud id for now...
+                                'msgUniqueId' => $msgQueryId,
                                 'imapId' => $i, // NOT usable without linked query ?
                                 // Configure minimal body summary lenght to get all generated data from auto-mailing
                                 'connectionName' => $connectionName, // used connection, without password,
@@ -613,6 +587,25 @@ class GApiDataProvider extends ImapDataProvider
             $connections = $self->defaultConfig["connections"];
             $connection = $connections[$param[0]];
             $bodyPath = $param[1];
+
+            // https://developers.google.com/gmail/api/v1/reference/users/messages/get
+
+            $app['log.review']->debug("TODO : dev");
+            $status = [
+                'errors' => [["Code under dev.", "Give a donnation with mention : "
+                . "'MoonBoxDev-GApiConnection' for www.monwoo.com to improve it."]],
+            ];
+            $self->actionResponse = $app->json([
+                'status' => $status,
+                'msgsOrderedByDate' => [],
+                'msgsByMoonBoxGroup' => [],
+                'offsetLimit' => $limit,
+                'currentPage' => $page,
+                'nextPage' => $messages->getNextPageToken(),
+                'folders' => $folders,
+            ]);
+            return true;
+
             // TODO : realy slow for each iframe rendering.
             // May be store needed data in session to speed up iframe load ?
             // May be it load each frame with debug info system (can see multiple call for each frames)
