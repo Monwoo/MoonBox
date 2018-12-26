@@ -1,6 +1,6 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 
-import { Injectable } from '@angular/core';
+import { Injectable, HostListener, NgZone } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { HttpHeaders } from '@angular/common/http';
 import { map, catchError, shareReplay, tap } from 'rxjs/operators';
@@ -79,9 +79,13 @@ export class BackendService {
     private storage: LocalStorage,
     private i18nService: I18nService,
     private notif: NotificationsService,
-    private cookieService: CookieService
+    private cookieService: CookieService,
+    private ngZone: NgZone
   ) {
     this.generateApiUsername();
+    // Quick hack, since host listener to gets debug, TODO : HostListener bad usage to fix ?
+    window.addEventListener('message', (e: any) => this.authListener(e));
+    window.addEventListener('beforeunload', (e: any) => this.unloadListener(e));
   }
 
   generateApiUsername() {
@@ -204,7 +208,7 @@ export class BackendService {
         .pipe(
           map(async msgs => {
             if (msgs.needAuthRedirect) {
-              return await this.promptGApiAuth(msgs);
+              return await this.promptGApiAuth(msgs, provider, username, page, limit);
             }
             return msgs;
           }),
@@ -239,36 +243,115 @@ export class BackendService {
     // );
   }
 
-  promptGApiAuth(config: any) {
+  @HostListener('window:message', ['$event'])
+  authListener(e: any) {
+    let data = e.data;
+    let from = data.from;
+    let succed = data.succed;
+    if ('GApiAuthResponse' === from) {
+      logReview.debug('Having GApiAuthResponse', e);
+      if (succed) {
+        this.fetchMsg(
+          this._queryResolution.provider,
+          this._queryResolution.username,
+          this._queryResolution.page,
+          this._queryResolution.number
+        )
+          .pipe(
+            tap(async msgs => await this.resolveLastApiAuth(msgs)),
+            catchError(async (error: any, caught: Observable<any>) => {
+              await this.rejectLastApiAuth();
+              throw error;
+              // return of('Did fail regular logout');
+            })
+          )
+          .subscribe();
+      } else {
+        this.i18nService
+          .get(extract('mb.backend.notif.connection fail {from}'), {
+            from: from
+          })
+          .subscribe(t => {
+            this.notif.error('Backend', t, {
+              timeOut: 6000
+            });
+          });
+        this.rejectLastApiAuth().then();
+      }
+    }
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  unloadListener(e: any) {
+    this.rejectLastApiAuth();
+  }
+
+  _rejectLastApiAuth: (reason?: any) => void = null;
+  async rejectLastApiAuth() {
+    logReview.debug('Reject last auth');
+    if (this.lastApiAuthWindow) {
+      this._rejectLastApiAuth();
+      this._resolveLastApiAuth = null;
+      this._rejectLastApiAuth = null;
+      this.lastApiAuthWindow.close();
+      this.lastApiAuthWindow = null;
+      this._queryResolution = {};
+    }
+  }
+  _resolveLastApiAuth: (reason?: any) => void = null;
+  _queryResolution: any;
+  async resolveLastApiAuth(resolution: any) {
+    logReview.debug('Resolve last auth', resolution);
+    if (this.lastApiAuthWindow) {
+      this._resolveLastApiAuth(resolution);
+      this._resolveLastApiAuth = null;
+      this._rejectLastApiAuth = null;
+      this.lastApiAuthWindow.close();
+      this.lastApiAuthWindow = null;
+      this._queryResolution = {};
+    }
+  }
+  lastApiAuthWindow: any = null;
+  async promptGApiAuth(config: any, provider: string, username: string, page: number = 1, limit: number = 21) {
+    await this.rejectLastApiAuth();
     /*Return messages*/
     return new Promise<any>((resolve, reject) => {
-      // http://embed.plnkr.co/dz1A1h/
-      // http://stackoverflow.com/questions/18064543/compile-angular-on-an-element-after-angular-compilation-has-already-happened
-      // https://medium.com/@adrianfaciu/using-the-angular-router-to-navigate-to-external-links-15cc585b7b88
-      // const authWindow = window.open(config.redirect, '_blank', 'toolbar=0,width=300,height=200');
-      const authWindow = window.open(config.redirect, '_blank', 'toolbar=0');
-      if (authWindow) {
-        authWindow.onload = e => {
-          logReview.error('Did open authentification window');
-          resolve({});
-        };
-        authWindow.onclose = e => {
-          logReview.error('User did close auth window');
-          resolve({});
-        };
-        authWindow.onunload = e => {
-          logReview.error('Auth window unload');
-          resolve({});
-        };
-      } else {
-        this.i18nService.get(extract('mb.backend.notif.failOpenAuthWindow')).subscribe(t => {
-          this.notif.error('Backend', t, {
-            timeOut: 6000
+      (async () => {
+        // http://embed.plnkr.co/dz1A1h/
+        // http://stackoverflow.com/questions/18064543/compile-angular-on-an-element-after-angular-compilation-has-already-happened
+        // https://medium.com/@adrianfaciu/using-the-angular-router-to-navigate-to-external-links-15cc585b7b88
+        // const authWindow = window.open(config.redirect, '_blank', 'toolbar=0,width=300,height=200');
+        this._resolveLastApiAuth = resolve;
+        this._rejectLastApiAuth = reject;
+        this._queryResolution = { provider: provider, username: username, page: page, limit: limit };
+        this.lastApiAuthWindow = window.open(config.redirect, '_blank', 'toolbar=0');
+        if (this.lastApiAuthWindow) {
+          this.ngZone.run(() => {
+            this.lastApiAuthWindow.onload = (e: any) => {
+              logReview.error('Did open authentification window');
+              // this.rejectLastApiAuth = null;
+              // this.lastApiAuthWindow = null;
+              // resolve({});
+            };
+            this.lastApiAuthWindow.onclose = (e: any) => {
+              logReview.error('User did close auth window'); // May not be always called....
+              this.rejectLastApiAuth();
+            };
+            // this.lastApiAuthWindow.onunload = e => {
+            //   logReview.error('Auth window unload');
+            //   resolve({});
+            // };
           });
-        });
-        logReview.error('Fail to open authentification windoww', config);
-        reject();
-      }
+        } else {
+          this.i18nService.get(extract('mb.backend.notif.failOpenAuthWindow')).subscribe(t => {
+            this.notif.error('Backend', t, {
+              timeOut: 6000
+            });
+          });
+          logReview.error('Fail to open authentification windoww', config);
+          await this.rejectLastApiAuth();
+        }
+      })();
     });
   }
 }

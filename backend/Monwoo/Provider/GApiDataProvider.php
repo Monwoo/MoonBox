@@ -77,7 +77,7 @@ class GApiDataProvider extends ImapDataProvider
             if (!$data) {
                 throw new \Exception("Auth Issue");
             }
-            unset($dataByAuthStates["$statePayload"]);
+            //unset($dataByAuthStates["$statePayload"]);
             $dataByAuthStates = $app['session']->set('apiDataByAuthStates', $dataByAuthStates);
             $apiUsers = $app['session']->get('apiUsers', []);
             // $apiUser = &$apiUsers[$data['apiUsername']];
@@ -104,12 +104,26 @@ class GApiDataProvider extends ImapDataProvider
             $apiUsers[$data['apiUsername']]['dataUsers'][$data['localUsername']] = $localUser;
             $app['session']->set('apiUsers', $apiUsers);
 
-            $self->actionResponse = $app->json([
-                'message' => "Dev in progress.",
-                'localUser' => $app->obfuskData($localUser),
-                'apiUsers' => $app->obfuskData($apiUsers),
-                'data' => $data,
-            ]);
+            // $self->actionResponse = $app->json([
+            //     'message' => "Dev in progress.",
+            //     'localUser' => $app->obfuskData($localUser),
+            //     'apiUsers' => $app->obfuskData($apiUsers),
+            //     'data' => $data,
+            // ]);
+
+            $body = "<html>
+            <head>
+            <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+            <script id='boot-script' data-frontend-baseurl='{$app["frontEndBaseUrl"]}' type='text/javascript'>
+            " . file_get_contents(__DIR__ . '/GApiAuthResponse.js') . "
+            </script>
+            </head>
+            <body>
+            <img src='{$app["frontEndBaseUrl"]}/assets/simple-pre-loader/images/loader-128x/Preloader_3.gif'></img>
+            </body></html>";
+            $self->actionResponse = new Response($body , 200);
+            $self->actionResponse->headers->set('Content-Type', 'text/html');
+              
             return true;
         }
 
@@ -190,7 +204,7 @@ class GApiDataProvider extends ImapDataProvider
         // TODO : need improve design to handle access_token by connection
         // and find a way to iterate over connextion loading with auth system
         // in the middle...
-        $accessToken = $self->getSession('access_token'); // Better secu if from file than from session ? well, token is already random generated stuff
+        $accessToken = $localUser['accessToken']; // $self->getSession('access_token'); // Better secu if from file than from session ? well, token is already random generated stuff
         // $accessToken = false; // TODO : have a way to manually reset accessToken & mail cache
         if (isset($accessToken['access_token'])) {
             $client->setAccessToken($accessToken);
@@ -303,6 +317,23 @@ class GApiDataProvider extends ImapDataProvider
             // + append custom client email from spreadsheet ?
             $moonBoxEmailsGrouping = $localUser['params']['moonBoxEmailsGrouping'] ?? [];
             // var_dump($connections); exit();
+
+            $app['log.review']->debug("TODO : dev");
+            $status = [
+                'errors' => [["Code under dev.", "Give a donnation with mention : "
+                . "'MoonBoxDev-GApiConnection' for www.monwoo.com to improve it."]],
+            ];
+            $self->actionResponse = $app->json([
+                'status' => $status,
+                'numResults' => 0,
+                'msgsOrderedByDate' => [],
+                'msgsByMoonBoxGroup' => [],
+                'totalCount' => 0,
+                'offsetStart' => 0,
+                'offsetLimit' => 0,
+                'currentPage' => 0,
+                'nextPage' => 0,
+            ]);
             foreach ($connections as $connectionName => $connection) {
                 try {
                     $self->connectToGmail($connection, $accessToken);
@@ -496,7 +527,7 @@ class GApiDataProvider extends ImapDataProvider
             // Transform data based on previously ordered messages
             foreach ($msgsOrderedByDate as $it => $msg) {
                 $msgsOrderedByDate[$it]
-                ['iframeBody'] = $self->ifameBuilder(
+                ['iframeBody'] = $self->iframeBuilder(
                     $dataUsername,
                     "{$msg['connectionName']}<|>[$it][body]"
                 );

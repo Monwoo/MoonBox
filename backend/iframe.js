@@ -1,3 +1,5 @@
+// Copyright Monwoo 2017-2018, by Miguel Monwoo, service@monwoo.com
+
 $(document).ready(function() {
   // console.log('IFrame ready');
   window.addEventListener('message', authListener);

@@ -147,7 +147,7 @@ class ImapDataProvider extends DataProvider
         }
         return $prefix . $self->countOfIds;
     }
-    protected function ifameBuilder($dataUsername, $srcPath) {
+    protected function iframeBuilder($dataUsername, $srcPath) {
         $self = $this;
         $app = $self->app;
         // $assetManager = $app['assets.packages'];
@@ -691,7 +691,7 @@ class ImapDataProvider extends DataProvider
             // Transform data based on previously ordered messages
             foreach ($msgsOrderedByDate as $it => $msg) {
                 $msgsOrderedByDate[$it]
-                ['iframeBody'] = $self->ifameBuilder(
+                ['iframeBody'] = $self->iframeBuilder(
                     $dataUsername,
                     "{$msg['connectionName']}<|>[$it][body]"
                 );
