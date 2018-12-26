@@ -272,6 +272,7 @@ class GApiDataProvider extends ImapDataProvider
 
         /////////// Access token is valid //////////
         $service = new \Google_Service_Gmail($client);
+        $user = 'me';
 
 
         $self->context['dataProvider'] = $self;
@@ -282,6 +283,8 @@ class GApiDataProvider extends ImapDataProvider
         // $offset = ($page - 1) * $limit;
         // $self->offsetStart = $offset;
         $self->offsetLimit = $limit;
+        $msgsByIds = $self->fetchFromCache($self->getUserDataStoreKey() . $localUser['username'], []);
+
         if ('submit_refresh' === $action) {
             $status = [
                 'errors' => [],
@@ -342,7 +345,6 @@ class GApiDataProvider extends ImapDataProvider
                     // https://github.com/googleapis/google-api-php-client-services/blob/a016ea7b6d47e1fd1f43d89ebd80059d4bfadb32/src/Google/Service/Gmail/LabelColor.php
                     // https://developers.google.com/resources/api-libraries/documentation/gmail/v1/php/latest/
                     // https://developers.google.com/gmail/api/v1/reference/
-                    $user = 'me';
                     $results = $service->users_labels->listUsersLabels($user);
 
                     $folders = [];
@@ -424,7 +426,7 @@ class GApiDataProvider extends ImapDataProvider
                     // https://developers.google.com/gmail/api/v1/reference/users/messages
                     // https://github.com/googleapis/google-api-php-client-services/blob/a016ea7b6d47e1fd1f43d89ebd80059d4bfadb32/src/Google/Service/Gmail/Resource/UsersMessages.php
                     // https://github.com/googleapis/google-api-php-client-services/blob/a016ea7b6d47e1fd1f43d89ebd80059d4bfadb32/src/Google/Service/Gmail/ListMessagesResponse.php
-                    $messages = $service->users_messages->listUsersMessages('me',$listQuery);
+                    $messages = $service->users_messages->listUsersMessages($user,$listQuery);
                     $list = $messages->getMessages();
                     // $messageId = $list[0]->getId(); // Grab first Message
                     if ("ASC" === $order_dir) { // + TODO : need to rewrite query ?? not used for v1.0.0 demo
@@ -466,6 +468,7 @@ class GApiDataProvider extends ImapDataProvider
                             ? $mainAnswerBoxByExpeditor[$expeditor] : $expeditor;
                             $msgId = $headers['Message-ID']; // TODO What if missing ? need auto-gen id on save or combine keys (name + src + time) ?
                             $msgsOrderedByDate[] = [
+                                'labels' => $message->getLabelIds(),
                                 'expeditorFullName' => $expeditorFullName,
                                 'expeditorMainAnswerBox' => $expeditorMainAnswerBox,
                                 'subject' => $subject,
@@ -540,6 +543,7 @@ class GApiDataProvider extends ImapDataProvider
                     $dataUsername,
                     "{$msg['connectionName']}<|>[$it][body]"
                 );
+                $msgsByIds[$msg['msgUniqueId']] = $msg;
             }
 
             $defaultGroup = "_";
@@ -568,7 +572,7 @@ class GApiDataProvider extends ImapDataProvider
                 $msg['moonBoxGroup'] = $moonBoxGroup;
             }
 
-            $self->storeInCache($self->getUserDataStoreKey(), $msgsOrderedByDate);
+            $self->storeInCache($self->getUserDataStoreKey() . $localUser['username'], $msgsByIds);
             // TODO : refactor saved data model to be extendable object ?
             // $msgsOrderedByDate->numResults = $numResults;
             $self->actionResponse = $app->json([
@@ -588,48 +592,32 @@ class GApiDataProvider extends ImapDataProvider
             $connection = $connections[$param[0]];
             $bodyPath = $param[1];
 
-            // https://developers.google.com/gmail/api/v1/reference/users/messages/get
-
-            $app['log.review']->debug("TODO : dev");
-            $status = [
-                'errors' => [["Code under dev.", "Give a donnation with mention : "
-                . "'MoonBoxDev-GApiConnection' for www.monwoo.com to improve it."]],
-            ];
-            $self->actionResponse = $app->json([
-                'status' => $status,
-                'msgsOrderedByDate' => [],
-                'msgsByMoonBoxGroup' => [],
-                'offsetLimit' => $limit,
-                'currentPage' => $page,
-                'nextPage' => $messages->getNextPageToken(),
-                'folders' => $folders,
-            ]);
-            return true;
-
             // TODO : realy slow for each iframe rendering.
             // May be store needed data in session to speed up iframe load ?
             // May be it load each frame with debug info system (can see multiple call for each frames)
-            $editData = $self->fetchFromCache($self->getUserDataStoreKey());
-            $msgBody = quoted_printable_decode(
-                $app->fetchByPath($editData, $bodyPath)
-            );
+            $msgsByIds = $self->fetchFromCache($self->getUserDataStoreKey() . $localUser['username']);
+            $msgBody = $app->fetchByPath($msgsByIds, $bodyPath);
+
             if (!$msgBody) {
                 $bodyText = null;
                 $bodyHTML = null;
-                $self->startImapProtocole($connection, $accessToken);
+
+                $fetchQuery = [
+                    'format' => 'full',
+                ];
                 // * DEBUG
                 $app['log.review']->debug("Loading content at $bodyPath for {$connection['username']}",
                 $app->obfuskData([
-                    'msg' => $app->fetchByPath($editData,
+                    'msg' => $app->fetchByPath($msgsByIds,
                     str_replace('[body]', '', $bodyPath)),
                     'connection' => $connection,
                     // 'msgIds' => $msgIds,
                 ]));
                 // */
                 $msgUniqueIdPath = str_replace('[body]', '[msgUniqueId]', $bodyPath);
-                $msgUniqueId = $app->fetchByPath($editData, $msgUniqueIdPath);
+                $msgUniqueId = $app->fetchByPath($msgsByIds, $msgUniqueIdPath);
                 if (!$msgUniqueId) {
-                    $app['log.review']->debug("Fail to fetch : " . $msgUniqueIdPath, $app->obfuskData([$editData]));
+                    $app['log.review']->debug("Fail to fetch : " . $msgUniqueIdPath, $app->obfuskData([$msgsByIds]));
                     $status = [
                         'errors' => [["Code under dev.", "Give a donnation with mention : "
                         . "'MoonBoxDev-FailBodyFetch' for www.monwoo.com to improve it."]],
@@ -647,64 +635,72 @@ class GApiDataProvider extends ImapDataProvider
                     ]);
                     return true;        
                 }
-                $imapId = $this->storage->getNumberByUniqueId($msgUniqueId);
-                // the imapId stored in msg is linked to search query, need to use the msgUniqueId instead
-                // $imapIdPath = str_replace('[body]', '[imapId]', $bodyPath);
-                // $imapId = $app->fetchByPath($editData, $imapIdPath);
-                $msg = $this->storage->getMessage(intval($imapId));
-                $app['log.review']->assert($msg,
-                "Loading msg $imapId for {$connection['username']} FAIL");
-                $msgFlags = $msg->getFlags();
-                if ($msg->isMultipart()) {
-                    // TODO : body part is part 0 or partId (eq to msg id ?)
-                    foreach (new \RecursiveIteratorIterator($msg) as $part) {
-                        try {
-                            if (strtok($part->contentType, ';') == 'text/plain') {
-                                $txt = $part->getContent();
-                                if ($txt && $txt != '' && !$bodyText) {
-                                    $bodyText = $txt;
-                                }
-                            }
-                            if (strtok($part->contentType, ';') == 'text/html') {
-                                $bodyHTML = $part->getContent();
-                                if ($bodyHTML && $bodyHTML != '') break;
-                            }
-                        } catch (\Throwable $e) {
-                            $app['log.review']->error("Fail to load message part"
-                            , ['part' => $part, 'msg' => $msg]);
-                        }
-                    }
-                    $body = $bodyHTML ?? $bodyText ?? '';
-                } else {
-                    $body = $msg->getContent(); // TODO : may be get content only iframe load + make iframe load on collapse event of title item
+
+                $message = $service->users_messages->get($user, $msgUniqueId, $fetchQuery);
+                $app['log.review']->assert($message,
+                "Loading msg $msgUniqueId for {$connection['username']} FAIL");
+
+                $headers = [];
+                foreach ($message->getPayload()->getHeaders() as $header) {
+                    // $headers[] = $header->toString();
+                    // or grab values: $header->getFieldName(), $header->getFieldValue()
+                    $headers[$header->getName()] = $header->getValue();
                 }
-                // Previous get content did change email flag, we do not want to flag for now
-                // so restore initial flags :
-                $this->storage->setFlags($imapId, $msgFlags ?? []);
-                $msgBody = quoted_printable_decode($body);
-                $app->updateByPath($editData, $bodyPath, $body);
-                // TODO : edit store lock ?? what if multiple save same time ?
-                $self->storeInCache($self->getUserDataStoreKey(), $editData);
+                $subject = $headers["Subject"];//$message->subject;//htmlentities($message->subject);
+                // $msgFlags = "TODO";//$message->getFlags();
+                // https://stackoverflow.com/questions/24503483/reading-messages-from-gmail-in-php-using-gmail-api
+                // => there is no msgFlags in GmailApi, done with Label : UNREAD
+
+                // TODO : use Carbon/Date ?
+                // https://stackoverflow.com/questions/13421635/failed-to-parse-time-string-at-position-41-i-double-timezone-specification
+                $dateStr = substr($headers['Date'], 0, 31);
+                $msgDateTime = new \DateTime($dateStr);
+                $timestamp = $msgDateTime->getTimestamp();
+                $localTime = $msgDateTime->format('Y/m/d H:i');
+                // $msgsSummary[] = [
+                //     'headers' => $headers,
+                // https://stackoverflow.com/questions/24503483/reading-messages-from-gmail-in-php-using-gmail-api
+                function base64url_decode($data) {
+                    return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
+                }
+                function getBody($dataArr) {
+                    $outArr = [];
+                    foreach ($dataArr as $key => $val) {
+                        if (0 === $key) {
+                            $outArr[] = base64url_decode($val->getBody()->getData());
+                        } else {
+                            $rawData = $val->getBody()->getData();
+                            $rawData = str_replace('!!binary ', '', $rawData);
+                            $outArr[] = quoted_printable_decode(base64_decode($rawData));
+                        }
+                        // we want html fist, text failback otherwise... 
+                        // break; // we are only interested in $dataArr[0]. Because $dataArr[1] is in HTML.
+                    }
+                    return $outArr;
+                }
+                
+                try {
+                    $bodyArr = getBody($message->getPayload()->getParts());
+                    // $bodyArr[0] => Text
+                    // $bodyArr[1] => HTML
+                    $body = $bodyArr[1] ?? $bodyArr[0] ?? '';
+                    $isText = !$bodyArr[1];
+                    $msgBody = $isText ? "<pre>$body</pre>" : $body;
+                    $app['log.review']->debug("Body content : ", [
+                        'src' => $bodyArr,
+                        'output' => $msgBody,
+                        'path' => $bodyPath,
+                        'editedData' => $app->obfuskData($msgsByIds),
+                    ]);
+    
+                    $app->updateByPath($msgsByIds, $bodyPath, $msgBody);
+                    // TODO : edit store lock ?? what if multiple save same time ?
+                    $self->storeInCache($self->getUserDataStoreKey() . $localUser['username'], $msgsByIds);    
+                } catch (\Throwable $e) {
+                    $app['log.review']->error("Fail to load message part"
+                    , ['part' => $message->getPayload()->getParts(), 'msg' => $message]);
+                }
             }
-            // $msgBody = preg_replace([
-            //     '/<html*>/', '/<\/html>/'
-            // ], ['', ''], $msgBody);
-            // $msgBody = preg_replace(['/<html.*>/', '/<\/html>/'
-            // , '/<head.*>/', '/<body.*>/', '/<\/body>/'],
-            // ['', '', '', '', ''], $msgBody);
-            // $msgHead = "<head></head>";
-            // $msgBody = explode('</head>', $msgBody);
-            // if (count($msgBody) > 1) {
-            //     //$msgHead = "<head>" . $msgBody[0] . "</head>";
-            //     $msgHead = $msgBody[0];
-            //     $msgBody = $msgBody[1];
-            // } else {
-            //     $msgBody = $msgBody[0];
-            // }
-            // http://www.aaronpeters.nl/blog/iframe-loading-techniques-performance?%3E#dynamic
-            // To avoid iframe blocking main page load : load quick, then use JS
-            // to append resulting contents
-            // TODO : have loading indicator take iframe space until succed to load or err msg if fail
             $body = "<html>
             <head>
             <script type='text/javascript'>

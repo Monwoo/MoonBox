@@ -446,6 +446,8 @@ class ImapDataProvider extends DataProvider
         $offset = ($page - 1) * $limit;
         $self->offsetStart = $offset;
         $self->offsetLimit = $limit;
+        $msgsByIds = $self->fetchFromCache($self->getUserDataStoreKey() . $localUser['username'], []);
+
         if ('admin_form' === $action) {
         } else if ('admin_results' === $action) {
         } else if ('submit_refresh' === $action) {
@@ -693,8 +695,9 @@ class ImapDataProvider extends DataProvider
                 $msgsOrderedByDate[$it]
                 ['iframeBody'] = $self->iframeBuilder(
                     $dataUsername,
-                    "{$msg['connectionName']}<|>[$it][body]"
+                    "{$msg['connectionName']}<|>[{$msg['msgUniqueId']}][body]"
                 );
+                $msgsByIds[$msg['msgUniqueId']] = $msg;
             }
 
             $defaultGroup = "_";
@@ -723,7 +726,7 @@ class ImapDataProvider extends DataProvider
                 $msg['moonBoxGroup'] = $moonBoxGroup;
             }
 
-            $self->storeInCache($self->getUserDataStoreKey(), $msgsOrderedByDate);
+            $self->storeInCache($self->getUserDataStoreKey() . $localUser['username'], $msgsByIds);
             // TODO : refactor saved data model to be extendable object ?
             // $msgsOrderedByDate->numResults = $numResults;
             $self->actionResponse = $app->json([
@@ -745,9 +748,9 @@ class ImapDataProvider extends DataProvider
             // TODO : realy slow for each iframe rendering.
             // May be store needed data in session to speed up iframe load ?
             // May be it load each frame with debug info system (can see multiple call for each frames)
-            $editData = $self->fetchFromCache($self->getUserDataStoreKey());
+
             $msgBody = quoted_printable_decode(
-                $app->fetchByPath($editData, $bodyPath)
+                $app->fetchByPath($msgsByIds, $bodyPath)
             );
             if (!$msgBody) {
                 $bodyText = null;
@@ -756,16 +759,18 @@ class ImapDataProvider extends DataProvider
                 // * DEBUG
                 $app['log.review']->debug("Loading content at $bodyPath for {$connection['username']}",
                 $app->obfuskData([
-                    'msg' => $app->fetchByPath($editData,
+                    'msg' => $app->fetchByPath($msgsByIds,
                     str_replace('[body]', '', $bodyPath)),
                     'connection' => $connection,
                     // 'msgIds' => $msgIds,
                 ]));
                 // */
                 $msgUniqueIdPath = str_replace('[body]', '[msgUniqueId]', $bodyPath);
-                $msgUniqueId = $app->fetchByPath($editData, $msgUniqueIdPath);
+                $msgUniqueId = $app->fetchByPath($msgsByIds, $msgUniqueIdPath);
                 if (!$msgUniqueId) {
-                    $app['log.review']->debug("Fail to fetch : " . $msgUniqueIdPath, $app->obfuskData([$editData]));
+                    $app['log.review']->debug("Fail to fetch : " . $msgUniqueIdPath,
+                    $app->obfuskData([$msgsByIds]));
+                    array_keys([$msgsByIds]));
                     $status = [
                         'errors' => [["Code under dev.", "Give a donnation with mention : "
                         . "'MoonBoxDev-FailBodyFetch' for www.monwoo.com to improve it."]],
@@ -786,11 +791,12 @@ class ImapDataProvider extends DataProvider
                 $imapId = $this->storage->getNumberByUniqueId($msgUniqueId);
                 // the imapId stored in msg is linked to search query, need to use the msgUniqueId instead
                 // $imapIdPath = str_replace('[body]', '[imapId]', $bodyPath);
-                // $imapId = $app->fetchByPath($editData, $imapIdPath);
+                // $imapId = $app->fetchByPath($msgsByIds, $imapIdPath);
                 $msg = $this->storage->getMessage(intval($imapId));
                 $app['log.review']->assert($msg,
                 "Loading msg $imapId for {$connection['username']} FAIL");
                 $msgFlags = $msg->getFlags();
+                $isTxtFormat = false;
                 if ($msg->isMultipart()) {
                     // TODO : body part is part 0 or partId (eq to msg id ?)
                     foreach (new \RecursiveIteratorIterator($msg) as $part) {
@@ -798,6 +804,7 @@ class ImapDataProvider extends DataProvider
                             if (strtok($part->contentType, ';') == 'text/plain') {
                                 $txt = $part->getContent();
                                 if ($txt && $txt != '' && !$bodyText) {
+                                    $isTxtFormat = true;
                                     $bodyText = $txt;
                                 }
                             }
@@ -811,6 +818,9 @@ class ImapDataProvider extends DataProvider
                         }
                     }
                     $body = $bodyHTML ?? $bodyText ?? '';
+                    if ($isTxtFormat) {
+                        $body = "<pre>$body</pre>";
+                    }
                 } else {
                     $body = $msg->getContent(); // TODO : may be get content only iframe load + make iframe load on collapse event of title item
                 }
@@ -818,9 +828,9 @@ class ImapDataProvider extends DataProvider
                 // so restore initial flags :
                 $this->storage->setFlags($imapId, $msgFlags ?? []);
                 $msgBody = quoted_printable_decode($body);
-                $app->updateByPath($editData, $bodyPath, $body);
+                $app->updateByPath($msgsByIds, $bodyPath, $body);
                 // TODO : edit store lock ?? what if multiple save same time ?
-                $self->storeInCache($self->getUserDataStoreKey(), $editData);
+                $self->storeInCache($self->getUserDataStoreKey() . $localUser['username'], $msgsByIds);
             }
             $resp = new Response($msgBody , 200);
             $resp->headers->set('Content-Type', 'text/html');
