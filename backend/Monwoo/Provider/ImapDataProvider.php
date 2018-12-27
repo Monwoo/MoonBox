@@ -769,7 +769,7 @@ class ImapDataProvider extends DataProvider
                 $msgUniqueId = $app->fetchByPath($msgsByIds, $msgUniqueIdPath);
                 if (!$msgUniqueId) {
                     $app['log.review']->debug("Fail to fetch : " . $msgUniqueIdPath,
-                    $app->obfuskData([$msgsByIds]));
+                    $app->obfuskData([$msgsByIds]),
                     array_keys([$msgsByIds]));
                     $status = [
                         'errors' => [["Code under dev.", "Give a donnation with mention : "

@@ -1,5 +1,5 @@
 <div *ngIf="!this.storage.isLocked && this.filters">
-  <mat-card [ngClass]="{ sticky: isSticky }">
+  <mat-card class="filters-container" [ngClass]="{ sticky: isSticky }">
     <div class="global-count">{{ msgs.numResults }} / {{ msgs.totalCount }}</div>
 
     <form *ngIf="filters" class="condensed" [formGroup]="filters.group" #filtersFormRef #filtersForm="ngForm">

@@ -2,6 +2,7 @@
 @import "~bootstrap/scss/_functions";
 @import "~bootstrap/scss/_variables";
 @import "~bootstrap/scss/_mixins";
+@import "src/theme/theme-mixins";
 
 ::ng-deep {
   body {
@@ -11,6 +12,7 @@
   .cdk-overlay-pane {
     width: auto !important;
     max-width: 80vw;
+    @include applyScrollbarTheming();
   }
 }
 
@@ -71,5 +73,11 @@
       max-height: 80vh;
       overflow-y: auto;
     }
+  }
+
+  .filters-container {
+    @include applyScrollbarTheming();
+    border-top: solid 2px $monwooPrimary;
+    border-bottom: solid 2px $monwooPrimary;
   }
 }
