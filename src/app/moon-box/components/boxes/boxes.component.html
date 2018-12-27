@@ -91,7 +91,7 @@
             <mat-card-content *ngIf="!(isMsgCondensed(index) || _isMsgCondensed)">
               <span> {{ '[' + msg.expeditor + '] => ' + msg.to + ' | ' + msg.cc + ' | ' + msg.bcc }} </span>
               <ng-template #msgBody>
-                <div class="condensable-lvl2" [innerHTML]="msg.iframeBody | safeHtml"></div>
+                <div class="msg-wrapper condensable-lvl2" [innerHTML]="msg.iframeBody | safeHtml"></div>
               </ng-template>
               <ng-container *ngTemplateOutlet="msgBody"> </ng-container>
             </mat-card-content>

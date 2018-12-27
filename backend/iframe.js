@@ -8,6 +8,8 @@ $(document).ready(function() {
     var data = e.data;
     var endpoint = data.endpoint;
     var credentials = data.credentials;
+    // https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy#Changing_origin
+    document.domain = data.domain; // not enough to allow partent to access iframe size...
 
     $.ajax({
       type: 'POST',
@@ -27,6 +29,14 @@ $(document).ready(function() {
         // + 'document.close();';
         document.open();
         document.write(result);
+        window.parent.postMessage(
+          {
+            from: 'IFrameLoading',
+            to: data.index,
+            height: document.body.scrollHeight
+          },
+          data.url
+        );
       }
     }).fail(function(err) {
       $('body').html(JSON.stringify(err));

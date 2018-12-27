@@ -139,6 +139,14 @@ export class BoxesComponent implements OnInit {
     private rendererFactory: RendererFactory2,
     public msgs: MessagesService
   ) {
+    // Quick hack, since host listener to gets debug, TODO : HostListener bad usage to fix ?
+    window.addEventListener('message', (e: any) => this.htmlMsgListener(e));
+    // TODO : put in root component or ok since only used her ??
+    // TODO : better desing pattern :
+    // https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy#Changing_origin
+    // => but not really working for our case, still cross domain issue to access iframe height...
+    document.domain = environment.moonBoxFrontendDomain;
+
     (async () => {
       this.filters = await contextDefaults(this);
       this.updateForm();
@@ -416,7 +424,26 @@ export class BoxesComponent implements OnInit {
     return this._isMsgCondensed;
   }
 
+  @HostListener('window:message', ['$event'])
+  htmlMsgListener(e: any) {
+    let data = e.data;
+    let dfrom = data.from;
+    if ('IFrameLoading' === dfrom) {
+      if (this.allIFrames[data.to]) {
+        logReview.debug('Having iframe height : ', e);
+        this.ngZone.run(() => {
+          // Need to run on angular side to allow element resize ?
+          this.allIFrames[data.to].height = data.height; //+ "px";
+        });
+      } else {
+        logReview.debug('Having refresh from cleaned iframe', e);
+      }
+    }
+  }
+
+  frameIdx = 0;
   isProcessingIFrames = false;
+  allIFrames = {};
   public updateIFrames() {
     if (this.isProcessingIFrames) {
       // logReview.debug('Frame updates already in process, postponing action');
@@ -429,6 +456,7 @@ export class BoxesComponent implements OnInit {
     }
     this.isProcessingIFrames = true;
     of(() => {
+      this.allIFrames = {};
       let iframes = document.querySelectorAll('iframe[data-didload="0"]');
       if (!iframes.length) {
         this.isProcessingIFrames = false;
@@ -438,13 +466,26 @@ export class BoxesComponent implements OnInit {
         .pipe(
           delay(1000),
           tap((f: HTMLIFrameElement) => {
+            this.frameIdx++;
+            this.allIFrames[this.frameIdx] = f;
             // this.renderer.setAttribute(f, 'src', f.getAttribute('data-src'));
             const target = environment.moonBoxBackendUrl + '/api/iframe';
             if (!parseInt(f.getAttribute('data-didLoad'))) {
               // https://stackoverflow.com/questions/22194409/failed-to-execute-postmessage-on-domwindow-the-target-origin-provided-does/40000073
               f.setAttribute('src', target);
+              f.setAttribute('data-index', '' + this.frameIdx);
               f.onload = e => {
                 logReview.debug('IFrame src did load : ', target);
+                // iFrame.width  = iFrame.contentWindow.document.body.scrollWidth;
+                // Ajusting content height :
+                // Bad : Having CORS issue => need to work in iframe injector to solve it...
+                // https://benohead.com/cross-document-communication-with-iframes/
+                // https://stackoverflow.com/questions/23362842/access-control-allow-origin-not-working-for-iframe-withing-the-same-domain
+                // https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy#Changing_origin
+                // f.height = "1000px";
+                // Still having cors issue with (even with domain set => need iframe allow CORS ? how to specific domain allow ?) :
+                // f.height = f.contentWindow.document.body.scrollHeight + "px";
+
                 (async () => {
                   f.contentWindow.postMessage(
                     {
@@ -454,7 +495,10 @@ export class BoxesComponent implements OnInit {
                       credentials: await this.localStorage.getItem<any>('access_token').toPromise(),
                       post: {
                         username: decodeURIComponent(f.getAttribute('data-username'))
-                      }
+                      },
+                      index: this.frameIdx,
+                      domain: environment.moonBoxFrontendDomain,
+                      url: environment.moonBoxFrontendUrl
                     },
                     target
                   );

@@ -49,6 +49,7 @@ $app = new class([
     },
     'debug' => $prodDebug || $config['debug'],
     'frontEndBaseUrl' => $config['frontEndBaseUrl'],
+    'frontEndDomain' => $config['frontEndDomain'],
     'prodDebug' => $prodDebug,
     'log.review' => new class($config['loggerName']) extends \Monolog\Logger {
         public function assert($ok, $msg, $extra = null) {

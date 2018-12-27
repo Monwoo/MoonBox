@@ -10,6 +10,8 @@ export const environment = {
   version: env.npm_package_version + '-dev',
   // serverUrl: '/api',
   serverUrl: '/',
+  moonBoxFrontendUrl: 'http://localhost:4200',
+  moonBoxFrontendDomain: 'localhost', // Do not put port, allowing all to have same null port....
   moonBoxBackendUrl: 'http://localhost:6901',
   moonBoxBackendDomain: 'localhost',
   moonBoxBackendBasePath: '/',

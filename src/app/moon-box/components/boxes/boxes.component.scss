@@ -2,6 +2,7 @@
 @import "~bootstrap/scss/_functions";
 @import "~bootstrap/scss/_variables";
 @import "~bootstrap/scss/_mixins";
+@import "~bootstrap/scss/bootstrap";
 @import "src/theme/theme-mixins";
 
 ::ng-deep {
@@ -79,5 +80,26 @@
     @include applyScrollbarTheming();
     border-top: solid 2px $monwooPrimary;
     border-bottom: solid 2px $monwooPrimary;
+  }
+
+  // https://blog.theodo.fr/2018/01/responsive-iframes-css-trick/
+  // https://stackoverflow.com/questions/819416/adjust-width-and-height-of-iframe-to-fit-with-content-in-it
+  // https://stackoverflow.com/questions/22086722/resize-cross-domain-iframe-height
+  // https://stackoverflow.com/questions/23362842/access-control-allow-origin-not-working-for-iframe-withing-the-same-domain
+  // https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy#Changing_origin
+
+  .msg-wrapper {
+    // @extend .embed-responsive;
+    // @extend .embed-responsive-16by9;
+
+    min-height: 350px;
+    max-height: 800px;
+
+    .msg-iframe {
+      // @extend .embed-responsive-item;
+      @include applyScrollbarTheming();
+      width: 100%;
+      height: auto;
+    }
   }
 }

@@ -3,3 +3,4 @@
 
 // $config['prod-version'] = "vx.x.x";
 $config['frontEndBaseUrl'] = "https://www.monwoo.com/MoonBox/Demo";
+$config['frontEndDomain'] = "www.monwoo.com";

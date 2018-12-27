@@ -164,15 +164,16 @@ class ImapDataProvider extends DataProvider
         // https://developers.google.com/web/fundamentals/web-components/shadowdom
         // https://stackoverflow.com/questions/11878947/auto-login-remote-site-inner-in-iframe
         // https://developer.mozilla.org/fr/docs/Web/HTML/Element/iframe
-        $iframeStyle = 'min-height:250px;max-height:800px;width:100%';
+        // $iframeStyle = 'min-height:250px;max-height:800px;width:100%';
         $dataUsername = rawurlencode($dataUsername);
         return "<iframe
         src='$loadingPictPath'
         data-didLoad='0'
         data-src='$iframePath'
         data-username='$dataUsername'
+        data-domain='{$app['frontEndDomain']}'
         frameborder='0'
-        style='$iframeStyle'
+        class='msg-iframe'
         ></iframe>";
     }
     /**
