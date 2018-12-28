@@ -101,6 +101,7 @@ class ImapDataProvider extends DataProvider
     }
     protected function storeInCache($key, $data) {
         $app = $this->app;
+        // $app['cache']->store($key, $data, self::cacheLifetime);
         $app['cache']->store($key, $this->injectRandSeed(
             base64_encode(json_encode($data))
         ), self::cacheLifetime);
@@ -109,6 +110,7 @@ class ImapDataProvider extends DataProvider
     protected function fetchFromCache($key) {
         $app = $this->app;
         // var_dump(json_decode(base64_decode($app['cache']->fetch($key)))); exit;
+        // return $app['cache']->fetch($key);
         return json_decode(base64_decode($this->extractRandSeed(
             (string) $app['cache']->fetch($key)
         )), true);

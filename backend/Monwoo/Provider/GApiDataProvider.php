@@ -541,7 +541,7 @@ class GApiDataProvider extends ImapDataProvider
                 $msgsOrderedByDate[$it]
                 ['iframeBody'] = $self->iframeBuilder(
                     $dataUsername,
-                    "{$msg['connectionName']}<|>[$it][body]"
+                    "{$msg['connectionName']}<|>[{$msg['msgUniqueId']}][body]"
                 );
                 $msgsByIds[$msg['msgUniqueId']] = $msg;
             }
@@ -584,6 +584,7 @@ class GApiDataProvider extends ImapDataProvider
                 // 'offsetStart' => $self->offsetStart,
                 'offsetLimit' => $self->offsetLimit,
                 'currentPage' => $page,
+                'nextPage' => $messages->getNextPageToken(),
                 // 'nextPage' => ($self->offsetStart + $numResults < $totalCount) ? $page + 1 : null,
             ]);
         } else if ('msg_body' === $action) { // TODO: why not protected by JWT ? Only by php session id for now...
@@ -687,10 +688,10 @@ class GApiDataProvider extends ImapDataProvider
                     $isText = !$bodyArr[1];
                     $msgBody = $isText ? "<pre>$body</pre>" : $body;
                     $app['log.review']->debug("Body content : ", [
-                        'src' => $bodyArr,
-                        'output' => $msgBody,
+                        // 'src' => $bodyArr,
+                        'output' => substr($msgBody, 0, 125),
                         'path' => $bodyPath,
-                        'editedData' => $app->obfuskData($msgsByIds),
+                        'editedData' => array_keys($msgsByIds), // $app->obfuskData($msgsByIds),
                     ]);
     
                     $app->updateByPath($msgsByIds, $bodyPath, $msgBody);
