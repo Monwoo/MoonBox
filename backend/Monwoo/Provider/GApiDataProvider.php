@@ -636,6 +636,10 @@ class GApiDataProvider extends ImapDataProvider
                         'currentPage' => 0,
                         'nextPage' => 0,
                     ]);
+                    // Set content type as html to avoid Client side webbrowser
+                    // auto-interpretation of json request outputing it with js toSting
+                    // showing 'objects' instead of string content.... :
+                    $self->actionResponse->headers->set('Content-Type', 'text/html');
                     return true;        
                 }
 
@@ -688,12 +692,12 @@ class GApiDataProvider extends ImapDataProvider
                     // $bodyArr[1] => HTML
                     $body = $bodyArr[1] ?? $bodyArr[0] ?? '';
                     $isText = !$bodyArr[1];
-                    $msgBody = $isText ? "<pre>$body</pre>" : $body;
+                    $msgBody = "Hello buggy"; // $isText ? "<pre>$body</pre>" : $body;
                     $app['log.review']->debug("Body content : ", [
                         // 'src' => $bodyArr,
                         'output' => substr($msgBody, 0, 125),
                         'path' => $bodyPath,
-                        'editedData' => array_keys($msgsByIds), // $app->obfuskData($msgsByIds),
+                        'msgsByIds' => array_keys($msgsByIds), // $app->obfuskData($msgsByIds),
                     ]);
     
                     $app->updateByPath($msgsByIds, $bodyPath, $msgBody);
@@ -714,7 +718,7 @@ class GApiDataProvider extends ImapDataProvider
                 + 'document.write(JSON.parse(decodeURIComponent('
                 + '  \"" . rawurlencode(json_encode($msgBody)) . "\"'
                 + ')));'
-                + 'document.close();';
+                // + 'document.close();';
                 // 'var html = document.getElementsByTagName(\"html\")[0];'
                 // + 'html.innerHTML = JSON.parse(decodeURIComponent('
                 // + '  \"" . rawurlencode(json_encode($msgBody)) ."\"'

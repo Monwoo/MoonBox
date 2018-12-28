@@ -852,7 +852,7 @@ class ImapDataProvider extends DataProvider
         unset($app["{$self->dataset_id}"]);
         $self->initDefaultAugmentedData($data);
         // * DEBUG
-        $app['log.review']->debug('Imap Did Update Generated Data');
+        $app['log.review']->debug('Imap Did Update Generated Data TODO : why double call ?');
         // */
         $app["{$self->dataset_id}"] = $data;
     }
