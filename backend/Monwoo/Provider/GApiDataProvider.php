@@ -573,6 +573,7 @@ class GApiDataProvider extends ImapDataProvider
             }
 
             $self->storeInCache($self->getUserDataStoreKey() . $localUser['username'], $msgsByIds);
+            $app['log.review']->debug("Storing Msg Ids : " . $msgUniqueIdPath, $app->obfuskData([$msgsByIds]));
             // TODO : refactor saved data model to be extendable object ?
             // $msgsOrderedByDate->numResults = $numResults;
             $self->actionResponse = $app->json([
@@ -609,6 +610,7 @@ class GApiDataProvider extends ImapDataProvider
                 // * DEBUG
                 $app['log.review']->debug("Loading content at $bodyPath for {$connection['username']}",
                 $app->obfuskData([
+                    'msgs' => $msgsByIds,
                     'msg' => $app->fetchByPath($msgsByIds,
                     str_replace('[body]', '', $bodyPath)),
                     'connection' => $connection,
