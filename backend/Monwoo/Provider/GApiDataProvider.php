@@ -53,6 +53,37 @@ class GApiDataProvider extends ImapDataProvider
         $self = $this;
     }
 
+    protected function setDataUserToken($apiUsername, $dataUsername, $accessToken) {
+        $self = $this;
+        $app = $self->app;
+        $apiUsers = $app['session']->get('apiUsers', []);
+        $localUser = $apiUsers[$apiUsername]['dataUsers'][$dataUsername];
+        $localUser['accessToken'] = $accessToken;
+        $apiUsers[$apiUsername]['dataUsers'][$dataUsername] = $localUser;
+        $app['session']->set('apiUsers', $apiUsers);
+        $app['log.review']->debug(
+            "Did update token for $apiUsername as $dataUsername : "
+            , ["token" => $accessToken]// , $app->obfuskData(['users'=>$apiUsers])
+        );
+    }
+
+    protected function setupActionToDevInProgress() {
+        $self = $this;
+        $app = $self->app;
+        $status = [
+            'errors' => [["Code under dev.", "Give a donnation with mention : "
+            . "'MoonBoxDev-FailBodyFetch' for www.monwoo.com to improve it."]],
+        ];
+        $self->actionResponse = $app->json([
+            'status' => $status,
+        ]);
+        // Set content type as html to avoid Client side webbrowser
+        // auto-interpretation of json request outputing it with js toSting
+        // showing 'objects' instead of string content.... :
+        $self->actionResponse->headers->set('Content-Type', 'text/html');
+        return true;
+    }
+
     protected function handleAction($action, $param) {
         $self = $this;
         $app = $self->app;
@@ -79,11 +110,6 @@ class GApiDataProvider extends ImapDataProvider
             }
             //unset($dataByAuthStates["$statePayload"]);
             $dataByAuthStates = $app['session']->set('apiDataByAuthStates', $dataByAuthStates);
-            $apiUsers = $app['session']->get('apiUsers', []);
-            // $apiUser = &$apiUsers[$data['apiUsername']];
-            // $localUsers = &$apiUser['dataUsers'];
-            // $localUser = &$localUsers[$data['localUsername']];
-            $localUser = $apiUsers[$data['apiUsername']]['dataUsers'][$data['localUsername']];
 
             $code = $request->get('code');
             // $app->assert($code,
@@ -91,19 +117,15 @@ class GApiDataProvider extends ImapDataProvider
             $app['log.review']->debug('Did get Auth2 token', [$code]);
             $accessToken = $client->fetchAccessTokenWithAuthCode($code);
             if (array_key_exists('access_token', $accessToken)) {
-                $localUser['accessToken'] = $accessToken;
+                $self->setDataUserToken($data['apiUsername'], $data['localUsername'], $accessToken);
                 $app['monolog']->debug('Auth2 access OK', [
                     'accessToken' => $accessToken,
                 ]);
             } else {
                 $app['monolog']->error('Did fail google api access',
                 $accessToken);
-                $localUser['accessToken'] = false;
+                $self->setDataUserToken($data['apiUsername'], $data['localUsername'], false);
             }
-
-            $apiUsers[$data['apiUsername']]['dataUsers'][$data['localUsername']] = $localUser;
-            $app['session']->set('apiUsers', $apiUsers);
-            $app['log.review']->debug('Did update apiUsers', $app->obfuskData(['users'=>$apiUsers]));
 
             // $self->actionResponse = $app->json([
             //     'message' => "Dev in progress.",
@@ -154,9 +176,9 @@ class GApiDataProvider extends ImapDataProvider
         }
 
         if (!$self->stableConnectors->contains($localUser['connector'])) {
-            $app['log.review']->debug("ImapData Connector not stable : " . $localUser['connector']);
+            $app['log.review']->debug("{$self->dataset_name} Connector not stable : " . $localUser['connector']);
             $status = [
-                'errors' => [["ImapData Connector not stable", $localUser['connector']]],
+                'errors' => [["{$self->dataset_name} Connector not stable", $localUser['connector']]],
             ];
             $self->actionResponse = $app->json([
                 'status' => $status,
@@ -220,7 +242,8 @@ class GApiDataProvider extends ImapDataProvider
                     $client->fetchAccessTokenWithRefreshToken($refreshToken);
                     $accessToken = $client->getAccessToken();
                     if (isset($accessToken['access_token'])) {
-                        $self->setSession('access_token', $accessToken);
+                        // $self->setSession('access_token', $accessToken);
+                        $self->setDataUserToken($accessToken['access_token']);
                     } else {
                         // * DEBUG
                         $app['log.review']->debug('Refresh Access token fail', [
@@ -589,10 +612,10 @@ class GApiDataProvider extends ImapDataProvider
                 // 'nextPage' => ($self->offsetStart + $numResults < $totalCount) ? $page + 1 : null,
             ]);
         } else if ('msg_body' === $action) { // TODO: why not protected by JWT ? Only by php session id for now...
-            $param = explode('<|>', $param);
+            $params = explode('<|>', $param);
             $connections = $self->defaultConfig["connections"];
-            $connection = $connections[$param[0]];
-            $bodyPath = $param[1];
+            $connection = $connections[$params[0]];
+            $bodyPath = $params[1];
 
             // TODO : realy slow for each iframe rendering.
             // May be store needed data in session to speed up iframe load ?
@@ -621,26 +644,13 @@ class GApiDataProvider extends ImapDataProvider
                 $msgUniqueId = $app->fetchByPath($msgsByIds, $msgUniqueIdPath);
                 if (!$msgUniqueId) {
                     $app['log.review']->debug("Fail to fetch : " . $msgUniqueIdPath, $app->obfuskData([$msgsByIds]));
-                    $status = [
-                        'errors' => [["Code under dev.", "Give a donnation with mention : "
-                        . "'MoonBoxDev-FailBodyFetch' for www.monwoo.com to improve it."]],
-                    ];
-                    $self->actionResponse = $app->json([
-                        'status' => $status,
-                        'numResults' => 0,
-                        'msgsOrderedByDate' => [],
-                        'msgsByMoonBoxGroup' => [],
-                        'totalCount' => 0,
-                        'offsetStart' => 0,
-                        'offsetLimit' => 0,
-                        'currentPage' => 0,
-                        'nextPage' => 0,
-                    ]);
-                    // Set content type as html to avoid Client side webbrowser
-                    // auto-interpretation of json request outputing it with js toSting
-                    // showing 'objects' instead of string content.... :
-                    $self->actionResponse->headers->set('Content-Type', 'text/html');
-                    return true;        
+                    // return $self->setupActionToDevInProgress();
+                    $self->setDataUserToken($apiUser->getUsername(), $connection['username'], false);
+                    $self->actionResponse = $app->redirect($app->url($self->actionRouteName(), [
+                        'action' => $action,
+                        'param' => $param,
+                    ]));
+                    return true;
                 }
 
                 $message = $service->users_messages->get($user, $msgUniqueId, $fetchQuery);
@@ -692,7 +702,7 @@ class GApiDataProvider extends ImapDataProvider
                     // $bodyArr[1] => HTML
                     $body = $bodyArr[1] ?? $bodyArr[0] ?? '';
                     $isText = !$bodyArr[1];
-                    $msgBody = "Hello buggy"; // $isText ? "<pre>$body</pre>" : $body;
+                    $msgBody = $isText ? "<pre>$body</pre>" : $body;
                     $app['log.review']->debug("Body content : ", [
                         // 'src' => $bodyArr,
                         'output' => substr($msgBody, 0, 125),
@@ -708,35 +718,37 @@ class GApiDataProvider extends ImapDataProvider
                     , ['part' => $message->getPayload()->getParts(), 'msg' => $message]);
                 }
             }
-            $body = "<html>
-            <head>
-            <script type='text/javascript'>
-            function loadData() {
-                var d = document;d.getElementsByTagName('head')[0].
-                appendChild(d.createElement('script')).innerHTML =
-                'document.open();'
-                + 'document.write(JSON.parse(decodeURIComponent('
-                + '  \"" . rawurlencode(json_encode($msgBody)) . "\"'
-                + ')));'
-                // + 'document.close();';
-                // 'var html = document.getElementsByTagName(\"html\")[0];'
-                // + 'html.innerHTML = JSON.parse(decodeURIComponent('
-                // + '  \"" . rawurlencode(json_encode($msgBody)) ."\"'
-                //+ '));';
-            }
-            </script>
-            </head>
-            <body onload='loadData()' " .
-            // "var head = document.getElementsByTagName('head')[0];" .
-            // "head.innerHTML = JSON.parse(decodeURIComponent(" .
-            // "  '" . rawurlencode(json_encode($msgHead)) ."'" .
-            // '));' .
-            // "var body = document.getElementsByTagName('body')[0];" .
-            // "body.innerHTML = JSON.parse(decodeURIComponent(" .
-            // "  '" . rawurlencode(json_encode($msgBody)) ."'" .
-            // '));' .
-            '>' .
-            '</body></html>';
+            // $body = "<html>
+            // <head>
+            // <script type='text/javascript'>
+            // function loadData() {
+            //     var d = document;d.getElementsByTagName('head')[0].
+            //     appendChild(d.createElement('script')).innerHTML =
+            //     'document.open();' //   document.open('text/plain');
+            //     + 'document.write(JSON.parse(decodeURIComponent('
+            //     + '  \"" . rawurlencode(json_encode($msgBody)) . "\"'
+            //     + ')));'
+            //     // + 'document.close();';
+            //     // 'var html = document.getElementsByTagName(\"html\")[0];'
+            //     // + 'html.innerHTML = JSON.parse(decodeURIComponent('
+            //     // + '  \"" . rawurlencode(json_encode($msgBody)) ."\"'
+            //     //+ '));';
+            // }
+            // </script>
+            // </head>
+            // <body onload='loadData()' " .
+            // // "var head = document.getElementsByTagName('head')[0];" .
+            // // "head.innerHTML = JSON.parse(decodeURIComponent(" .
+            // // "  '" . rawurlencode(json_encode($msgHead)) ."'" .
+            // // '));' .
+            // // "var body = document.getElementsByTagName('body')[0];" .
+            // // "body.innerHTML = JSON.parse(decodeURIComponent(" .
+            // // "  '" . rawurlencode(json_encode($msgBody)) ."'" .
+            // // '));' .
+            // '>' .
+            // '</body></html>';
+            $body = rawurlencode(json_encode($msgBody));
+            
             $resp = new Response($body , 200);
             $resp->headers->set('Content-Type', 'text/html');
             $self->actionResponse = $resp;
