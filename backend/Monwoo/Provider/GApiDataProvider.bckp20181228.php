@@ -628,12 +628,12 @@ class GApiDataProvider extends ImapDataProvider
                 $bodyHTML = null;
 
                 $fetchQuery = [
-                    'format' => 'full', // 'raw',
+                    'format' => 'full',
                 ];
                 // * DEBUG
                 $app['log.review']->debug("Loading content at $bodyPath for {$connection['username']}",
                 $app->obfuskData([
-                    // 'msgs' => $msgsByIds,
+                    'msgs' => $msgsByIds,
                     'msg' => $app->fetchByPath($msgsByIds,
                     str_replace('[body]', '', $bodyPath)),
                     'connection' => $connection,
@@ -653,34 +653,101 @@ class GApiDataProvider extends ImapDataProvider
                     return true;
                 }
 
-                // TODO : refactor : use parent's Message load from extracted zend Message.... ?
                 $message = $service->users_messages->get($user, $msgUniqueId, $fetchQuery);
                 $app['log.review']->assert($message,
-                "Loading msg $msgUniqueId for {$connection['username']} FAIL", []);
+                "Loading msg $msgUniqueId for {$connection['username']} FAIL");
 
-                // $rawMsg = $message->getRaw();
-                // $app['log.review']->assert($rawMsg && '' !== $rawMsg, "Empty raw msg should not happen...", []);
-                // $rawMsg = base64_decode($message->getRaw());
-                // $app['log.review']->assert($rawMsg && '' !== $rawMsg, "Fail to base64 décode...", []);
-                
-                // $msgBody = $self->getBodyFromMimeMsg(\Zend\Mime\Message::createFromMessage($rawMsg));
-                // $msgBody = $self->getBodyFromZendMsg(\Zend\Mail\Message::fromString($rawMsg));
-                // https://stackoverflow.com/questions/32655874/cannot-get-the-body-of-email-with-gmail-php-api
-                $msgBody = $self->getBodyFromGMailMsg($message);
-                
-                $app->updateByPath($msgsByIds, $bodyPath, $msgBody);
-                $app['log.review']->debug("Body content : ", [
-                    // 'src' => $bodyArr,
-                    'output' => substr($msgBody, 0, 125),
-                    'path' => $bodyPath,
-                    'msgsByIds' => array_keys($msgsByIds), // $app->obfuskData($msgsByIds),
-                ]);
+                $headers = [];
+                foreach ($message->getPayload()->getHeaders() as $header) {
+                    // $headers[] = $header->toString();
+                    // or grab values: $header->getFieldName(), $header->getFieldValue()
+                    $headers[$header->getName()] = $header->getValue();
+                }
+                $subject = $headers["Subject"];//$message->subject;//htmlentities($message->subject);
+                // $msgFlags = "TODO";//$message->getFlags();
+                // https://stackoverflow.com/questions/24503483/reading-messages-from-gmail-in-php-using-gmail-api
+                // => there is no msgFlags in GmailApi, done with Label : UNREAD
 
-                // TODO : edit store lock ?? what if multiple save same time ?
-                $self->storeInCache($self->getUserDataStoreKey() . $localUser['username'], $msgsByIds);    
+                // TODO : use Carbon/Date ?
+                // https://stackoverflow.com/questions/13421635/failed-to-parse-time-string-at-position-41-i-double-timezone-specification
+                $dateStr = substr($headers['Date'], 0, 31);
+                $msgDateTime = new \DateTime($dateStr);
+                $timestamp = $msgDateTime->getTimestamp();
+                $localTime = $msgDateTime->format('Y/m/d H:i');
+                // $msgsSummary[] = [
+                //     'headers' => $headers,
+                // https://stackoverflow.com/questions/24503483/reading-messages-from-gmail-in-php-using-gmail-api
+                function base64url_decode($data) {
+                    return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
+                }
+                function getBody($dataArr) {
+                    $outArr = [];
+                    foreach ($dataArr as $key => $val) {
+                        if (0 === $key) {
+                            $outArr[] = base64url_decode($val->getBody()->getData());
+                        } else {
+                            $rawData = $val->getBody()->getData();
+                            $rawData = str_replace('!!binary ', '', $rawData);
+                            $outArr[] = quoted_printable_decode(base64_decode($rawData));
+                        }
+                        // we want html fist, text failback otherwise... 
+                        // break; // we are only interested in $dataArr[0]. Because $dataArr[1] is in HTML.
+                    }
+                    return $outArr;
+                }
+                
+                try {
+                    $bodyArr = getBody($message->getPayload()->getParts());
+                    // $bodyArr[0] => Text
+                    // $bodyArr[1] => HTML
+                    $body = $bodyArr[1] ?? $bodyArr[0] ?? '';
+                    $isText = !$bodyArr[1];
+                    $msgBody = $isText ? "<pre>$body</pre>" : $body;
+                    $app['log.review']->debug("Body content : ", [
+                        // 'src' => $bodyArr,
+                        'output' => substr($msgBody, 0, 125),
+                        'path' => $bodyPath,
+                        'msgsByIds' => array_keys($msgsByIds), // $app->obfuskData($msgsByIds),
+                    ]);
+    
+                    $app->updateByPath($msgsByIds, $bodyPath, $msgBody);
+                    // TODO : edit store lock ?? what if multiple save same time ?
+                    $self->storeInCache($self->getUserDataStoreKey() . $localUser['username'], $msgsByIds);    
+                } catch (\Throwable $e) {
+                    $app['log.review']->error("Fail to load message part"
+                    , ['part' => $message->getPayload()->getParts(), 'msg' => $message]);
+                }
             }
-            // $body = rawurlencode(json_encode($msgBody));
-            $body = $msgBody;
+            // $body = "<html>
+            // <head>
+            // <script type='text/javascript'>
+            // function loadData() {
+            //     var d = document;d.getElementsByTagName('head')[0].
+            //     appendChild(d.createElement('script')).innerHTML =
+            //     'document.open();' //   document.open('text/plain');
+            //     + 'document.write(JSON.parse(decodeURIComponent('
+            //     + '  \"" . rawurlencode(json_encode($msgBody)) . "\"'
+            //     + ')));'
+            //     // + 'document.close();';
+            //     // 'var html = document.getElementsByTagName(\"html\")[0];'
+            //     // + 'html.innerHTML = JSON.parse(decodeURIComponent('
+            //     // + '  \"" . rawurlencode(json_encode($msgBody)) ."\"'
+            //     //+ '));';
+            // }
+            // </script>
+            // </head>
+            // <body onload='loadData()' " .
+            // // "var head = document.getElementsByTagName('head')[0];" .
+            // // "head.innerHTML = JSON.parse(decodeURIComponent(" .
+            // // "  '" . rawurlencode(json_encode($msgHead)) ."'" .
+            // // '));' .
+            // // "var body = document.getElementsByTagName('body')[0];" .
+            // // "body.innerHTML = JSON.parse(decodeURIComponent(" .
+            // // "  '" . rawurlencode(json_encode($msgBody)) ."'" .
+            // // '));' .
+            // '>' .
+            // '</body></html>';
+            $body = rawurlencode(json_encode($msgBody));
             
             $resp = new Response($body , 200);
             $resp->headers->set('Content-Type', 'text/html');
@@ -689,142 +756,5 @@ class GApiDataProvider extends ImapDataProvider
             $success = parent::handleAction($action, $param);
         }
         return $success;
-    }
-
-    protected function getBodyFromGMailMsg($msg) {
-        $self = $this;
-        // https://stackoverflow.com/questions/32655874/cannot-get-the-body-of-email-with-gmail-php-api
-        $payload = $msg->getPayload();
-        $parts = $payload->getParts();
-        // With no attachment, the payload might be directly in the body, encoded.
-        $body = $payload->getBody();
-        $FOUND_BODY = FALSE;
-        // If we didn't find a body, let's look for the parts
-        if(!$FOUND_BODY) {
-            foreach ($parts  as $part) {
-                if($part['parts'] && !$FOUND_BODY) {
-                    foreach ($part['parts'] as $p) {
-                        if($p['parts'] && count($p['parts']) > 0){
-                            foreach ($p['parts'] as $y) {
-                                if(($y['mimeType'] === 'text/html') && $y['body']) {
-                                    $FOUND_BODY = $self->decodeBody($y['body']->data);
-                                    break;
-                                }
-                            }
-                        } else if(($p['mimeType'] === 'text/html') && $p['body']) {
-                            $FOUND_BODY = $self->decodeBody($p['body']->data);
-                            break;
-                        }
-                    }
-                }
-                if($FOUND_BODY) {
-                    break;
-                }
-            }
-        }
-        // // let's save all the images linked to the mail's body:
-        // if($FOUND_BODY && count($parts) > 1){
-        //     $images_linked = array();
-        //     foreach ($parts  as $part) {
-        //         if($part['filename']){
-        //             array_push($images_linked, $part);
-        //         } else{
-        //             if($part['parts']) {
-        //                 foreach ($part['parts'] as $p) {
-        //                     if($p['parts'] && count($p['parts']) > 0){
-        //                         foreach ($p['parts'] as $y) {
-        //                             if(($y['mimeType'] === 'text/html') && $y['body']) {
-        //                                 array_push($images_linked, $y);
-        //                             }
-        //                         }
-        //                     } else if(($p['mimeType'] !== 'text/html') && $p['body']) {
-        //                         array_push($images_linked, $p);
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        //     // special case for the wdcid...
-        //     preg_match_all('/wdcid(.*)"/Uims', $FOUND_BODY, $wdmatches);
-        //     if(count($wdmatches)) {
-        //         $z = 0;
-        //         foreach($wdmatches[0] as $match) {
-        //             $z++;
-        //             if($z > 9){
-        //                 $FOUND_BODY = str_replace($match, 'image0' . $z . '@', $FOUND_BODY);
-        //             } else {
-        //                 $FOUND_BODY = str_replace($match, 'image00' . $z . '@', $FOUND_BODY);
-        //             }
-        //         }
-        //     }
-        //     preg_match_all('/src="cid:(.*)"/Uims', $FOUND_BODY, $matches);
-        //     if(count($matches)) {
-        //         $search = array();
-        //         $replace = array();
-        //         // let's trasnform the CIDs as base64 attachements 
-        //         foreach($matches[1] as $match) {
-        //             foreach($images_linked as $img_linked) {
-        //                 foreach($img_linked['headers'] as $img_lnk) {
-        //                     if( $img_lnk['name'] === 'Content-ID' || $img_lnk['name'] === 'Content-Id' || $img_lnk['name'] === 'X-Attachment-Id'){
-        //                         if ($match === str_replace('>', '', str_replace('<', '', $img_lnk->value)) 
-        //                                 || explode("@", $match)[0] === explode(".", $img_linked->filename)[0]
-        //                                 || explode("@", $match)[0] === $img_linked->filename){
-        //                             $search = "src=\"cid:$match\"";
-        //                             $mimetype = $img_linked->mimeType;
-        //                             $attachment = $gmail->users_messages_attachments->get('me', $mlist->id, $img_linked['body']->attachmentId);
-        //                             $data64 = strtr($attachment->getData(), array('-' => '+', '_' => '/'));
-        //                             $replace = "src=\"data:" . $mimetype . ";base64," . $data64 . "\"";
-        //                             $FOUND_BODY = str_replace($search, $replace, $FOUND_BODY);
-        //                         }
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-        // If we didn't find the body in the last parts, 
-        // let's loop for the first parts (text-html only)
-        if(!$FOUND_BODY) {
-            foreach ($parts  as $part) {
-                if($part['body'] && $part['mimeType'] === 'text/html') {
-                    $FOUND_BODY = $self->decodeBody($part['body']->data);
-                    break;
-                }
-            }
-        }
-        // With no attachment, the payload might be directly in the body, encoded.
-        if(!$FOUND_BODY) {
-            $FOUND_BODY = $self->decodeBody($body['data']);
-        }
-        // Last try: if we didn't find the body in the last parts, 
-        // let's loop for the first parts (text-plain only)
-        if(!$FOUND_BODY) {
-            foreach ($parts  as $part) {
-                if($part['body']) {
-                    $FOUND_BODY = $self->decodeBody($part['body']->data);
-                    break;
-                }
-            }
-        }
-        if(!$FOUND_BODY) {
-            $FOUND_BODY = '(No message)';
-        }
-        return $FOUND_BODY;
-    }
-
-    /*
-    https://stackoverflow.com/questions/32655874/cannot-get-the-body-of-email-with-gmail-php-api/34159661#34159661
-    * Decode the body.
-    * @param : encoded body  - or null
-    * @return : the body if found, else FALSE;
-    */
-    function decodeBody($body) {
-        $rawData = $body;
-        $sanitizedData = strtr($rawData,'-_', '+/');
-        $decodedMessage = base64_decode($sanitizedData);
-        if(!$decodedMessage){
-            $decodedMessage = FALSE;
-        }
-        return $decodedMessage;
     }
 }

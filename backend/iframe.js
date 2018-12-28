@@ -8,7 +8,7 @@ $(document).ready(function() {
     var data = e.data;
     var endpoint = data.endpoint;
     var credentials = data.credentials;
-    var mimeType = e.MIME || 'text/plain';
+    var mimeType = e.MIME || 'text/html'; // 'text/plain';
     // https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy#Changing_origin
     document.domain = data.domain; // not enough to allow partent to access iframe size...
 

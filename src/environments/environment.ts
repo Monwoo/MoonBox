@@ -11,13 +11,13 @@ export const environment = {
   // serverUrl: '/api',
   serverUrl: '/',
   moonBoxFrontendUrl: 'http://localhost:4200',
-  moonBoxFrontendDomain: 'localhost', // Do not put port, allowing all to have same null port....
+  moonBoxFrontendDomain: 'localhost',
   moonBoxBackendUrl: 'http://localhost:6901',
   moonBoxBackendDomain: 'localhost',
   moonBoxBackendBasePath: '/',
   defaultLanguage: 'fr-FR',
   supportedLanguages: ['fr-FR', 'en-US'],
-  clientSecret: '3ln7r4c0xz4fkck'
+  clientSecret: '8weadcf9w2yo4mk'
 };
 /*
  * For easier debugging in development mode, you can import the following file

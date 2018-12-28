@@ -221,6 +221,8 @@
 * http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#static-method-combineLatest
 * https://stackoverflow.com/questions/40587792/wait-for-a-promise-to-resolve-with-rxjs
 
+* https://stackoverflow.com/questions/32655874/cannot-get-the-body-of-email-with-gmail-php-api
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

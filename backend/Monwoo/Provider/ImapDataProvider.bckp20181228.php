@@ -816,36 +816,6 @@ class ImapDataProvider extends DataProvider
         }
         return $success;
     }
-    protected function getBodyFromMimeMsg($msg) {
-        $bodyText = null;
-        $bodyHTML = null;
-        $isTxtFormat = false;
-        foreach (new \RecursiveIteratorIterator($msg) as $part) {
-            try {
-                if (strtok($part->contentType, ';') == 'text/plain') {
-                    $txt = $part->getContent();
-                    if ($txt && $txt != '' && !$bodyText) {
-                        $isTxtFormat = true;
-                        $bodyText = $txt;
-                    }
-                }
-                if (strtok($part->contentType, ';') == 'text/html') {
-                    $bodyHTML = $part->getContent();
-                    if ($bodyHTML && $bodyHTML != '') break;
-                }
-            } catch (\Throwable $e) {
-                $app['log.review']->error("Fail to load message part"
-                , ['part' => $part, 'msg' => $msg]);
-            }
-        }
-        $body = $bodyHTML ?? $bodyText ?? '';
-        if ($isTxtFormat) {
-            $body = "<pre>$body</pre>";
-        }
-
-        return $body;
-    }
-
     protected function getBodyFromZendMsg($msg) {
         $bodyText = null;
         $bodyHTML = null;
@@ -875,7 +845,7 @@ class ImapDataProvider extends DataProvider
                 $body = "<pre>$body</pre>";
             }
         } else {
-            $body = $msg->getContent(); // TODO  : buggy for IMAP or not ? do not seem to have getContent method on zend mail imap class -> use getBodyFromMimeMsg ?
+            $body = $msg->getContent();
         }
 
         return $body;
