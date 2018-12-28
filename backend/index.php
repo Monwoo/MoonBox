@@ -6,6 +6,8 @@ require_once __DIR__ . '/vendor/autoload.php';
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RequestMatcher;
+use Symfony\Component\HttpKernel\Debug\TraceableEventDispatcher;
+use Symfony\Component\HttpKernel\DataCollector\LoggerDataCollector;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\HttpKernel\Log\Logger as ConsoleLogger;
@@ -16,7 +18,8 @@ use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Bridge\Monolog\Processor\DebugProcessor;
-use Monolog\Logger;
+use Symfony\Bridge\Monolog\Logger;
+// use Monolog\Logger;
 use Monolog\Handler as MH;
 use Bramus\Monolog\Formatter\ColoredLineFormatter;
 
@@ -247,7 +250,10 @@ $logLvl, true, 0644));
 // function_exists('xdebug_break') && \xdebug_break();
 
 if ($app['debug']) {
-    $app['logger']->pushProcessor(new DebugProcessor());
+    // TODO : https://symfony.com/blog/new-in-symfony-2-6-vardumper-component
+    // $handler = new MH\GroupHandler($app['monolog.handlers']);
+    // $app['log.review']->pushHandler($handler);
+    $app['log.review']->pushProcessor(new DebugProcessor());
     $app['consoleLogger'] = new ConsoleLogger(LogLevel::DEBUG);
 }
 $app['log.review']->debug("Backend {Action}", ['Action' => "Init"]);
@@ -443,6 +449,20 @@ if ($app['debug']) {
         $app->register(new Silex\Provider\HttpFragmentServiceProvider());
         $app->register(new Silex\Provider\TwigServiceProvider());
         $app->register(new Silex\Provider\WebProfilerServiceProvider());
+        // TODO : push monwoo reviews logs to profiler
+        // $app->extend('dispatcher', function ($dispatcher, $app) {
+        //     return new TraceableEventDispatcher($dispatcher, $app['stopwatch'], $app['log.review']);
+        // });
+        // $app->extend('data_collector.templates', function ($templates, $app) {
+        //     $templates[] = array('logreview', '@WebProfiler/Collector/logger.html.twig');
+        //     return $templates;
+        // });
+        // $collector = function ($app) { return new LoggerDataCollector($app['log.review']); };
+        // $app['profiler']->$add($collector($app));
+        //    $app->extend('data_collectors', function ($collectors, $app) {
+        //         $collectors['logreview'] = ;
+        //         return $collectors;
+        //     });
     }
 }
 
