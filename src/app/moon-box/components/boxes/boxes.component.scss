@@ -92,14 +92,15 @@
     // @extend .embed-responsive;
     // @extend .embed-responsive-16by9;
 
-    min-height: 350px;
-    max-height: 800px;
+    // min-height: 350px;
+    max-height: 480px;
+    overflow-y: scroll;
+    @include applyScrollbarTheming();
 
     .msg-iframe {
       // @extend .embed-responsive-item;
-      @include applyScrollbarTheming();
       width: 100%;
-      height: auto;
+      // height: auto; // DO not set height, will ovewrite js computed height if so...
     }
   }
 }

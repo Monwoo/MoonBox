@@ -73,14 +73,14 @@
 
   <div *ngFor="let messages of (msgs.service | async | keyvalue); let groupIndex = index" class="container-fluid">
     <mat-card class="row">
-      <div class="col-12 text-left" (click)="expandMessages($event, messages.key, groupIndex)">
+      <div class="col-12 text-left" (click)="expandMessages($event, messages.key, messages.key)">
         <strong>{{ messages.key }}</strong> ({{ messages.value.totalCount }})
         <!-- : not accurate enouth yet : /{{ messages.value.totalCount }}) -->
       </div>
-      <div class="col-12 text-md-left condensed" *ngIf="!isMsgsCondensed(groupIndex)">
+      <div class="col-12 text-md-left condensed" *ngIf="!isMsgsCondensed(messages.key)">
         <mat-card *ngFor="let msgKey of messages.value.sortedKey; let index = index" class="bs box-reader">
           <ng-template #boxContent let-msg="msg">
-            <mat-card-header (click)="expandMessage($event, msgKey, index)">
+            <mat-card-header (click)="expandMessage($event, msgKey, messages.key + msgKey)">
               <div mat-card-avatar>{{ msg.localTime }}</div>
               <mat-card-title>{{ msg.subject }}</mat-card-title>
               <mat-card-subtitle class="">
@@ -88,7 +88,7 @@
                 {{ msg.connectionUser }}
               </mat-card-subtitle>
             </mat-card-header>
-            <mat-card-content *ngIf="!(isMsgCondensed(index) || _isMsgCondensed)">
+            <mat-card-content *ngIf="!(isMsgCondensed(messages.key + msgKey) || _isMsgCondensed)">
               <span> {{ '[' + msg.expeditor + '] => ' + msg.to + ' | ' + msg.cc + ' | ' + msg.bcc }} </span>
               <ng-template #msgBody>
                 <div class="msg-wrapper condensable-lvl2" [innerHTML]="msg.iframeBody | safeHtml"></div>
