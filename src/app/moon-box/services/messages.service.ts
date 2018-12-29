@@ -88,6 +88,8 @@ export class MessagesService {
     this.suggestionDict = {};
     this.totalCount = 0;
     this.numResults = 0;
+    this.availability = {};
+    this.totalAvailable = 0;
     this.service.next(this.msgs);
   }
 }
