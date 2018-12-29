@@ -75,6 +75,21 @@ export class BoxesComponent implements OnInit {
   initialStickyOffset: number = 0;
   initialStickyHeight: number = 0;
 
+  @HostListener('document:click', ['$event'])
+  clickout(event: any) {
+    if (!this.isSticky) {
+      return; // ignoring in no sticky effect
+    }
+    if (this.filtersFormRef.nativeElement.contains(event.target)) {
+      // ok, inside sticky click
+    } else {
+      // if expanded, need to collapse :
+      if (this.haveExpandedFilters) {
+        this.toggleFilters();
+      }
+    }
+  }
+
   @HostListener('window:scroll', ['$event'])
   checkScroll() {
     if (this.innerWidth < this.size.md) {
@@ -318,9 +333,12 @@ export class BoxesComponent implements OnInit {
     await this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: number[]) => {}, this.errorHandler);
   }
 
+  haveExpandedFilters = false;
   toggleFilters() {
     //if (this.filtersForm.classList (this.filtersForm, 'src'))
-    if (this.filtersFormRef.nativeElement.classList.contains('condensed')) {
+    this.haveExpandedFilters = !this.haveExpandedFilters;
+    // this.filtersFormRef.nativeElement.classList.contains('condensed')
+    if (this.haveExpandedFilters) {
       this.renderer.removeClass(this.filtersFormRef.nativeElement, 'condensed');
     } else {
       this.renderer.addClass(this.filtersFormRef.nativeElement, 'condensed');

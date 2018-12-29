@@ -351,6 +351,7 @@ class GApiDataProvider extends ImapDataProvider
             if (count($connections) > 1) {
                 $app['log.review']->error("Algo not ready for multiples connections");
             }
+            $nextPage = null;
             foreach ($connections as $connectionName => $connection) {
                 try {
                     // Print the labels in the user's account.
@@ -402,7 +403,7 @@ class GApiDataProvider extends ImapDataProvider
                     && $localUser['periode']['fetchStartStr']) {
                         $startDate = \DateTime::createFromFormat('Y/m/d',
                         $localUser['periode']['fetchStartStr'])
-                        ->format('Y/M/d');
+                        ->format('Y/m/d');
                         $query .= "after:$startDate ";
                     }
                     if (isset($localUser['periode'])
@@ -410,7 +411,7 @@ class GApiDataProvider extends ImapDataProvider
                     && $localUser['periode']['fetchEndStr']) {
                         $endDate = \DateTime::createFromFormat('Y/m/d',
                         $localUser['periode']['fetchEndStr'])
-                        ->format('Y/M/d');
+                        ->format('Y/m/d');
                         $query .= "before:$endDate ";
                     }
                     if (isset($localUser['params'])
@@ -432,7 +433,7 @@ class GApiDataProvider extends ImapDataProvider
                         $query .= "-\{$keywords\} ";
                     }
                     if ("" !== $query) {
-                        $listQuery['pageToken'] = $query;
+                        $listQuery['q'] = $query;
                     }
 
                     $app['log.review']->debug("Gapi Query : ", $listQuery);
@@ -442,6 +443,7 @@ class GApiDataProvider extends ImapDataProvider
                     // https://github.com/googleapis/google-api-php-client-services/blob/a016ea7b6d47e1fd1f43d89ebd80059d4bfadb32/src/Google/Service/Gmail/Resource/UsersMessages.php
                     // https://github.com/googleapis/google-api-php-client-services/blob/a016ea7b6d47e1fd1f43d89ebd80059d4bfadb32/src/Google/Service/Gmail/ListMessagesResponse.php
                     $messages = $service->users_messages->listUsersMessages($user,$listQuery);
+                    $nextPage = $messages->getNextPageToken();
                     $list = $messages->getMessages();
                     // $messageId = $list[0]->getId(); // Grab first Message
                     if ("ASC" === $order_dir) { // + TODO : need to rewrite query ?? not used for v1.0.0 demo
@@ -601,7 +603,7 @@ class GApiDataProvider extends ImapDataProvider
                 // 'offsetStart' => $self->offsetStart,
                 'offsetLimit' => $self->offsetLimit,
                 'currentPage' => $page,
-                'nextPage' => $messages->getNextPageToken(),
+                'nextPage' => $nextPage,
                 // 'nextPage' => ($self->offsetStart + $numResults < $totalCount) ? $page + 1 : null,
             ]);
         } else if ('msg_body' === $action) { // TODO: why not protected by JWT ? Only by php session id for now...
