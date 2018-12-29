@@ -561,7 +561,11 @@ $ctlrs->match('/api/messages', function(Request $request) use ($app){
             'action' => 'submit_refresh',
             'param' => null,
             'username' => $request->get('username'),
-        ]), 'GET'/*$request->getMethod()*/, $payload/*$request->request->all()*/,
+        ]), 'GET'/*$request->getMethod()*/, array_merge(
+            $request->query->all(),
+            $request->request->all(),
+            $payload
+        )/*$request->request->all()*/,
         $request->cookies->all(), $request->files->all(),
         $request->server->all());
 

@@ -182,14 +182,6 @@ class GApiDataProvider extends ImapDataProvider
             ];
             $self->actionResponse = $app->json([
                 'status' => $status,
-                'numResults' => 0,
-                'msgsOrderedByDate' => [],
-                'msgsByMoonBoxGroup' => [],
-                'totalCount' => 0,
-                'offsetStart' => 0,
-                'offsetLimit' => 0,
-                'currentPage' => 0,
-                'nextPage' => 0,
             ]);
             return true;
         }
@@ -605,6 +597,7 @@ class GApiDataProvider extends ImapDataProvider
                 'msgsOrderedByDate' => $msgsOrderedByDate,
                 'msgsByMoonBoxGroup' => $msgsByMoonBoxGroup,
                 'totalCount' => $totalCount,
+                'dataUser' => $connection['username'],
                 // 'offsetStart' => $self->offsetStart,
                 'offsetLimit' => $self->offsetLimit,
                 'currentPage' => $page,

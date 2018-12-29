@@ -19,17 +19,19 @@
             mat-button
             color="primary"
             matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
-            (click)="loadNext($event)"
+            (click)="loadNext($event).subscribe()"
           >
-            <i class="fas fa-download"></i> {{ 'mb.box-reader.btn.LoadMore' | translate }}
+            <i class="fas fa-download"></i
+            ><!-- {{ 'mb.box-reader.btn.LoadMore' | translate }} -->
           </button>
           <button
             mat-button
             color="primary"
             matTooltip="{{'mb.box-reader.btn.Login.tooltip'|translate}}"
-            (click)="login($event)"
+            (click)="login($event).subscribe()"
           >
-            <i class="fas fa-envelope"></i> {{ 'mb.box-reader.btn.Login' | translate }}
+            <i class="fas fa-envelope"></i
+            ><!-- {{ 'mb.box-reader.btn.Login' | translate }} -->
           </button>
         </ng-container>
 
@@ -45,17 +47,19 @@
             mat-button
             color="primary"
             matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
-            (click)="loadNext($event)"
+            (click)="loadNext($event).subscribe()"
           >
-            <i class="fas fa-download"></i> {{ 'mb.box-reader.btn.LoadMore' | translate }}
+            <i class="fas fa-download"></i
+            ><!-- {{ 'mb.box-reader.btn.LoadMore' | translate }} -->
           </button>
           <button
             mat-button
             color="primary"
             matTooltip="{{'mb.box-reader.btn.Login.tooltip'|translate}}"
-            (click)="login($event)"
+            (click)="login($event).subscribe()"
           >
-            <i class="fas fa-envelope"></i> {{ 'mb.box-reader.btn.Login' | translate }}
+            <i class="fas fa-envelope"></i
+            ><!-- {{ 'mb.box-reader.btn.Login' | translate }} -->
           </button>
         </ng-container>
       </div>

@@ -20,8 +20,8 @@ import { DynamicFormArrayModel, DynamicFormLayout, DynamicFormService, validate 
 // import { LocalStorage } from '@ngx-pwa/local-storage';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { MessagesService } from '@moon-box/services/messages.service';
-import { debounceTime, delay, last, map, tap, startWith } from 'rxjs/operators';
-import { fromEvent, of, from } from 'rxjs';
+import { debounceTime, delay, last, map, tap, startWith, concatMap, catchError } from 'rxjs/operators';
+import { fromEvent, of, from, Observable } from 'rxjs';
 import { LocalStorage } from '@ngx-pwa/local-storage';
 
 import { shallowMerge } from '@moon-manager/tools';
@@ -31,6 +31,7 @@ import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { BoxReaderComponent } from '@moon-box/components/box-reader/box-reader.component';
 import { Logger } from '@app/core/logger.service';
+import { LoadingLoaderService } from '@moon-manager/services/loading-loader.service';
 const logReview = new Logger('MonwooReview');
 
 import * as moment from 'moment';
@@ -138,7 +139,8 @@ export class BoxesComponent implements OnInit {
     private notif: NotificationsService,
     public eltRef: ViewContainerRef,
     private rendererFactory: RendererFactory2,
-    public msgs: MessagesService
+    public msgs: MessagesService,
+    private ll: LoadingLoaderService
   ) {
     // Quick hack, since host listener to gets debug, TODO : HostListener bad usage to fix ?
     window.addEventListener('message', (e: any) => this.htmlMsgListener(e));
@@ -399,15 +401,55 @@ export class BoxesComponent implements OnInit {
     this.formService.removeFormArrayGroup(index, this.mbegKeyTransformerControl, context);
   }
 
-  login(event: any) {
-    this.boxViews.forEach((box: BoxReaderComponent) => {
-      box.login(event);
-    });
+  login(e: any) {
+    // this.boxViews.forEach((box: BoxReaderComponent) => {
+    //   box.login(event);
+    // });
+    this.ll.requireLoadingLock(); // TODO : add services to listen to time outed lock ? => cancelling all current tasks if loading lock did time out ?
+    logReview.debug('Sarting multi-login');
+
+    return from(this.boxViews.toArray())
+      .pipe(
+        concatMap((box: BoxReaderComponent, idx) => {
+          return box.login(e);
+        })
+      )
+      .pipe(
+        tap(loadedBoxes => {
+          logReview.debug('Did login for all boxes', loadedBoxes);
+          this.ll.releaseLoadingLock();
+        }),
+        catchError((e, c) => {
+          this.ll.releaseLoadingLock();
+          throw e;
+        })
+      );
   }
   loadNext(e: any) {
-    this.boxViews.forEach((box: BoxReaderComponent) => {
-      box.loadNext(e);
-    });
+    // this.boxViews.forEach((box: BoxReaderComponent) => {
+    //   box.loadNext(e);
+    // });
+    this.ll.requireLoadingLock(); // TODO : add services to listen to time outed lock ? => cancelling all current tasks if loading lock did time out ?
+    logReview.debug('Sarting multi-next queries');
+
+    // TODO : may have buggy conception design : seem to loop infinitly on errors....
+
+    return from(this.boxViews.toArray())
+      .pipe(
+        concatMap((box: BoxReaderComponent, idx) => {
+          return box.loadNext(e);
+        })
+      )
+      .pipe(
+        tap(loadedMessages => {
+          logReview.debug('Did fetch next messages for all boxes', loadedMessages);
+          this.ll.releaseLoadingLock();
+        }),
+        catchError((e, c) => {
+          this.ll.releaseLoadingLock();
+          throw e;
+        })
+      );
   }
   expandBoxesConfigs = true;
   toggleBoxesConfigs(e: any) {

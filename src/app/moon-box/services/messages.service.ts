@@ -24,6 +24,8 @@ export class MessagesService {
   public service: BehaviorSubject<MsgsStateType> = new BehaviorSubject(this.msgs);
   public numResults: number = 0;
   public totalCount: number = 0;
+  public availability: {} = {};
+  public totalAvailable: number = 0; // Counting availables next pages for all connected data users
   private suggestionDict = {};
   // public _srcSuggestions: BehaviorSubject<string[]> = new BehaviorSubject(Object.keys(this.suggestionDict));
   public async srcSuggestions() {
@@ -33,6 +35,8 @@ export class MessagesService {
 
   pushMessages(messages: any) {
     let alreadyCounted = 0;
+    this.availability[messages.dataUser] = messages.nextPage ? 1 : 0;
+
     messages.msgsOrderedByDate.forEach((msg: any) => {
       if (!this.msgs[msg.moonBoxGroup]) {
         this.msgs[msg.moonBoxGroup] = {
@@ -70,6 +74,10 @@ export class MessagesService {
       msg.sortedKey = Object.keys(msg.data)
         .sort()
         .reverse();
+    });
+    this.totalAvailable = 0;
+    Object.keys(this.availability).forEach((k: string) => {
+      this.totalAvailable += this.availability[k];
     });
     // this.srcSuggestions.next(Object.keys(this.suggestionDict));
     this.service.next(this.msgs);

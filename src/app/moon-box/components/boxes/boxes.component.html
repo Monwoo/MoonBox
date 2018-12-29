@@ -3,7 +3,30 @@
     <div class="global-count">{{ msgs.numResults }} / {{ msgs.totalCount }}</div>
 
     <form *ngIf="filters" class="condensed" [formGroup]="filters.group" #filtersFormRef #filtersForm="ngForm">
-      <button mat-button color="primary" type="button" (click)="toggleFilters($event)">...</button>
+      <div class="row">
+        <div class="col-3 text-md-left">
+          <button mat-button color="primary" type="button" (click)="toggleFilters($event)">...</button>
+        </div>
+        <div class="col text-md-right mr-5">
+          <button
+            mat-button
+            *ngIf="msgs.totalAvailable"
+            color="primary"
+            matTooltip="{{'mb.boxes.btn.LoadMore.tooltip'|translate}}"
+            (click)="loadNext($event).subscribe()"
+          >
+            <i class="fas fa-download"></i>
+          </button>
+          <button
+            mat-button
+            color="primary"
+            matTooltip="{{'mb.boxes.btn.Login.tooltip'|translate}}"
+            (click)="login($event).subscribe()"
+          >
+            <i class="fas fa-envelope"></i>
+          </button>
+        </div>
+      </div>
       <dynamic-material-form
         [group]="filters.group"
         [model]="filters.model"
@@ -22,26 +45,7 @@
         -->
         <ng-template modelId="fetchEnd">
           <!-- <pre>{{  index  | json }}</pre> -->
-          <!--
-            TODO v1.0.1 : allow all actions in one stickable place :
-            <button
-              mat-button
-              color="primary"
-              matTooltip="{{'mb.boxes.btn.Login.tooltip'|translate}}"
-              (click)="login($event)"
-            >
-              <i class="fas fa-envelope"></i> {{ 'mb.boxes.btn.Login' | translate }}
-            </button>
-            <button
-              mat-button
-              *ngIf="msgs.numResults !== msgs.totalCount"
-              color="primary"
-              matTooltip="{{'mb.boxes.btn.LoadMore.tooltip'|translate}}"
-              (click)="loadNext($event)"
-            >
-              <i class="fas fa-download"></i> {{ 'mb.boxes.btn.LoadMore' | translate }}
-            </button>
-          -->
+          <!-- TODO v1.0.1 : allow all actions in one stickable place : -->
         </ng-template>
 
         <ng-template modelId="mbegKeyTransformer" let-context="context" let-index="index">

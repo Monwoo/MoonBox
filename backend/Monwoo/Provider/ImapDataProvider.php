@@ -411,14 +411,6 @@ class ImapDataProvider extends DataProvider
             ];
             $self->actionResponse = $app->json([
                 'status' => $status,
-                'numResults' => 0,
-                'msgsOrderedByDate' => [],
-                'msgsByMoonBoxGroup' => [],
-                'totalCount' => 0,
-                'offsetStart' => 0,
-                'offsetLimit' => 0,
-                'currentPage' => 0,
-                'nextPage' => 0,
             ]);
             return true;
         }
@@ -444,8 +436,8 @@ class ImapDataProvider extends DataProvider
         $self->context['dataProvider'] = $self;
         $order_by = $request->get('order_by') ?: 'time'; // TODO : use it ? no way on ids for now...
         $order_dir = $request->get('order_dir') == 'DESC' ? 'DESC' : 'ASC';
-        $limit = (int)($request->get('limit') ?: 20);
-        $page = (int)($request->get('page') ?: 1);
+        $limit = intval($request->get('limit') ?: 20);
+        $page = intval($request->get('page') ?: 1);
         $offset = ($page - 1) * $limit;
         $self->offsetStart = $offset;
         $self->offsetLimit = $limit;
@@ -738,6 +730,7 @@ class ImapDataProvider extends DataProvider
                 'msgsOrderedByDate' => $msgsOrderedByDate,
                 'msgsByMoonBoxGroup' => $msgsByMoonBoxGroup,
                 'totalCount' => $totalCount,
+                'dataUser' => $connection['username'],
                 'offsetStart' => $self->offsetStart,
                 'offsetLimit' => $self->offsetLimit,
                 'currentPage' => $page,
@@ -778,14 +771,6 @@ class ImapDataProvider extends DataProvider
                     ];
                     $self->actionResponse = $app->json([
                         'status' => $status,
-                        'numResults' => 0,
-                        'msgsOrderedByDate' => [],
-                        'msgsByMoonBoxGroup' => [],
-                        'totalCount' => 0,
-                        'offsetStart' => 0,
-                        'offsetLimit' => 0,
-                        'currentPage' => 0,
-                        'nextPage' => 0,
                     ]);
                     return true;        
                 }

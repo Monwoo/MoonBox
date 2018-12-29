@@ -27,8 +27,8 @@ import { FormType, FORM_LAYOUT, formModel, formDefaults } from './login-form.mod
 import { NotificationsService } from 'angular2-notifications';
 import { extract } from '@app/core';
 import { FormType as FiltersFormType } from '@moon-box/components/boxes/filters-form.model';
-import { debounceTime, delay, last, map, tap, startWith } from 'rxjs/operators';
-import { fromEvent, of, from } from 'rxjs';
+import { debounceTime, delay, last, map, tap, startWith, catchError } from 'rxjs/operators';
+import { fromEvent, of, from, Observable } from 'rxjs';
 import * as moment from 'moment';
 
 import { Logger } from '@app/core/logger.service';
@@ -156,6 +156,11 @@ export class BoxReaderComponent implements OnInit {
     logReview.warn('BoxReader error', err);
   }
 
+  errorCatchor(err: any, caught: Observable<{}>) {
+    logReview.warn('BoxReader error', err);
+    return caught;
+  }
+
   ngOnInit() {
     // const imapProvider = this.imapProviders[this.defaultProvider];
     const ctx = {};
@@ -218,10 +223,10 @@ export class BoxReaderComponent implements OnInit {
   }
 
   readMessages(page = 1) {
+    let resp: Observable<any> = null;
     if (this.formGroup) {
-      this.backend
-        .fetchMsg(this.loginData.selectedProvider, this.formGroup.value._username, page)
-        .subscribe((messages: any) => {
+      resp = this.backend.fetchMsg(this.loginData.selectedProvider, this.formGroup.value._username, page).pipe(
+        tap((messages: any) => {
           if (!messages.status || messages.status.errors.length) {
             logReview.warn('BoxReader fetch errors ', messages.status ? messages.status.errors : messages);
             if (
@@ -246,17 +251,22 @@ export class BoxReaderComponent implements OnInit {
               });
             }
           } else {
-            this.hasMoreMsgs = messages.numResults !== messages.totalCount; // TODO : pagination etc...
+            this.hasMoreMsgs = messages.nextPage; //messages.numResults !== messages.totalCount; // TODO : pagination etc...
             // TODO : better data structure to auto fix multiple reads of same page issue...
             this.messages = shallowMerge(1, this.messages, messages);
             logReview.debug('BoxReader did fetch msgs ', this.messages);
             this.msgs.pushMessages(messages);
             this.updateIFrames();
           }
-        }, this.errorHandler);
+        }),
+        catchError(this.errorCatchor)
+      );
     } else {
       logReview.warn('Algo issue, trying to read msg when form is not yet ready');
+      // resp = TODO err ?
+      throw 'Algo issue';
     }
+    return resp;
   }
 
   isProcessingIFrames = false;
@@ -313,6 +323,7 @@ export class BoxReaderComponent implements OnInit {
 
   login(event: any) {
     const val: FormType = this.loginForm.form.value;
+    let resp: Observable<any> = null;
     // Nghost event not already detected ? TODO : avoid quick fix below :
     this.onSubmit(event);
     if (this.loginForm.form.valid) {
@@ -357,11 +368,12 @@ export class BoxReaderComponent implements OnInit {
         ? moment(this.loginData.periode.fetchEnd).format('YYYY/MM/DD')
         : null;
 
-      this.backend.login(this.loginData).subscribe(() => {
-        logReview.debug('User is logged in');
-
-        this.readMessages();
-      });
+      resp = this.backend.login(this.loginData).pipe(
+        map(() => {
+          logReview.debug('User is logged in');
+          return this.readMessages().subscribe();
+        })
+      );
     } else {
       this.i18nService
         .get(extract('mb.box-reader.login.formNotValid'), {
@@ -370,15 +382,22 @@ export class BoxReaderComponent implements OnInit {
         .subscribe(t => {
           this.notif.error('', t);
         });
+      // resp = error ?
+      throw 'Form not valid';
     }
+    return resp;
   }
   loadNext(e: any) {
-    // TODO: paginantion
-    if (this.messages) {
-      this.readMessages(this.messages.nextPage);
+    let resp: Observable<BoxReaderComponent> = null;
+    if (this.messages && this.messages.nextPage) {
+      resp = this.readMessages(this.messages.nextPage);
     } else {
-      logReview.debug('Trying to load next page of : ', this.id);
+      logReview.debug('No next page for : ', this.id);
+      // resp = TODO error ?
+      // throw 'No next page for : ' + this.id;
+      resp = of(this); // No error, load next may be requested even if no load next needed...
     }
+    return resp;
   }
   // Avoid below : better to let Collection handle the position etc...
   // => keep design at component level Max possible VS Quicks needs for current sprint
