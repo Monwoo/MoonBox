@@ -59,17 +59,21 @@
     </form>
   </mat-card>
 
-  <ng-container *ngFor="let idx of boxesIdxs">
-    <ng-template #extendedActions let-boxId="boxId">
-      <button class="" mat-button color="primary" type="button" (click)="removeBox($event, idx)">
-        {{ 'Déconnecter la boite' | translate }}
-      </button>
-    </ng-template>
-    <moon-box-reader [id]="idx" [filters]="filters.group.value" [extendedActions]="extendedActions"> </moon-box-reader>
+  <button mat-button color="primary" type="button" (click)="toggleBoxesConfigs($event)">...</button>
+  <ng-container *ngIf="expandBoxesConfigs">
+    <ng-container *ngFor="let idx of boxesIdxs">
+      <ng-template #extendedActions let-boxId="boxId">
+        <button class="" mat-button color="primary" type="button" (click)="removeBox($event, idx)">
+          {{ 'Déconnecter la boite' | translate }}
+        </button>
+      </ng-template>
+      <moon-box-reader [id]="idx" [filters]="filters.group.value" [extendedActions]="extendedActions">
+      </moon-box-reader>
+    </ng-container>
+    <button class="" mat-button color="primary" type="button" (click)="addBox()">
+      {{ 'Ajouter une boite' | translate }}
+    </button>
   </ng-container>
-  <button class="" mat-button color="primary" type="button" (click)="addBox()">
-    {{ 'Ajouter une boite' | translate }}
-  </button>
 
   <div *ngFor="let messages of (msgs.service | async | keyvalue); let groupIndex = index" class="container-fluid">
     <mat-card class="row">

@@ -394,6 +394,11 @@ export class BoxesComponent implements OnInit {
       box.loadNext(e);
     });
   }
+  expandBoxesConfigs = true;
+  toggleBoxesConfigs(e: any) {
+    this.expandBoxesConfigs = !this.expandBoxesConfigs;
+  }
+
   msgsOpenedIdx = {};
   expandMessages(e: any, k: string, idx: number) {
     if (this.isMsgsCondensed(idx)) {

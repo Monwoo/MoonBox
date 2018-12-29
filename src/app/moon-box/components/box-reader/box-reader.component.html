@@ -3,36 +3,61 @@
 <div class="bs box-reader condensed" #eltRef>
   <div class="container-fluid">
     <mat-card class="row">
-      <div class="col-9 text-left" (click)="toggleConfigs()">
+      <div class="col text-left" (click)="toggleConfigs()">
         <strong>{{ formGroup?.value._username }}</strong> ({{ this.messages?.numResults }}/{{
           this.messages?.totalCount
         }})
       </div>
-      <div class="col-3 text-right config-toggler-wrapper">
+      <div class="col text-right config-toggler-wrapper">
+        <ng-container *ngIf="!(isScreenSmall$ | async)">
+          <!-- TODO : remove code duplication using template ? -->
+          <ng-container
+            *ngTemplateOutlet="extendedActions ? extendedActions : defaultExtendedActions; context: ctx"
+          ></ng-container>
+          <button
+            *ngIf="hasMoreMsgs"
+            mat-button
+            color="primary"
+            matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
+            (click)="loadNext($event)"
+          >
+            <i class="fas fa-download"></i> {{ 'mb.box-reader.btn.LoadMore' | translate }}
+          </button>
+          <button
+            mat-button
+            color="primary"
+            matTooltip="{{'mb.box-reader.btn.Login.tooltip'|translate}}"
+            (click)="login($event)"
+          >
+            <i class="fas fa-envelope"></i> {{ 'mb.box-reader.btn.Login' | translate }}
+          </button>
+        </ng-container>
+
         <button mat-button color="primary" type="button" (click)="toggleConfigs()">...</button>
       </div>
       <div class="col-12 text-md-right">
-        <ng-container
-          *ngTemplateOutlet="extendedActions ? extendedActions : defaultExtendedActions; context: ctx"
-        ></ng-container>
-
-        <button
-          *ngIf="hasMoreMsgs"
-          mat-button
-          color="primary"
-          matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
-          (click)="loadNext($event)"
-        >
-          <i class="fas fa-download"></i> {{ 'mb.box-reader.btn.LoadMore' | translate }}
-        </button>
-        <button
-          mat-button
-          color="primary"
-          matTooltip="{{'mb.box-reader.btn.Login.tooltip'|translate}}"
-          (click)="login($event)"
-        >
-          <i class="fas fa-envelope"></i> {{ 'mb.box-reader.btn.Login' | translate }}
-        </button>
+        <ng-container *ngIf="(isScreenSmall$ | async)">
+          <ng-container
+            *ngTemplateOutlet="extendedActions ? extendedActions : defaultExtendedActions; context: ctx"
+          ></ng-container>
+          <button
+            *ngIf="hasMoreMsgs"
+            mat-button
+            color="primary"
+            matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
+            (click)="loadNext($event)"
+          >
+            <i class="fas fa-download"></i> {{ 'mb.box-reader.btn.LoadMore' | translate }}
+          </button>
+          <button
+            mat-button
+            color="primary"
+            matTooltip="{{'mb.box-reader.btn.Login.tooltip'|translate}}"
+            (click)="login($event)"
+          >
+            <i class="fas fa-envelope"></i> {{ 'mb.box-reader.btn.Login' | translate }}
+          </button>
+        </ng-container>
       </div>
       <div class="col-12 col-md-6 text-md-left condensable">
         <mat-form-field class="float-right">
