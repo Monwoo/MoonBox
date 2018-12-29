@@ -159,6 +159,7 @@ export class BoxReaderComponent implements OnInit {
   errorCatchor(err: any, caught: Observable<{}>) {
     logReview.warn('BoxReader error', err);
     throw caught;
+    return caught; // will not be called, just to avoid type script lint error...
   }
 
   ngOnInit() {

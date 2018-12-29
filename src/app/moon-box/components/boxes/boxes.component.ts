@@ -20,8 +20,8 @@ import { DynamicFormArrayModel, DynamicFormLayout, DynamicFormService, validate 
 // import { LocalStorage } from '@ngx-pwa/local-storage';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { MessagesService } from '@moon-box/services/messages.service';
-import { debounceTime, delay, last, map, tap, startWith, concatMap, catchError } from 'rxjs/operators';
-import { fromEvent, of, from, Observable } from 'rxjs';
+import { debounceTime, delay, last, map, tap, startWith, concatMap, catchError, share } from 'rxjs/operators';
+import { fromEvent, of, from, BehaviorSubject, Subject } from 'rxjs';
 import { LocalStorage, JSONSchemaBoolean } from '@ngx-pwa/local-storage';
 
 import { shallowMerge } from '@moon-manager/tools';
@@ -437,22 +437,19 @@ export class BoxesComponent implements OnInit {
     this.ll.requireLoadingLock(); // TODO : add services to listen to time outed lock ? => cancelling all current tasks if loading lock did time out ?
     logReview.debug('Sarting multi-login');
 
-    return from(this.boxViews.toArray())
-      .pipe(
-        concatMap((box: BoxReaderComponent, idx) => {
-          return box.login(e);
-        })
-      )
-      .pipe(
-        tap(loadedBoxes => {
-          logReview.debug('Did login for all boxes', loadedBoxes);
-          this.ll.releaseLoadingLock();
-        }),
-        catchError((e, c) => {
-          this.ll.releaseLoadingLock();
-          throw e;
-        })
-      );
+    return from(this.boxViews.toArray()).pipe(
+      concatMap((box: BoxReaderComponent, idx) => {
+        return box.login(e);
+      }),
+      tap(loadedBoxes => {
+        logReview.debug('Did login for all boxes', loadedBoxes);
+        this.ll.releaseLoadingLock();
+      }),
+      catchError((e, c) => {
+        this.ll.releaseLoadingLock();
+        throw e;
+      })
+    );
   }
   loadNext(e: any) {
     // this.boxViews.forEach((box: BoxReaderComponent) => {
@@ -487,33 +484,57 @@ export class BoxesComponent implements OnInit {
   }
 
   msgsOpenedIdx = {};
-  expandMessages(e: any, k: string, idx: number) {
-    if (this.isMsgsCondensed(idx)) {
-      this.msgsOpenedIdx[idx] = true;
+  expandMessages(e: any, moonBoxGroup: string) {
+    if ((this.msgsOpenedIdx[moonBoxGroup] || { isOpen: false }).isOpen) {
+      this.isMsgsCondensedEmitter.get(moonBoxGroup).next(true);
+      this.msgsOpenedIdx[moonBoxGroup] = { isOpen: false };
+      // clean sub expands on main group click by condensing all sub children:
+      this.isMsgCondensedEmitter[moonBoxGroup].forEach((v: BehaviorSubject<boolean>, k: string) => {
+        v.next(true);
+      });
+      this.msgsOpenedIdx[moonBoxGroup].msgOpenedIdx = {}; // TODO : algo issue ? not set for expandMessage, had to failback...
     } else {
-      this.msgsOpenedIdx[idx] = false;
+      this.isMsgsCondensedEmitter.get(moonBoxGroup).next(false);
+      this.msgsOpenedIdx[moonBoxGroup] = { isOpen: true };
     }
   }
-  _isMsgsCondensed = true;
-  isMsgsCondensed(idx: number) {
-    this._isMsgsCondensed = !this.msgsOpenedIdx[idx];
-    return this._isMsgsCondensed;
+  isMsgsCondensedEmitter = new Map(); //  = new BehaviorSubject<boolean>(true); // new Subject<boolean>(); //
+  isMsgsCondensed(moonBoxGroup: string) {
+    // const _isMsgsCondensed = !(this.msgsOpenedIdx[moonBoxGroup] || { isOpen : false }).isOpen;
+    if (!this.isMsgsCondensedEmitter.has(moonBoxGroup)) {
+      this.isMsgsCondensedEmitter.set(moonBoxGroup, new BehaviorSubject<boolean>(true));
+    }
+    // https://coryrylan.com/blog/angular-async-data-binding-with-ng-if-and-ng-else
+    return this.isMsgsCondensedEmitter.get(moonBoxGroup).pipe(share());
   }
-  msgOpenedIdx = {};
-  expandMessage(e: any, k: string, idx: number) {
-    if (this.isMsgCondensed(idx)) {
-      this.msgOpenedIdx[idx] = true;
+  async expandMessage(e: any, moonBoxGroup: string, msgIdx: string) {
+    // const msgKey = moonBoxGroup + msgIdx;
+    this.msgsOpenedIdx[moonBoxGroup] = { ...{ msgOpenedIdx: {} }, ...this.msgsOpenedIdx[moonBoxGroup] };
+    if (this.msgsOpenedIdx[moonBoxGroup].msgOpenedIdx[msgIdx]) {
+      this.msgsOpenedIdx[moonBoxGroup].msgOpenedIdx[msgIdx] = false;
+      this.isMsgCondensedEmitter[moonBoxGroup].get(msgIdx).next(true);
+    } else {
+      this.msgsOpenedIdx[moonBoxGroup].msgOpenedIdx[msgIdx] = true;
+      this.isMsgCondensedEmitter[moonBoxGroup].get(msgIdx).next(false);
       // TODO : refactor to put iframe refresh in backend service; ok for now :
       // this.boxViews.first.updateIFrames();
       this.updateIFrames();
-    } else {
-      this.msgOpenedIdx[idx] = false;
     }
   }
   _isMsgCondensed = true;
-  isMsgCondensed(idx: number) {
-    this._isMsgCondensed = !this.msgOpenedIdx[idx];
-    return this._isMsgCondensed;
+  isMsgCondensedEmitter: Map<string, BehaviorSubject<boolean>>[] = []; // new BehaviorSubject<boolean>(this._isMsgCondensed); // new Subject<boolean>(); //
+  isMsgCondensed(moonBoxGroup: string, msgIdx: string) {
+    // const msgKey = moonBoxGroup + msgIdx;
+    if (!this.isMsgCondensedEmitter[moonBoxGroup]) {
+      this.isMsgCondensedEmitter[moonBoxGroup] = new Map();
+    }
+    // this._isMsgCondensed = !(this.msgsOpenedIdx[dataUsername] || { msgOpenedIdx : {} }).msgOpenedIdx[msgIdx];
+    // https://coryrylan.com/blog/angular-async-data-binding-with-ng-if-and-ng-else
+    if (!this.isMsgCondensedEmitter[moonBoxGroup].has(msgIdx)) {
+      this.isMsgCondensedEmitter[moonBoxGroup].set(msgIdx, new BehaviorSubject<boolean>(true));
+    }
+    return this.isMsgCondensedEmitter[moonBoxGroup].get(msgIdx).pipe(share());
+    // return of(this._isMsgCondensed);
   }
 
   @HostListener('window:message', ['$event'])
