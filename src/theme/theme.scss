@@ -11,4 +11,27 @@
 
 body {
   @include applyScrollbarTheming();
+
+  // also did add tabindex='-1' in body tag to avoid first tab on body tag
+  * {
+    &:focus {
+      /* knowledge from CVVideo
+        border: $focus-border-size solid $scrollThumbColor !important;
+        opacity: 1 !important;
+        // Below way : have to compensate removed style size by ajusting negative
+        // margin accordingly per element focuassable....
+        // ===> TOO much work to do, will try transparent default border instead
+        // But same trouble => must do all one by one... or use other highlight ways...
+        margin: -$focus-border-size !important;
+        outline: none !important;
+        outline-style: none !important;
+        -webkit-box-shadow: none !important;
+        box-shadow: none !important;
+      */
+      // outline: 1px auto $scrollThumbColor !important;
+      outline: 1px auto $monwooPrimary !important;
+    }
+    &:focus-within {
+    }
+  }
 }
