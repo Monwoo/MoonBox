@@ -3,7 +3,7 @@
 <div class="bs box-reader condensed" #eltRef>
   <div class="container-fluid">
     <mat-card class="row">
-      <div class="col text-left" (click)="toggleConfigs()">
+      <div class="col text-left expand-trigger" (click)="toggleConfigs()">
         <strong>{{ formGroup?.value._username }}</strong> ({{ this.messages?.numResults }}/{{
           this.messages?.totalCount
         }})
@@ -65,10 +65,15 @@
       </div>
       <div class="col-12 col-md-6 text-md-left condensable">
         <mat-form-field class="float-right">
-          <mat-select placeholder="{{'mb.box-reader.provider.plhdr'|translate}}" [value]="loginData.selectedProvider">
+          <mat-icon matSuffix>sentiment_very_satisfied</mat-icon>
+          <mat-select
+            (selectionChange)="selectProvider(loginData.selectedProvider)"
+            placeholder="{{'mb.box-reader.provider.plhdr'|translate}}"
+            [(ngModel)]="loginData.selectedProvider"
+          >
             <mat-option
+              class="expand-trigger"
               *ngFor="let idx of (backend.providers | keyvalue); let i = index"
-              (click)="selectProvider(idx.key)"
               [value]="idx.key"
             >
               {{ idx.value.name | translate }}
@@ -79,14 +84,21 @@
       <div class="col-12 col-md-6 text-md-left condensable">
         <form *ngIf="formGroup" [formGroup]="formGroup" #loginForm="ngForm">
           <dynamic-material-form [group]="formGroup" [model]="formModel" [layout]="formLayout">
+            <ng-template modelId="_username">
+              <!--
+                https://material.angular.io/components/form-field/overview
+                https://material.angular.io/components/icon/overview
+                <mat-icon matSuffix>sentiment_very_satisfied</mat-icon>
+              -->
+            </ng-template>
             <!--
-              ng-template modelId="_password">
+              <ng-template modelId="_password">
                   <show-hide-password size="lg" icon="entypo" btnStyle="primary" [btnOutline]="false">
                     <ng-content></ng-content>
                     <ng-container *ngTemplateOutlet="_password"></ng-container>
 
                   </show-hide-password>
-              </ng-template
+              </ng-template>
             -->
           </dynamic-material-form>
         </form>

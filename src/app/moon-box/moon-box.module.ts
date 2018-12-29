@@ -13,6 +13,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { CalendarModule, DateAdapter } from 'angular-calendar';
 import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
+import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
@@ -61,6 +62,7 @@ import { DropzoneModule } from 'ngx-dropzone-wrapper';
     DropzoneModule,
     FormsModule,
     ReactiveFormsModule,
+    MatIconModule,
     MatButtonModule,
     MatCheckboxModule,
     MatTooltipModule,

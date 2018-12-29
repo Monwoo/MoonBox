@@ -62,6 +62,11 @@ export class BackendService {
       serverUrl: 'imap.mail.yahoo.com',
       serverPort: '993'
     },
+    Hotmail: {
+      name: extract('Hotmail'),
+      serverUrl: 'imap-mail.outlook.com',
+      serverPort: '993'
+    },
     Unknown: {
       name: extract('Unknown'),
       serverUrl: '',

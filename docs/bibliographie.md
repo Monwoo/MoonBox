@@ -223,11 +223,17 @@
 
 * https://stackoverflow.com/questions/32655874/cannot-get-the-body-of-email-with-gmail-php-api
 
+* https://toddmotto.com/ng-class-angular-classes
+* https://stackoverflow.com/questions/46962322/angular-material-datepicker-get-value-on-change
+* https://material.angular.io/components/input/overview
+* https://material.angular.io/components/form-field/overview
+* https://www.limilabs.com/blog/hotmail-imap-pop3-smtp-settings
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
 yarn add @auth0/angular-jwt secure-ls ionic-simple-lockscreen
-yarn add ngx-cookie-service
+yarn add ngx-cookie-service material-design-icons
 
 # experimental : try to combine with ionic :
 yarn add ionic-simple-lockscreen ionic-angular rxjs-compat

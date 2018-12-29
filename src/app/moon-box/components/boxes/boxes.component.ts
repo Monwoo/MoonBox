@@ -22,7 +22,7 @@ import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { MessagesService } from '@moon-box/services/messages.service';
 import { debounceTime, delay, last, map, tap, startWith, concatMap, catchError } from 'rxjs/operators';
 import { fromEvent, of, from, Observable } from 'rxjs';
-import { LocalStorage } from '@ngx-pwa/local-storage';
+import { LocalStorage, JSONSchemaBoolean } from '@ngx-pwa/local-storage';
 
 import { shallowMerge } from '@moon-manager/tools';
 import { NotificationsService } from 'angular2-notifications';
@@ -151,6 +151,17 @@ export class BoxesComponent implements OnInit {
     document.domain = environment.moonBoxFrontendDomain;
 
     (async () => {
+      // http://json-schema.org/latest/json-schema-validation.html
+      //
+      const storageExpandBoxesConfigs = <boolean>await this.localStorage
+        .getItem<boolean>('expand-boxes-configs', <JSONSchemaBoolean>{
+          type: 'boolean',
+          default: this.expandBoxesConfigs // TODO : why not using default if storage not found ??
+        })
+        .toPromise();
+      this.expandBoxesConfigs =
+        null === storageExpandBoxesConfigs ? this.expandBoxesConfigs : storageExpandBoxesConfigs;
+
       this.filters = await contextDefaults(this);
       this.updateForm();
       this.msgs.service.subscribe(messages => {
@@ -454,6 +465,7 @@ export class BoxesComponent implements OnInit {
   expandBoxesConfigs = true;
   toggleBoxesConfigs(e: any) {
     this.expandBoxesConfigs = !this.expandBoxesConfigs;
+    return this.localStorage.setItem('expand-boxes-configs', this.expandBoxesConfigs);
   }
 
   msgsOpenedIdx = {};

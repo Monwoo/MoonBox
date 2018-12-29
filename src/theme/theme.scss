@@ -34,4 +34,12 @@ body {
     &:focus-within {
     }
   }
+
+  .expand-trigger {
+    &:hover,
+    &:focus {
+      outline: 1px auto $monwooPrimary !important;
+      cursor: pointer;
+    }
+  }
 }
