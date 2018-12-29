@@ -7,10 +7,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RequestMatcher;
 use Symfony\Component\HttpKernel\Debug\TraceableEventDispatcher;
-use Symfony\Component\HttpKernel\DataCollector\LoggerDataCollector;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\HttpKernel\Log\Logger as ConsoleLogger;
+use Symfony\Component\HttpKernel\DataCollector\LoggerDataCollector;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\User\InMemoryUserProvider;
 use Symfony\Component\Security\Core\User\User;
@@ -19,14 +19,19 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Bridge\Monolog\Processor\DebugProcessor;
 use Symfony\Bridge\Monolog\Logger;
+use Symfony\Bundle\WebProfilerBundle\Controller\ProfilerController;
 // use Monolog\Logger;
 use Monolog\Handler as MH;
 use Bramus\Monolog\Formatter\ColoredLineFormatter;
+use Pimple\Container;
+use Pimple\ServiceProviderInterface;
+// use Silex\Api\BootableProviderInterface;
 
 use Psr\Log\LogLevel;
 use \Ds\Vector;
 
 use Monwoo\Middleware\AddingCors;
+use Monwoo\DataCollector\MoonBoxLogDataCollector;
 
 $root_dir = $root_dir ?? __DIR__;
 require_once __DIR__ . '/config.php';
@@ -54,7 +59,7 @@ $app = new class([
     'frontEndBaseUrl' => $config['frontEndBaseUrl'],
     'frontEndDomain' => $config['frontEndDomain'],
     'prodDebug' => $prodDebug,
-    'log.review' => new class($config['loggerName']) extends \Monolog\Logger {
+    'log.review' => new class($config['loggerName']) extends \Symfony\Bridge\Monolog\Logger { // \Monolog\Logger {
         public function assert($ok, $msg, $extra = null) {
             // TODO psySh => could break there ? XDebug ?
             $self = $this;
@@ -150,6 +155,9 @@ $app->register(new Silex\Provider\SessionServiceProvider(), [
 ]);
 
 $app->register(new Silex\Provider\MonologServiceProvider());
+// $app['monolog.logfile'] = $app['cache_dir'] . '/app-logs.yml';
+// $app['monolog.bubble'] = true;
+
 
 $logLvl = $app['debug'] ? Logger::DEBUG : Logger::ERROR;
 $mySaveToFileHandler = new class ($app, $logLvl) extends MH\AbstractProcessingHandler {
@@ -250,9 +258,15 @@ $logLvl, true, 0644));
 // function_exists('xdebug_break') && \xdebug_break();
 
 if ($app['debug']) {
-    // TODO : https://symfony.com/blog/new-in-symfony-2-6-vardumper-component
-    // $handler = new MH\GroupHandler($app['monolog.handlers']);
-    // $app['log.review']->pushHandler($handler);
+    $app->register(new class($app) implements ServiceProviderInterface { // BootableProviderInterface {
+        public function register(Container $app)
+        {
+            // TODO : https://symfony.com/blog/new-in-symfony-2-6-vardumper-component
+            // $handler = new MH\GroupHandler($app['monolog.handlers']);
+            // $app['log.review']->pushHandler($handler);
+            // $app['log.review']->pushHandler($app['monolog.handler']);
+        }
+    });
     $app['log.review']->pushProcessor(new DebugProcessor());
     $app['consoleLogger'] = new ConsoleLogger(LogLevel::DEBUG);
 }
@@ -448,21 +462,48 @@ if ($app['debug']) {
         // Ps : laravel system based on .blade teplates ?
         $app->register(new Silex\Provider\HttpFragmentServiceProvider());
         $app->register(new Silex\Provider\TwigServiceProvider());
-        $app->register(new Silex\Provider\WebProfilerServiceProvider());
-        // TODO : push monwoo reviews logs to profiler
-        // $app->extend('dispatcher', function ($dispatcher, $app) {
-        //     return new TraceableEventDispatcher($dispatcher, $app['stopwatch'], $app['log.review']);
+        $wsProfilerProvider = new Silex\Provider\WebProfilerServiceProvider();
+        $app->register($wsProfilerProvider);
+
+        $app->extend('twig.loader.filesystem', function ($loader, $app) {
+            $loader->addPath(__DIR__ . "/Monwoo/Resources/views", 'Monwoo');
+            return $loader;
+        });
+        // TODO : succed to send MoonBox logs to profiler, but it remove other regular logs too...
+        $app->extend('data_collector.templates', function ($templates, $app) {
+            // $templates[] = array('moon-box-log', '@Monwoo/Collector/moon-box-log.html.twig');
+            $templates[] = array('logger', '@WebProfiler/Collector/logger.html.twig');
+            return $templates;
+        });
+        // Below will replace main logs too :
+        $collector = function ($app) {
+            // return new MoonBoxLogDataCollector($app['log.review'], 'moon-box-log');
+            return new LoggerDataCollector($app['log.review'], 'logger');
+        };
+        // $logC = function ($app) {
+        //     return new LoggerDataCollector($app['logger']);
+        // };
+        // $app->extend('data_collectors', function ($collectors, $app) use ($collector, $logC) {
+        //     $collectors['moon-box-log'] = $collector;
+        //     // $collectors['logreview'] = function ($app) {
+        //     //     return new LoggerDataCollector($app['log.review'], 'moon-box-log');
+        //     // };
+        //     // // TODO : why need to reset ?
+        //     $collectors['logger'] = $logC;
+        //     return $collectors;
         // });
-        // $app->extend('data_collector.templates', function ($templates, $app) {
-        //     $templates[] = array('logreview', '@WebProfiler/Collector/logger.html.twig');
-        //     return $templates;
+        // $app->extend('web_profiler.controller.profiler', function ($ctrler, $app) use ($wsProfilerProvider) {
+        //     return  new ProfilerController($app['url_generator'], $app['profiler'], $app['twig']
+        //     , $app['data_collector.templates'], $app['web_profiler.debug_toolbar.position'], null
+        //     , $app['profiler.cache_dir']);
+        //     // $ctrler->getTemplateManager();
+        //     // return $ctrler;
         // });
-        // $collector = function ($app) { return new LoggerDataCollector($app['log.review']); };
-        // $app['profiler']->$add($collector($app));
-        //    $app->extend('data_collectors', function ($collectors, $app) {
-        //         $collectors['logreview'] = ;
-        //         return $collectors;
-        //     });
+
+        $app->before(function($request, $app) use ($collector, $logC) {
+            $app['profiler']->add($collector($app));
+            // $app['profiler']->add($logC($app));
+        });        
     }
 }
 

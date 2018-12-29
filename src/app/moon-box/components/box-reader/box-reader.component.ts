@@ -158,7 +158,7 @@ export class BoxReaderComponent implements OnInit {
 
   errorCatchor(err: any, caught: Observable<{}>) {
     logReview.warn('BoxReader error', err);
-    return caught;
+    throw caught;
   }
 
   ngOnInit() {
@@ -182,6 +182,15 @@ export class BoxReaderComponent implements OnInit {
   isFormUpdating = false; // TODO : better design pattern with task chancelation and re-spawn from start ?
   async updateForm() {
     if (this.isFormUpdating) {
+      logReview.debug('Postponing box-reader update');
+      of(true)
+        .pipe(delay(200))
+        .pipe(
+          tap(_ => {
+            this.updateForm();
+          })
+        )
+        .subscribe();
       // re-spawn ?
       return;
     }

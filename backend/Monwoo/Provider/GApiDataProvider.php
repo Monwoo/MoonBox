@@ -593,10 +593,10 @@ class GApiDataProvider extends ImapDataProvider
             // $msgsOrderedByDate->numResults = $numResults;
             $self->actionResponse = $app->json([
                 'status' => $status,
-                'numResults' => $numResults,
+                // 'numResults' => $numResults,
                 'msgsOrderedByDate' => $msgsOrderedByDate,
                 'msgsByMoonBoxGroup' => $msgsByMoonBoxGroup,
-                'totalCount' => $totalCount,
+                'bulkCount' => $numResults, // since $totalCount is an approximation, will wrongly sum amount
                 'dataUser' => $connection['username'],
                 // 'offsetStart' => $self->offsetStart,
                 'offsetLimit' => $self->offsetLimit,

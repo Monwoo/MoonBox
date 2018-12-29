@@ -229,6 +229,9 @@
 * https://material.angular.io/components/form-field/overview
 * https://www.limilabs.com/blog/hotmail-imap-pop3-smtp-settings
 
+* https://symfony.com/doc/current/profiler/data_collector.html
+* https://silex.symfony.com/doc/2.0/cookbook/multiple_loggers.html
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

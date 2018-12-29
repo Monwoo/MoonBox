@@ -158,6 +158,7 @@ export class BackendService {
 
     // loginData._password = '*' + '#__hash'
     // + (Math.random().toString(36) + '777777777').slice(2, 9) + btoa(loginData._password);
+    this.bulkCount[loginData._username] = 0;
 
     return (
       this.http
@@ -189,6 +190,7 @@ export class BackendService {
     );
   }
 
+  bulkCount: {} = {};
   fetchMsg(provider: string, username: string, page: number = 1, limit: number = 21) {
     return (
       this.http
@@ -212,8 +214,15 @@ export class BackendService {
         // we still need to handle the reception of the token
         .pipe(
           concatMap(msgs => {
+            const dataUsername = msgs['dataUser'];
             return from(
               new Promise(resolve => {
+                if ('bulkCount' in msgs) {
+                  this.bulkCount[dataUsername] = this.bulkCount[dataUsername] || 0;
+                  this.bulkCount[dataUsername] += msgs.bulkCount;
+                  msgs.numResults = this.bulkCount[dataUsername];
+                  msgs.totalCount = this.bulkCount[dataUsername];
+                }
                 (async () => {
                   if (msgs.needAuthRedirect) {
                     resolve(await this.promptGApiAuth(msgs, provider, username, page, limit));
