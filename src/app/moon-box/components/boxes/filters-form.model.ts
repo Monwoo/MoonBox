@@ -135,12 +135,12 @@ export const FORM_LAYOUT = {
   },
   fetchStart: {
     element: {
-      container: 'condensable'
+      container: 'condensable' // TODO : in sticky mode only (caller.isSticky)
     }
   },
   fetchEnd: {
     element: {
-      container: 'condensable'
+      container: 'condensable' // TODO : in sticky mode only (caller.isSticky)
     }
   },
   keepPasswordsInMemory: {

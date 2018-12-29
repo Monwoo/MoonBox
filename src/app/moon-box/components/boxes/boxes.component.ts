@@ -20,8 +20,8 @@ import { DynamicFormArrayModel, DynamicFormLayout, DynamicFormService, validate 
 // import { LocalStorage } from '@ngx-pwa/local-storage';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { MessagesService } from '@moon-box/services/messages.service';
-import { pluck, delay, last, tap } from 'rxjs/operators';
-import { forkJoin, of, from } from 'rxjs';
+import { debounceTime, delay, last, map, tap, startWith } from 'rxjs/operators';
+import { fromEvent, of, from } from 'rxjs';
 import { LocalStorage } from '@ngx-pwa/local-storage';
 
 import { shallowMerge } from '@moon-manager/tools';
@@ -127,6 +127,7 @@ export class BoxesComponent implements OnInit {
   renderer: Renderer2 = null;
   boxesIdxs: string[] = [];
   boxesIdxsLookup: { [key: string]: boolean } = {};
+  isScreenSmall$: any;
 
   constructor(
     private i18nService: I18nService,
@@ -165,6 +166,20 @@ export class BoxesComponent implements OnInit {
       this.refreshBoxesIdxs();
       this.updateForm();
     });
+
+    // https://stackoverflow.com/questions/47034573/ngif-hide-some-content-on-mobile-screen-angular-4
+    // https://getbootstrap.com/docs/4.0/layout/grid/#grid-options
+    // Checks if screen size is less than 720 pixels
+    const checkScreenSize = () => document.body.offsetWidth < 720; // 720px < Medium size BS > 960px
+
+    // Create observable from window resize event throttled so only fires every 500ms
+    const screenSizeChanged$ = fromEvent(window, 'resize')
+      .pipe(debounceTime(500))
+      .pipe(map(checkScreenSize));
+
+    // Start off with the initial value use the isScreenSmall$ | async in the
+    // view to get both the original value and the new value after resize.
+    this.isScreenSmall$ = screenSizeChanged$.pipe(startWith(checkScreenSize()));
   }
 
   refreshBoxesIdxs() {
