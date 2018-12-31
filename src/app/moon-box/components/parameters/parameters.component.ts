@@ -263,7 +263,16 @@ export class ParametersComponent implements OnInit {
   }
 
   setSecurityCode(e: any) {
+    // Can't avoid empty passe code, since it's the only way to remove pass code...
+    // if (!this.passCode || '' === this.passCode) {
+    //   this.i18nService
+    //     .get(extract('mb.param.notif.failForEmptyPassCode'))
+    //     .subscribe(t => {
+    //       this.notif.error(t);
+    //     });
+    // } else {
     this.storage.setPassCode(this.passCode);
+    // }
   }
 
   lockScreen() {

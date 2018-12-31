@@ -170,6 +170,7 @@
   "mb.param.exportBckp.slct.lbl": "Téléchargez le backup de vos données",
   "mb.param.notif.backupCorruptErr": "Echec de l'import du backup",
   "mb.param.notif.errorHasOccured": "Une erreur est survenue",
+  "mb.param.notif.failForEmptyPassCode": "Le code ne peut être vide.",
   "mb.param.notif.uploadErrorHasOccured": "Erreur de chargement du fichier",
   "mb.param.switchTheme.plhldr": "Changer de thème",
   "mb.param.warningMsg": "Attention : démo v1.0.0 testé humainement uniquement. Pour limiter les risques, utilisez l'outil depuis un onglet de navigation privée.",

@@ -19,6 +19,7 @@ export class LockScreenComponent implements OnInit {
   // @ViewChild('lockScreenContainer') lockScreenContainer: any;
   passCode: string;
   hashCode: string;
+  haveEmptyPassCode: boolean = false;
   // https://material.angular.io/components/dialog/overview
   constructor(
     public dialogRef: MatDialogRef<LockScreenComponent>,
@@ -26,18 +27,21 @@ export class LockScreenComponent implements OnInit {
     private i18nService: I18nService,
     private notif: NotificationsService,
     public storage: SecuStorageService
-  ) {}
+  ) {
+    this.storage.checkPassCodeValidity('').then((ok: boolean) => {
+      this.haveEmptyPassCode = ok;
+    });
+  }
 
   ngOnInit() {}
 
   async unlockScreen(e: any) {
     // this.hashCode = this.storage.toHex(this.passCode); //<string>Md5.hashStr(this.passCode);
     // if (!this.data.passHash || '' === this.data.passHash || this.hashCode === this.data.passHash) {
-    if (await this.storage.checkPassCodeValidity(this.passCode)) {
+    if (this.haveEmptyPassCode || (await this.storage.checkPassCodeValidity(this.passCode))) {
       this.i18nService.get(extract('mb.lock-screen.unlock.success')).subscribe(t => {
         this.notif.success(t);
       });
-
       this.dialogRef.close(true);
     }
     // this.data.passHash === md5(this.inputCode)

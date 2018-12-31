@@ -271,8 +271,8 @@ export class SecuStorageService {
     this.eS = null;
     this.cS = null;
     this.lastEs = null;
-    this.rawCode = null;
-    this.lastRawCode = null;
+    this.rawCode = '';
+    this.lastRawCode = '';
   }
 
   // https://gist.github.com/valentinkostadinov/5875467
@@ -294,7 +294,8 @@ export class SecuStorageService {
 
   public async checkPassCodeValidity(rawCode: string) {
     this.rawCode = this.toHex(rawCode ? rawCode : '');
-    const isValid = !!(await this.getItem('lvl2', false).toPromise());
+    // const isValid = !!(await this.getItem('lvl2', false).toPromise());
+    let isValid = 'ok' === (await this.getItem<string>('lvl2', false).toPromise());
     if (isValid) {
       this.setPassCode(rawCode, false);
       this.onUnlock.next(null);
