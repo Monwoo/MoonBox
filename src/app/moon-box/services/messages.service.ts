@@ -38,24 +38,26 @@ export class MessagesService {
     this.availability[messages.dataUser] = messages.nextPage ? 1 : 0;
 
     messages.msgsOrderedByDate.forEach((msg: any) => {
-      if (!this.msgs[msg.moonBoxGroup]) {
-        this.msgs[msg.moonBoxGroup] = {
-          numResults: 0,
-          totalCount: 0,
-          data: {}
-        };
-      }
-      const dataKey = msg.localTime + msg.msgId;
-      if (this.msgs[msg.moonBoxGroup].data[dataKey]) {
-        alreadyCounted++;
-      } else {
-        if ('_' !== msg.moonBoxGroup) {
-          this.msgs[msg.moonBoxGroup].numResults += 1;
+      msg.moonBoxGroups.forEach((moonBoxGroup: string) => {
+        if (!this.msgs[moonBoxGroup]) {
+          this.msgs[moonBoxGroup] = {
+            numResults: 0,
+            totalCount: 0,
+            data: {}
+          };
         }
-        this.msgs[msg.moonBoxGroup].totalCount += 1; // TODO : not accurate enough for now....
-      }
-      this.msgs[msg.moonBoxGroup].data[dataKey] = msg;
-      this.suggestionDict[msg.expeditor] = null;
+        const dataKey = msg.localTime + msg.msgId;
+        if (this.msgs[moonBoxGroup].data[dataKey]) {
+          alreadyCounted++;
+        } else {
+          if ('_' !== moonBoxGroup) {
+            this.msgs[moonBoxGroup].numResults += 1;
+          }
+          this.msgs[moonBoxGroup].totalCount += 1; // TODO : not accurate enough for now....
+        }
+        this.msgs[moonBoxGroup].data[dataKey] = msg;
+        this.suggestionDict[msg.expeditor] = null;
+      });
     });
     // this.numResults += messages.numResults - alreadyCounted;
     // this.totalCount += messages.totalCount - alreadyCounted; // Accuracy ok

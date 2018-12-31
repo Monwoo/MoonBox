@@ -563,31 +563,7 @@ class GApiDataProvider extends ImapDataProvider
                 $msgsByIds[$msg['msgUniqueId']] = $msg;
             }
 
-            $defaultGroup = "_";
-            $msgsByMoonBoxGroup = [];
-            foreach ($msgsOrderedByDate as &$msg) {
-                $moonBoxGroup = $defaultGroup;
-                if (isset($moonBoxEmailsGrouping[
-                    $msg['expeditorMainAnswerBox']
-                ])) {
-                    $moonBoxGroup = $moonBoxEmailsGrouping[
-                        $msg['expeditorMainAnswerBox']
-                    ];
-                    $msg['haveMoonBoxGroupping'] = true;
-                    if (isset($msgsByMoonBoxGroup[$moonBoxGroup])) {
-                        $msgsByMoonBoxGroup[$moonBoxGroup][] = $msg;
-                    } else {
-                        $msgsByMoonBoxGroup[$moonBoxGroup] = [ $msg ];      
-                    }
-                } else {
-                    if (isset($msgsByMoonBoxGroup[$defaultGroup])) {
-                        $msgsByMoonBoxGroup[$defaultGroup][] = $msg;
-                    } else {
-                        $msgsByMoonBoxGroup[$defaultGroup] = [ $msg ];
-                    }
-                }
-                $msg['moonBoxGroup'] = $moonBoxGroup;
-            }
+            $msgsByMoonBoxGroup = $self->injectMoonBoxGroup($msgsOrderedByDate, $moonBoxEmailsGrouping);
 
             $self->storeInCache($self->getUserDataStoreKey() . $localUser['username'], $msgsByIds);
             $app['log.review']->debug("Storing Msg Ids : " . $msgUniqueIdPath, $app->obfuskData([$msgsByIds]));

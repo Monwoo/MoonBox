@@ -96,6 +96,7 @@ export class BoxReaderComponent implements OnInit {
   renderer: Renderer2 = null;
 
   hasMoreMsgs: boolean = false;
+  numResults: number = null;
 
   isCondensed: boolean = true;
 
@@ -262,6 +263,7 @@ export class BoxReaderComponent implements OnInit {
             }
           } else {
             this.hasMoreMsgs = messages.nextPage; //messages.numResults !== messages.totalCount; // TODO : pagination etc...
+            this.numResults += messages.numResults;
             // TODO : better data structure to auto fix multiple reads of same page issue...
             this.messages = shallowMerge(1, this.messages, messages);
             logReview.debug('BoxReader did fetch msgs ', this.messages);
@@ -334,6 +336,11 @@ export class BoxReaderComponent implements OnInit {
   login(event: any) {
     const val: FormType = this.loginForm.form.value;
     let resp: Observable<any> = null;
+
+    this.hasMoreMsgs = false;
+    this.numResults = null;
+    this.messages = null;
+
     // Nghost event not already detected ? TODO : avoid quick fix below :
     this.onSubmit(event);
     if (this.loginForm.form.valid) {

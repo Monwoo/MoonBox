@@ -4,8 +4,8 @@
   <div class="container-fluid">
     <mat-card class="row">
       <div class="col text-left expand-trigger" (click)="toggleConfigs()">
-        <strong>{{ formGroup?.value._username }}</strong> ({{ messages?.numResults }}/{{
-          messages?.nextPage ? '---' : messages?.totalCount
+        <strong>{{ formGroup?.value._username }}</strong> ({{ numResults }}/{{
+          messages?.bulkCount ? '---' : messages?.totalCount
         }})
       </div>
       <div class="col text-right config-toggler-wrapper">

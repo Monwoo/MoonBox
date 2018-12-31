@@ -695,32 +695,7 @@ class ImapDataProvider extends DataProvider
                 $msgsByIds[$msg['msgUniqueId']] = $msg;
             }
 
-            $defaultGroup = "_";
-            $msgsByMoonBoxGroup = [];
-            foreach ($msgsOrderedByDate as &$msg) {
-                $moonBoxGroup = $defaultGroup;
-                if (isset($moonBoxEmailsGrouping[
-                    $msg['expeditorMainAnswerBox']
-                ])) {
-                    $moonBoxGroup = $moonBoxEmailsGrouping[
-                        $msg['expeditorMainAnswerBox']
-                    ];
-                    $msg['haveMoonBoxGroupping'] = true;
-                    if (isset($msgsByMoonBoxGroup[$moonBoxGroup])) {
-                        $msgsByMoonBoxGroup[$moonBoxGroup][] = $msg;
-                    } else {
-                        $msgsByMoonBoxGroup[$moonBoxGroup] = [ $msg ];      
-                    }
-                } else {
-                    if (isset($msgsByMoonBoxGroup[$defaultGroup])) {
-                        $msgsByMoonBoxGroup[$defaultGroup][] = $msg;
-                    } else {
-                        $msgsByMoonBoxGroup[$defaultGroup] = [ $msg ];
-                    }
-                }
-                $msg['moonBoxGroup'] = $moonBoxGroup;
-            }
-
+            $msgsByMoonBoxGroup = $self->injectMoonBoxGroup($msgsOrderedByDate, $moonBoxEmailsGrouping);
             $self->storeInCache($self->getUserDataStoreKey() . $localUser['username'], $msgsByIds);
             // TODO : refactor saved data model to be extendable object ?
             // $msgsOrderedByDate->numResults = $numResults;
@@ -801,6 +776,61 @@ class ImapDataProvider extends DataProvider
         }
         return $success;
     }
+
+    protected function injectMoonBoxGroup(&$msgsOrderedByDate, $moonBoxEmailsGrouping) {
+        $defaultGroup = "_";
+        $msgsByMoonBoxGroup = [];
+        // TODO : optim ? pré-compute to get clean 
+        $moonBoxRegExGrouping = [];
+        // var_dump($moonBoxEmailsGrouping); exit('');
+        foreach ($moonBoxEmailsGrouping as $g => $dest) {
+            // var_dump(preg_match("|^/.*/$|i", $g)); exit('');
+            // if (strpos($str, "/") === 0) {
+            if (preg_match("|^/.*/$|i", $g) === 1) {
+                $moonBoxRegExGrouping[$g] = $dest;
+            }
+        }
+        // var_dump($moonBoxRegExGrouping); exit('');
+
+        foreach ($msgsOrderedByDate as &$msg) {
+            $moonBoxGroup = $defaultGroup;
+            if (isset($moonBoxEmailsGrouping[
+                $msg['expeditorMainAnswerBox']
+            ])) {
+                $moonBoxGroup = $moonBoxEmailsGrouping[
+                    $msg['expeditorMainAnswerBox']
+                ];
+            } else {
+                $didMatch = false;
+                // var_dump($moonBoxRegExGrouping); exit('');
+                foreach ($moonBoxRegExGrouping as $rG => $dest) {
+                    // var_dump(preg_match($rG, $msg['expeditorMainAnswerBox'])); exit('');
+                    if (preg_match($rG, $msg['expeditorMainAnswerBox']) === 1) {
+                        $didMatch = true;
+                        $moonBoxGroup = $dest;
+                        if (isset($msgsByMoonBoxGroup[$moonBoxGroup])) {
+                            $msgsByMoonBoxGroup[$moonBoxGroup][] = $msg;
+                        } else {
+                            $msgsByMoonBoxGroup[$moonBoxGroup] = [ $msg ];      
+                        }
+                        $msg['moonBoxGroups'] = array_merge(isset($msg['moonBoxGroups']) ?
+                        $msg['moonBoxGroups'] : [], [$moonBoxGroup]);        
+                    }
+                }
+                if ($didMatch) continue; // avoid add to default groups for regEx matched Msgs
+            }
+            
+            if (isset($msgsByMoonBoxGroup[$moonBoxGroup])) {
+                $msgsByMoonBoxGroup[$moonBoxGroup][] = $msg;
+            } else {
+                $msgsByMoonBoxGroup[$moonBoxGroup] = [ $msg ];      
+            }
+            $msg['moonBoxGroups'] = array_merge(isset($msg['moonBoxGroups']) ?
+            $msg['moonBoxGroups'] : [], [$moonBoxGroup]);
+        }
+        return $msgsByMoonBoxGroup;
+    }
+
     protected function getBodyFromMimeMsg($msg) {
         $bodyText = null;
         $bodyHTML = null;
