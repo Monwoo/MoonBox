@@ -133,6 +133,11 @@ export const FORM_LAYOUT = {
       container: 'condensable'
     }
   },
+  periode: {
+    element: {
+      container: 'periode' // TODO : in sticky mode only (caller.isSticky)
+    }
+  },
   fetchStart: {
     element: {
       container: 'condensable' // TODO : in sticky mode only (caller.isSticky)

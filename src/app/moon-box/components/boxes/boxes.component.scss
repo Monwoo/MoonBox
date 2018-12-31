@@ -80,6 +80,10 @@
     @include applyScrollbarTheming();
     border-top: solid 2px $monwooPrimary;
     border-bottom: solid 2px $monwooPrimary;
+
+    .periode {
+      margin-top: 15px;
+    }
   }
 
   // https://blog.theodo.fr/2018/01/responsive-iframes-css-trick/
