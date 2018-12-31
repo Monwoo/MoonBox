@@ -1,6 +1,7 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 import { Component, OnInit, ComponentFactoryResolver, ViewChild } from '@angular/core';
 import { LoadingLoaderService } from '@moon-manager/services/loading-loader.service';
+import { ThemingsService } from '@moon-box/services/themings.service';
 // import { LockScreenComponent } from '@moon-box/components/lock-screen/lock-screen.component';
 
 @Component({
@@ -11,7 +12,11 @@ import { LoadingLoaderService } from '@moon-manager/services/loading-loader.serv
 export class MoonBoxComponent implements OnInit {
   // @ViewChild('lockScreenContainer') lockScreenContainer: any;
 
-  constructor(private ll: LoadingLoaderService, private factoryResolver: ComponentFactoryResolver) {
+  constructor(
+    private ll: LoadingLoaderService,
+    private factoryResolver: ComponentFactoryResolver,
+    private themings: ThemingsService
+  ) {
     ll.hideLoader();
   }
 

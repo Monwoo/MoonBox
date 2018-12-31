@@ -1,12 +1,20 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 
+/*
+TODO ? no personal data retain, si ? : traite vos données personnelles (nombre de connexions, pages visitées, publicités cliquées) afin d'établir des statistiques de visite et pour vous fournir des recommandations personnalisées.
+
+Conformément au Règlement Général de Protection des Données du 23 mai 2018 et à la loi n°78-17, vous pouvez exercer vos droits d’accès, de rectification et d’opposition de vos données personnelles à tout moment, en écrivant au service marketing à l’adresse suivante : sav@monwoo.com
+
+En poursuivant votre navigation sur ce site, vous acceptez l’utilisation de cookies. Pour en savoir plus et paramétrer les cookies…
+*/
+
 import { Component, OnInit } from '@angular/core';
 import { I18nService } from '@app/core';
 import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
 import { LoadingLoaderService } from '@moon-manager/services/loading-loader.service';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
-import { LocalStorage } from '@ngx-pwa/local-storage';
+import { ThemingsService } from '@moon-box/services/themings.service';
 import { Logger } from '@app/core/logger.service';
 import { MessagesService } from '@moon-box/services/messages.service';
 import * as moment from 'moment';
@@ -27,8 +35,8 @@ export class ParametersComponent implements OnInit {
     private notif: NotificationsService,
     private ll: LoadingLoaderService,
     public storage: SecuStorageService,
-    private localStorage: LocalStorage,
-    public msgs: MessagesService
+    public msgs: MessagesService,
+    private themings: ThemingsService
   ) {}
   dropzoneBckp = {
     url: '#', // Url set to avoid console Error, but will not be used in V1.0.0

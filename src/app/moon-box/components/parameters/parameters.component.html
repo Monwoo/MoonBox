@@ -9,6 +9,13 @@
     >
       <i class="fas fa-power-off"></i> {{ 'Reset' | translate }}
     </button>
+    <mat-form-field class="float-right theme-field">
+      <mat-select placeholder="{{'mb.param.switchTheme.plhldr'|translate}}" [value]="themings.currentTheme">
+        <mat-option *ngFor="let theme of themings.themes" (click)="themings.setTheme(theme)" [value]="theme">
+          {{ theme | translate }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
     <mat-form-field class="float-right lang-field">
       <mat-select placeholder="{{langPlaceholder|translate}}" [value]="currentLanguage">
         <mat-option *ngFor="let language of languages" (click)="setLanguage(language)" [value]="language">
