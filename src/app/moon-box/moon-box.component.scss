@@ -4,10 +4,6 @@
 }
 
 :host ::ng-deep {
-  .dark-theme * {
-    // Inspired from : https://davidwalsh.name/invert-colors-css
-    // https://stackoverflow.com/questions/17741629/invert-color-using-css
-    -webkit-filter: invert(94%);
-    filter: invert(94%);
-  }
+  @import "src/theme/moon-box/light";
+  @import "src/theme/moon-box/dark";
 }

@@ -1,0 +1,57 @@
+// Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
+@import "../theme-constantes";
+
+$dark-bg: #000000;
+$dark-complementary: #ffffff;
+$dark-light-complementary: #777;
+
+.dark-theme {
+  // Inspired from : https://davidwalsh.name/invert-colors-css
+  // https://stackoverflow.com/questions/17741629/invert-color-using-css
+  // -webkit-filter: invert(94%);
+  // filter: invert(94%);
+  background: $dark-bg;
+  // .router-content * {
+  //   color: $dark-complementary;
+  //   // background: $dark-bg;
+  // }
+  // .mat-form-field-label-wrapper {
+  //   background: none;
+  // }
+
+  .dz-message {
+    background-color: $dark-bg !important;
+    color: $dark-complementary;
+  }
+
+  .mat-card {
+    background-color: $dark-bg;
+    color: $dark-complementary;
+  }
+  .mat-form-field-label {
+    color: $monwooSecondary;
+    &.mat-form-field-empty {
+      color: $dark-light-complementary;
+    }
+  }
+  .mat-form-field-infix {
+    border-bottom: 1px solid $dark-light-complementary;
+  }
+  .mat-select-value,
+  .mat-datepicker-toggle {
+    color: $dark-complementary;
+  }
+  .mat-checkbox-checked .mat-checkbox-checkmark {
+    background: $monwooSecondary;
+  }
+  .mat-progress-bar-buffer {
+    background-color: $dark-light-complementary;
+  }
+  .mat-checkbox-inner-container {
+    background-color: $dark-light-complementary;
+  }
+  iframe {
+    // TODO : may not render all emails right ? would be bette to apply it only if email content do not have body background or some text hidden due to dark background...
+    filter: invert(100%);
+  }
+}

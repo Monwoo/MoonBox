@@ -1,5 +1,5 @@
 <!-- Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com -->
-<div [class]="themings.getCurrentThemeClassInjections() | async">
+<div [class]="'moon-box-root ' + (themings.getCurrentThemeClassInjections() | async)">
   <moon-box-header> </moon-box-header>
   <simple-notifications></simple-notifications>
   <div class="router-content"><router-outlet></router-outlet></div>

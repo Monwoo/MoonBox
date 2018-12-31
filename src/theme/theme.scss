@@ -42,4 +42,11 @@ body {
       cursor: pointer;
     }
   }
+
+  .moon-box-root {
+    min-height: 100vh;
+    .router-content {
+      min-height: 75vh;
+    }
+  }
 }
