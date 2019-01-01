@@ -15,7 +15,7 @@ export class MoonBoxComponent implements OnInit {
   constructor(
     private ll: LoadingLoaderService,
     private factoryResolver: ComponentFactoryResolver,
-    private themings: ThemingsService
+    public themings: ThemingsService
   ) {
     ll.hideLoader();
   }

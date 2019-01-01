@@ -126,6 +126,8 @@ export const formModel = async (caller: any) => {
           placeholder: await fetchTrans(extract('Email')),
           value: d._username
         }),
+        // TOOD : or use connective and relation ?
+        // https://github.com/udos86/ng-dynamic-forms#related-form-controls
         ...('GoogleApi' === caller.loginData.selectedProvider
           ? []
           : [

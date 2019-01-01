@@ -182,9 +182,10 @@ export class BoxesComponent implements OnInit {
       this.msgs.service.subscribe(messages => {
         // need to update form model to update formfields suggestions
         // TODO : better form design pattern to handle all that in simple form codes...
-        formModel(this).then(model => {
-          this.filters.model = model;
-        });
+        // formModel(this).then(model => {
+        //   this.filters.model = model;
+        // });
+        this.updateForm();
       });
     })();
     this.renderer = this.rendererFactory.createRenderer(null, null);
@@ -299,7 +300,7 @@ export class BoxesComponent implements OnInit {
       this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: string[]) => {}, this.errorHandler);
     }
   }
-  removeBox(e: any, idxToRemove: string) {
+  async removeBox(e: any, idxToRemove: string) {
     // let boxIds = this.boxesIdxs;
     // this.boxesIdxs = []; // Remove all first, to reset component ui and avoid refresh issue box not changed
 
@@ -330,10 +331,7 @@ export class BoxesComponent implements OnInit {
     // }
     // boxIds.pop();
     // this.boxesIdxs = boxIds;
-    this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: number[]) => {}, this.errorHandler);
-    e.preventDefault();
-    e.stopPropagation();
-    return false;
+    await this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: number[]) => {}, this.errorHandler);
   }
 
   haveExpandedFilters = false;
@@ -396,6 +394,15 @@ export class BoxesComponent implements OnInit {
             logReview.debug('Patching form : ', this.filters.data);
             this.ngZone.run(() => {
               this.filters.group.patchValue(this.filters.data);
+              // this.filtersForm = this.filtersFormRef.nativeElement;
+              // TODO : do on filters did change event...
+              this.mbegKeyTransformerControl = this.filters.group.get(
+                'params.moonBoxEmailsGrouping.mbegKeyTransformer'
+              ) as FormArray;
+              this.mbegKeyTransformerModel = this.formService.findById(
+                'mbegKeyTransformer',
+                this.filters.model
+              ) as DynamicFormArrayModel;
             });
           })();
         },
@@ -409,28 +416,21 @@ export class BoxesComponent implements OnInit {
   }
 
   ngOnInit() {
-    // this.filtersForm = this.filtersFormRef.nativeElement;
-    if (this.filters) {
-      // TODO : do on filters did change event...
-      this.mbegKeyTransformerControl = this.filters.group.get(
-        'params.moonBoxEmailsGrouping.mbegKeyTransformer'
-      ) as FormArray;
-      this.mbegKeyTransformerModel = this.formService.findById(
-        'mbegKeyTransformer',
-        this.filters.model
-      ) as DynamicFormArrayModel;
-    }
     this.storage.checkLockScreen();
   }
 
-  addItem() {
+  addFilterAgregation(e: any) {
     this.formService.addFormArrayGroup(this.mbegKeyTransformerControl, this.mbegKeyTransformerModel);
   }
 
-  clear(e: any, context: DynamicFormArrayModel, index: number) {
+  removeFilterAgregation(e: any, context: DynamicFormArrayModel, index: number) {
     // console.log(e);
     // this.formService.clearFormArray(this.mbegKeyTransformerControl, this.mbegKeyTransformerModel);
     this.formService.removeFormArrayGroup(index, this.mbegKeyTransformerControl, context);
+    e.preventDefault();
+    e.stopPropagation();
+    // this.clickOnRemoveAgregationQuickHack = true; // TODO : why above stopPropagation have no effect ?
+    return false;
   }
 
   login(e: any) {

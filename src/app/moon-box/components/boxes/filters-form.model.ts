@@ -63,7 +63,9 @@ export const formDefaults = async (caller: any) => {
         keepPasswordsInMemory: false,
         params: {
           moonBoxEmailsGrouping: {
-            mbegKeyTransformer: []
+            mbegKeyTransformer: caller.filters
+              ? caller.filters.data.params.moonBoxEmailsGrouping.mbegKeyTransformer
+              : []
           },
           keywordsSubject: [],
           keywordsBody: [],
@@ -244,7 +246,7 @@ export const formModel = async (caller: any) => {
               group: [
                 new DynamicFormArrayModel({
                   id: 'mbegKeyTransformer',
-                  initialCount: 1,
+                  initialCount: 2,
                   groupFactory: await (async () => {
                     const srcLbl = await fetchTrans(extract('Source'));
                     const assLbl = await fetchTrans(extract('Association'));
@@ -252,16 +254,24 @@ export const formModel = async (caller: any) => {
                     const assList = srcList;
                     return () => [
                       new DynamicInputModel({
-                        id: '0key',
-                        name: 'key',
+                        id: 'key',
+                        // name: 'key',
                         label: srcLbl,
-                        list: srcList // ["Alabama", "Alaska", "Arizona", "Arkansas"]
+                        list: srcList, // ["Alabama", "Alaska", "Arizona", "Arkansas"]
+                        validators: {
+                          required: null,
+                          minLength: 1
+                        }
                       }),
                       new DynamicInputModel({
-                        id: '0value',
-                        name: 'value',
+                        id: 'value',
+                        // name: 'value',
                         label: assLbl,
-                        list: assList
+                        list: assList,
+                        validators: {
+                          required: null,
+                          minLength: 1
+                        }
                       })
                     ];
                   })()

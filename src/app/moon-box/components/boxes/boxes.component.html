@@ -51,13 +51,13 @@
         <ng-template modelId="mbegKeyTransformer" let-context="context" let-index="index">
           <!-- <pre>{{  index  | json }}</pre> -->
 
-          <button mat-button color="primary" type="button" (click)="clear($event, context, index)">
+          <button mat-button color="primary" type="button" (click)="removeFilterAgregation($event, context, index)">
             {{ 'Remove' | translate }}
           </button>
         </ng-template>
       </dynamic-material-form>
 
-      <button class="condensable" mat-button color="primary" type="button" (click)="addItem()">
+      <button class="condensable" mat-button color="primary" type="button" (click)="addFilterAgregation($event)">
         {{ 'Add item' | translate }}
       </button>
     </form>
