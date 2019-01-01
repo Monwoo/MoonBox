@@ -14,7 +14,7 @@ import {
   ViewChildren
 } from '@angular/core';
 import { NgForm, FormArray, Validators, FormBuilder } from '@angular/forms';
-import { FormType, FORM_LAYOUT, formModel, formDefaults, ContextType, contextDefaults } from './filters-form.model';
+import { FormType, FORM_LAYOUT, formDefaults, ContextType, contextDefaults } from './filters-form.model';
 import { I18nService } from '@app/core';
 import { DynamicFormArrayModel, DynamicFormLayout, DynamicFormService, validate } from '@ng-dynamic-forms/core';
 // import { LocalStorage } from '@ngx-pwa/local-storage';
@@ -35,7 +35,7 @@ import {
   catchError,
   share
 } from 'rxjs/operators';
-import { fromEvent, of, from, BehaviorSubject, forkJoin, interval } from 'rxjs';
+import { fromEvent, of, from, BehaviorSubject, forkJoin, interval, Observable } from 'rxjs';
 import { LocalStorage, JSONSchemaBoolean } from '@ngx-pwa/local-storage';
 
 import { shallowMerge } from '@moon-manager/tools';
@@ -401,7 +401,22 @@ export class BoxesComponent implements OnInit {
     }
   }
 
-  updateForm(transforms: any = null) {
+  isFormUpdating = false; // TODO : better design pattern with task chancelation and re-spawn from start ?
+  updateForm(transforms: any = null): Observable<any> {
+    // TODO: add sentinnel to avoid multi parallel calls ??
+    if (this.isFormUpdating) {
+      logReview.debug('Postponing boxes filters update');
+      return of(true)
+        .pipe(delay(200))
+        .pipe(
+          map(_ => {
+            // return forkJoin(this.updateForm(transforms));
+            return this.updateForm(transforms).subscribe();
+          })
+        );
+    }
+    this.isFormUpdating = true;
+
     let resp = of(null);
     const self = this;
     // Load from params from local storage ? :
@@ -422,7 +437,12 @@ export class BoxesComponent implements OnInit {
       resp = this.storage.getItem<FormType>('moon-box-filters', {}).pipe(
         tap(filtersData => {
           logReview.debug('Reading filters from storage : ', filtersData);
-          self.filters.data = filtersData; // filtersData need to be set for formDefaults to have right layout
+          if (transforms) {
+            // TODO : all this code is Quick Run code => possible to clean, have more condensed way than switching with transforms ? Empiricly done for now...
+            self.filters.data = transforms; // filtersData need to be set for formDefaults to have right layout
+          } else {
+            self.filters.data = filtersData; // filtersData need to be set for formDefaults to have right layout
+          }
         }),
         // map(f => of(f)),
         // https://github.com/Reactive-Extensions/RxJS/issues/1437
@@ -432,17 +452,17 @@ export class BoxesComponent implements OnInit {
         combineLatest(
           // withLatestFrom(
           // forkJoin([
-          interval(1000).pipe(
+          // interval(1000).pipe(
+          //   tap(defaultF => {
+          //     logReview.debug('LatestFrom OK');
+          //   })
+          // )
+          // ])
+          from(contextDefaults(this)).pipe(
             tap(defaultF => {
-              logReview.debug('LatestFrom OK');
+              logReview.debug('Having filters defaults : ', defaultF);
             })
           )
-          // ])
-          // [from([formDefaults(this)]).pipe(
-          //   tap(defaultF => {
-          //     logReview.debug('Having filters defaults : ', defaultF);
-          //   })
-          // )]
           // [from([formDefaults(this)]).pipe(
           //   concatMap(p => p),
           //   // mergeAll(), // concatAll(), //
@@ -454,8 +474,9 @@ export class BoxesComponent implements OnInit {
         // mergeAll(),
         // map(([filtersData, defaultsPromise]) => [filtersData, forkJoin([defaultsPromise])]),
         map(([filtersData, freshDefaults]) => {
+          self.filters = freshDefaults;
           // TODO : this not linked to this class, why only here ? (when using forkJoin, may be typo of old code ?)
-          self.filters.data = <FormType>shallowMerge(1, freshDefaults, filtersData);
+          self.filters.data = <FormType>shallowMerge(1, freshDefaults.data, filtersData);
           if (transforms) {
             self.filters.data = <FormType>shallowMerge(1, self.filters.data, transforms);
           }
@@ -477,10 +498,12 @@ export class BoxesComponent implements OnInit {
         }),
         tap(filtersData => {
           logReview.debug('Finishing filters transforms : ', filtersData);
+          this.isFormUpdating = false;
           self.filters.data = filtersData; // filtersData need to be set for formDefaults to have right layout
         })
       );
     } else {
+      this.isFormUpdating = false;
       logReview.debug('No filters yet defined');
       // this.filters.group.patchValue(this.filters.data);
     }
