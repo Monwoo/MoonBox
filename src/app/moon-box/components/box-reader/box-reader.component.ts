@@ -27,7 +27,7 @@ import { FormType, FORM_LAYOUT, formModel, formDefaults } from './login-form.mod
 import { NotificationsService } from 'angular2-notifications';
 import { extract } from '@app/core';
 import { FormType as FiltersFormType } from '@moon-box/components/boxes/filters-form.model';
-import { debounceTime, delay, last, map, concatMap, tap, startWith, catchError } from 'rxjs/operators';
+import { debounceTime, delay, last, map, concatMap, mergeMap, tap, startWith, catchError } from 'rxjs/operators';
 import { fromEvent, of, from, Observable, BehaviorSubject } from 'rxjs';
 import * as moment from 'moment';
 
@@ -241,20 +241,18 @@ export class BoxReaderComponent implements OnInit {
         tap((messages: any) => {
           if (!messages.status || messages.status.errors.length) {
             logReview.warn('BoxReader fetch errors ', messages.status ? messages.status.errors : messages);
-            if (
-              messages.status &&
-              messages.status.errors.reduce((acc: boolean, err: string[]) => {
-                if ('Exception Exception: cannot login, wrong user or password' === err[1]) {
-                }
-              })
-            ) {
+            if (messages.status && messages.status.errors.length) {
+              // TODO : better login error system (Error may not be only wrong username or pass...) :
               this.i18nService.get(extract('mm.box-reader.notif.wrongUserOrPassword')).subscribe(t => {
                 this.notif.warn(t);
-                this.formGroup.controls['_username'].setErrors({ incorrect: true });
-                this.formGroup.controls['_username'].markAsTouched();
-                if (this.formGroup.controls['_password']) {
-                  this.formGroup.controls['_password'].setErrors({ incorrect: true });
-                }
+                // Hard setting form errors breaks some lifecycle forms events, breaking
+                // End user fealing and error displaying client side, so only notif for now
+                // TODO : custom validator based on backend response for submitted form :
+                // this.formGroup.controls['_username'].setErrors({ incorrect: true });
+                // this.formGroup.controls['_username'].markAsTouched();
+                // if (this.formGroup.controls['_password']) {
+                //   this.formGroup.controls['_password'].setErrors({ incorrect: true });
+                // }
               });
             } else {
               this.i18nService.get(extract('mm.box-reader.notif.fetchFail')).subscribe(t => {
@@ -386,12 +384,35 @@ export class BoxReaderComponent implements OnInit {
         ? moment(this.loginData.periode.fetchEnd).format('YYYY/MM/DD')
         : null;
 
-      resp = from([this.backend.login(this.loginData), this.readMessages()]).pipe(
-        concatMap((data, idx) => {
-          return data;
+      // resp = from([this.backend.login(this.loginData), this.readMessages()]).pipe(
+      //   concatMap((data, idx) => {
+      //     return data;
+      //   }),
+      //   tap(results => {
+      //     logReview.debug('User is logged in with first page loaded', results);
+      //   })
+      // );
+      resp = this.backend.login(this.loginData).pipe(
+        mergeMap(loginData => {
+          return this.readMessages();
         }),
         tap(results => {
           logReview.debug('User is logged in with first page loaded', results);
+          if (!results.status) {
+            this.i18nService.get(extract('mb.box-reader.login.fail')).subscribe(t => {
+              this.notif.error('', t);
+            });
+          } else if (results.status.errors) {
+            results.status.errors.forEach((err: string) => {
+              // TODO : register all messages comming inside get of i18nService
+              // and save string to some translation webservice until app's run
+              // => aim to auto-generate translation, since extract(err) => will not work
+              // if not plain string inside....
+              this.i18nService.get(extract(err)).subscribe(t => {
+                this.notif.error('', err);
+              });
+            });
+          }
         })
       );
     } else {

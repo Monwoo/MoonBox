@@ -241,6 +241,13 @@
 * https://stackoverflow.com/questions/40587792/wait-for-a-promise-to-resolve-with-rxjs
 * http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-audit
 
+* https://blog.angularindepth.com/practical-rxjs-in-the-wild-requests-with-concatmap-vs-mergemap-vs-forkjoin-11e5b2efe293
+* https://tomastrajan.github.io/ngx-model-hacker-news-example#/posts/top
+* https://guide-angular.wishtack.io/angular/observables/operateurs/mergemap-and-switchmap
+* https://netbasal.com/understanding-mergemap-and-switchmap-in-rxjs-13cf9c57c885
+* https://github.com/Reactive-Extensions/RxJS/issues/1437
+* https://gist.github.com/whiteinge/9dab34105233871f3d660d9b1056a7ad
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

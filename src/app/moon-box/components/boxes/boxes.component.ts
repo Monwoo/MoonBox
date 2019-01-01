@@ -541,7 +541,7 @@ export class BoxesComponent implements OnInit {
       concatMap((box: BoxReaderComponent, idx) => {
         return box.login(e);
       }),
-      concatAll(),
+      // concatAll(),
       tap(loadedBoxes => {
         logReview.debug('Did login for all boxes', loadedBoxes);
         this.ll.releaseLoadingLock();
