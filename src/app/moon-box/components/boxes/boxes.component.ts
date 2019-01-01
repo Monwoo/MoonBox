@@ -28,7 +28,7 @@ import {
   tap,
   startWith,
   concatMap,
-  mergeMap,
+  mergeAll,
   withLatestFrom,
   concatAll,
   catchError,
@@ -418,21 +418,34 @@ export class BoxesComponent implements OnInit {
       mergeMap(q => forkJoin(q)), map((juncture:any[]) => {
         const [filtersData, freshDefaults] = juncture;
       */
-      const source = interval(1000);
-
       resp = this.storage.getItem<FormType>('moon-box-filters', {}).pipe(
         tap(filtersData => {
           logReview.debug('Reading filters from storage : ', filtersData);
           self.filters.data = filtersData; // filtersData need to be set for formDefaults to have right layout
         }),
+        map(f => of(f)),
         withLatestFrom(
-          [source]
-          // from(formDefaults(this)).pipe(
+          [
+            interval(1000).pipe(
+              tap(defaultF => {
+                logReview.debug('LatestFrom OK');
+              })
+            )
+          ]
+          // [from([formDefaults(this)]).pipe(
           //   tap(defaultF => {
           //     logReview.debug('Having filters defaults : ', defaultF);
           //   })
-          // )
+          // )]
+          // [from([formDefaults(this)]).pipe(
+          //   concatMap(p => p),
+          //   // mergeAll(), // concatAll(), //
+          //   tap(defaultF => {
+          //     logReview.debug('Having filters defaults : ', defaultF);
+          //   })
+          // )]
         ),
+        // map(([filtersData, defaultsPromise]) => [filtersData, forkJoin([defaultsPromise])]),
         map(([filtersData, freshDefaults]) => {
           // TODO : this not linked to this class, why only here ? (when using forkJoin, may be typo of old code ?)
           self.filters.data = <FormType>shallowMerge(1, freshDefaults, filtersData);

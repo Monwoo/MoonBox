@@ -237,6 +237,9 @@
 
 * https://www.learnrxjs.io/recipes/progressbar.html
 * https://www.learnrxjs.io/recipes/gameloop.html
+* https://medium.com/@benlesh/rxjs-observable-interop-with-promises-and-async-await-bebb05306875
+* https://stackoverflow.com/questions/40587792/wait-for-a-promise-to-resolve-with-rxjs
+* http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-audit
 
 ```bash
 # Added packages :
