@@ -30,6 +30,7 @@ import {
   concatMap,
   mergeAll,
   withLatestFrom,
+  combineLatest,
   concatAll,
   catchError,
   share
@@ -423,15 +424,20 @@ export class BoxesComponent implements OnInit {
           logReview.debug('Reading filters from storage : ', filtersData);
           self.filters.data = filtersData; // filtersData need to be set for formDefaults to have right layout
         }),
-        map(f => of(f)),
-        withLatestFrom(
-          [
-            interval(1000).pipe(
-              tap(defaultF => {
-                logReview.debug('LatestFrom OK');
-              })
-            )
-          ]
+        // map(f => of(f)),
+        // https://github.com/Reactive-Extensions/RxJS/issues/1437
+        // https://stackoverflow.com/questions/47052977/withlatestfrom-does-not-emit-value
+        // https://gist.github.com/whiteinge/9dab34105233871f3d660d9b1056a7ad
+        // https://www.learnrxjs.io/operators/combination/withlatestfrom.html
+        combineLatest(
+          // withLatestFrom(
+          // forkJoin([
+          interval(1000).pipe(
+            tap(defaultF => {
+              logReview.debug('LatestFrom OK');
+            })
+          )
+          // ])
           // [from([formDefaults(this)]).pipe(
           //   tap(defaultF => {
           //     logReview.debug('Having filters defaults : ', defaultF);
@@ -445,6 +451,7 @@ export class BoxesComponent implements OnInit {
           //   })
           // )]
         ),
+        // mergeAll(),
         // map(([filtersData, defaultsPromise]) => [filtersData, forkJoin([defaultsPromise])]),
         map(([filtersData, freshDefaults]) => {
           // TODO : this not linked to this class, why only here ? (when using forkJoin, may be typo of old code ?)
