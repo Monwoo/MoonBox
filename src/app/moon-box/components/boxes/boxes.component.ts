@@ -34,7 +34,7 @@ import {
   catchError,
   share
 } from 'rxjs/operators';
-import { fromEvent, of, from, BehaviorSubject, forkJoin } from 'rxjs';
+import { fromEvent, of, from, BehaviorSubject, forkJoin, interval } from 'rxjs';
 import { LocalStorage, JSONSchemaBoolean } from '@ngx-pwa/local-storage';
 
 import { shallowMerge } from '@moon-manager/tools';
@@ -424,11 +424,12 @@ export class BoxesComponent implements OnInit {
           self.filters.data = filtersData; // filtersData need to be set for formDefaults to have right layout
         }),
         withLatestFrom(
-          from(formDefaults(this)).pipe(
-            tap(defaultF => {
-              logReview.debug('Having filters defaults : ', defaultF);
-            })
-          )
+          interval(1000)
+          // from(formDefaults(this)).pipe(
+          //   tap(defaultF => {
+          //     logReview.debug('Having filters defaults : ', defaultF);
+          //   })
+          // )
         ),
         map(([filtersData, freshDefaults]) => {
           // TODO : this not linked to this class, why only here ? (when using forkJoin, may be typo of old code ?)
