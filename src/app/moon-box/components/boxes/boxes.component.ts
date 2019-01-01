@@ -299,7 +299,7 @@ export class BoxesComponent implements OnInit {
       this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: string[]) => {}, this.errorHandler);
     }
   }
-  async removeBox(e: any, idxToRemove: string) {
+  removeBox(e: any, idxToRemove: string) {
     // let boxIds = this.boxesIdxs;
     // this.boxesIdxs = []; // Remove all first, to reset component ui and avoid refresh issue box not changed
 
@@ -330,7 +330,10 @@ export class BoxesComponent implements OnInit {
     // }
     // boxIds.pop();
     // this.boxesIdxs = boxIds;
-    await this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: number[]) => {}, this.errorHandler);
+    this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: number[]) => {}, this.errorHandler);
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
   }
 
   haveExpandedFilters = false;

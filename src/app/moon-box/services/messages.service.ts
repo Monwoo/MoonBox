@@ -27,11 +27,23 @@ export class MessagesService {
   public availability: {} = {};
   public totalAvailable: number = 0; // Counting availables next pages for all connected data users
   private suggestionDict = {};
+  private ctxByBox = {};
   // public _srcSuggestions: BehaviorSubject<string[]> = new BehaviorSubject(Object.keys(this.suggestionDict));
+
+  constructor() {}
+
+  getBoxContext(boxId: string, defaultCtx: any = null) {
+    let storedCtx = this.ctxByBox[boxId];
+    if (!storedCtx) {
+      storedCtx = defaultCtx;
+      this.ctxByBox[boxId] = storedCtx;
+    }
+    return storedCtx;
+  }
+
   public async srcSuggestions() {
     return Object.keys(this.suggestionDict);
   }
-  constructor() {}
 
   pushMessages(messages: any) {
     let alreadyCounted = 0;

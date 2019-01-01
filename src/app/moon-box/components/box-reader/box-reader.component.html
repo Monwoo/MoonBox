@@ -4,8 +4,8 @@
   <div class="container-fluid">
     <mat-card class="row">
       <div class="col text-left expand-trigger" (click)="toggleConfigs()">
-        <strong>{{ formGroup?.value._username }}</strong> ({{ numResults }}/{{
-          messages?.bulkCount ? '---' : messages?.totalCount
+        <strong>{{ formGroup?.value._username }}</strong> ({{ ctx.numResults }}/{{
+          ctx.messages?.bulkCount ? '---' : ctx.messages?.totalCount
         }})
       </div>
       <div class="col text-right config-toggler-wrapper">
@@ -15,7 +15,7 @@
             *ngTemplateOutlet="extendedActions ? extendedActions : defaultExtendedActions; context: ctx"
           ></ng-container>
           <button
-            *ngIf="hasMoreMsgs"
+            *ngIf="ctx.hasMoreMsgs"
             mat-button
             color="primary"
             matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
@@ -43,7 +43,7 @@
             *ngTemplateOutlet="extendedActions ? extendedActions : defaultExtendedActions; context: ctx"
           ></ng-container>
           <button
-            *ngIf="hasMoreMsgs"
+            *ngIf="ctx.hasMoreMsgs"
             mat-button
             color="primary"
             matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
@@ -104,8 +104,8 @@
         </form>
       </div>
 
-      <div *ngIf="messages && !isCondensed && 'TODO Auto inline expand' && false" class="col-12 text-md-left">
-        <mat-card *ngFor="let groupMsgs of (messages.msgsByMoonBoxGroup | keyvalue)" class="bs box-reader">
+      <div *ngIf="ctx.messages && !isCondensed && 'TODO Auto inline expand' && false" class="col-12 text-md-left">
+        <mat-card *ngFor="let groupMsgs of (ctx.messages.msgsByMoonBoxGroup | keyvalue)" class="bs box-reader">
           <mat-card-subtitle>{{ groupMsgs.key }}</mat-card-subtitle>
           <mat-card-content class="container-fluid">
             <mat-card *ngFor="let msg of groupMsgs.value" class="bs box-reader">

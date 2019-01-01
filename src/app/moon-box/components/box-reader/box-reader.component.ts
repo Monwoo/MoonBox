@@ -91,16 +91,16 @@ export class BoxReaderComponent implements OnInit {
 
   loginData: FormType = null;
 
-  messages: any = null;
-
   renderer: Renderer2 = null;
-
-  hasMoreMsgs: boolean = false;
-  numResults: number = null;
 
   isCondensed: boolean = true;
 
-  ctx = { boxId: this.id };
+  ctx = {
+    boxId: this.id,
+    messages: <any>null,
+    hasMoreMsgs: false,
+    numResults: <number>null
+  };
 
   isScreenSmall$: any;
 
@@ -116,14 +116,6 @@ export class BoxReaderComponent implements OnInit {
     private msgs: MessagesService
   ) {
     this.renderer = this.rendererFactory.createRenderer(null, null);
-    formDefaults(this).then(defData => {
-      this.loginData = defData;
-
-      this.loadFormFromStorage();
-      this.storage.onUnlock.subscribe(() => {
-        this.loadFormFromStorage();
-      });
-    });
 
     // https://stackoverflow.com/questions/47034573/ngif-hide-some-content-on-mobile-screen-angular-4
     // https://getbootstrap.com/docs/4.0/layout/grid/#grid-options
@@ -164,10 +156,15 @@ export class BoxReaderComponent implements OnInit {
   }
 
   ngOnInit() {
-    // const imapProvider = this.imapProviders[this.defaultProvider];
-    const ctx = {};
+    this.ctx = this.msgs.getBoxContext(this.id, this.ctx);
+    formDefaults(this).then(defData => {
+      this.loginData = defData;
 
-    // this.readMessages();
+      this.loadFormFromStorage();
+      this.storage.onUnlock.subscribe(() => {
+        this.loadFormFromStorage();
+      });
+    });
   }
 
   ngAfterViewChecked() {
@@ -262,11 +259,11 @@ export class BoxReaderComponent implements OnInit {
               });
             }
           } else {
-            this.hasMoreMsgs = messages.nextPage; //messages.numResults !== messages.totalCount; // TODO : pagination etc...
-            this.numResults += messages.numResults;
+            this.ctx.hasMoreMsgs = messages.nextPage; //messages.numResults !== messages.totalCount; // TODO : pagination etc...
+            this.ctx.numResults += messages.numResults;
             // TODO : better data structure to auto fix multiple reads of same page issue...
-            this.messages = shallowMerge(1, this.messages, messages);
-            logReview.debug('BoxReader did fetch msgs ', this.messages);
+            this.ctx.messages = shallowMerge(1, this.ctx.messages, messages);
+            logReview.debug('BoxReader did fetch msgs ', this.ctx.messages);
             this.msgs.pushMessages(messages);
             this.updateIFrames();
           }
@@ -337,9 +334,9 @@ export class BoxReaderComponent implements OnInit {
     const val: FormType = this.loginForm.form.value;
     let resp: Observable<any> = null;
 
-    this.hasMoreMsgs = false;
-    this.numResults = null;
-    this.messages = null;
+    this.ctx.hasMoreMsgs = false;
+    this.ctx.numResults = null;
+    this.ctx.messages = null;
 
     // Nghost event not already detected ? TODO : avoid quick fix below :
     this.onSubmit(event);
@@ -406,8 +403,8 @@ export class BoxReaderComponent implements OnInit {
   }
   loadNext(e: any) {
     let resp: Observable<BoxReaderComponent> = null;
-    if (this.messages && this.messages.nextPage) {
-      resp = this.readMessages(this.messages.nextPage);
+    if (this.ctx.messages && this.ctx.messages.nextPage) {
+      resp = this.readMessages(this.ctx.messages.nextPage);
     } else {
       logReview.debug('No next page for : ', this.id);
       // resp = TODO error ?

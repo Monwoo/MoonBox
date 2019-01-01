@@ -252,12 +252,14 @@ export const formModel = async (caller: any) => {
                     const assList = srcList;
                     return () => [
                       new DynamicInputModel({
-                        id: 'key',
+                        id: '0key',
+                        name: 'key',
                         label: srcLbl,
                         list: srcList // ["Alabama", "Alaska", "Arizona", "Arkansas"]
                       }),
                       new DynamicInputModel({
-                        id: 'value',
+                        id: '0value',
+                        name: 'value',
                         label: assLbl,
                         list: assList
                       })
