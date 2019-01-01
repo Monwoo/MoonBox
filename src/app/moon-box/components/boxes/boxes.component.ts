@@ -418,13 +418,15 @@ export class BoxesComponent implements OnInit {
       mergeMap(q => forkJoin(q)), map((juncture:any[]) => {
         const [filtersData, freshDefaults] = juncture;
       */
+      const source = interval(1000);
+
       resp = this.storage.getItem<FormType>('moon-box-filters', {}).pipe(
         tap(filtersData => {
           logReview.debug('Reading filters from storage : ', filtersData);
           self.filters.data = filtersData; // filtersData need to be set for formDefaults to have right layout
         }),
         withLatestFrom(
-          interval(1000)
+          [source]
           // from(formDefaults(this)).pipe(
           //   tap(defaultF => {
           //     logReview.debug('Having filters defaults : ', defaultF);
