@@ -20,7 +20,18 @@ import { DynamicFormArrayModel, DynamicFormLayout, DynamicFormService, validate 
 // import { LocalStorage } from '@ngx-pwa/local-storage';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { MessagesService } from '@moon-box/services/messages.service';
-import { debounceTime, delay, last, map, tap, startWith, concatMap, catchError, share } from 'rxjs/operators';
+import {
+  debounceTime,
+  delay,
+  last,
+  map,
+  tap,
+  startWith,
+  concatMap,
+  concatAll,
+  catchError,
+  share
+} from 'rxjs/operators';
 import { fromEvent, of, from, BehaviorSubject, Subject } from 'rxjs';
 import { LocalStorage, JSONSchemaBoolean } from '@ngx-pwa/local-storage';
 
@@ -444,6 +455,7 @@ export class BoxesComponent implements OnInit {
       concatMap((box: BoxReaderComponent, idx) => {
         return box.login(e);
       }),
+      concatAll(),
       tap(loadedBoxes => {
         logReview.debug('Did login for all boxes', loadedBoxes);
         this.ll.releaseLoadingLock();
@@ -463,22 +475,21 @@ export class BoxesComponent implements OnInit {
 
     // TODO : may have buggy conception design : seem to loop infinitly on errors....
 
-    return from(this.boxViews.toArray())
-      .pipe(
-        concatMap((box: BoxReaderComponent, idx) => {
-          return box.loadNext(e);
-        })
-      )
-      .pipe(
-        tap(loadedMessages => {
-          logReview.debug('Did fetch next messages for all boxes', loadedMessages);
-          this.ll.releaseLoadingLock();
-        }),
-        catchError((e, c) => {
-          this.ll.releaseLoadingLock();
-          throw e;
-        })
-      );
+    return from(this.boxViews.toArray()).pipe(
+      // concatMap((box: BoxReaderComponent, idx) => {
+      concatMap((box: BoxReaderComponent, idx) => {
+        return box.loadNext(e);
+      }),
+      concatAll(),
+      tap(loadedMessages => {
+        logReview.debug('Did fetch next messages for all boxes', loadedMessages);
+        this.ll.releaseLoadingLock();
+      }),
+      catchError((e, c) => {
+        this.ll.releaseLoadingLock();
+        throw e;
+      })
+    );
   }
   expandBoxesConfigs = true;
   toggleBoxesConfigs(e: any) {

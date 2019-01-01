@@ -27,8 +27,8 @@ import { FormType, FORM_LAYOUT, formModel, formDefaults } from './login-form.mod
 import { NotificationsService } from 'angular2-notifications';
 import { extract } from '@app/core';
 import { FormType as FiltersFormType } from '@moon-box/components/boxes/filters-form.model';
-import { debounceTime, delay, last, map, tap, startWith, catchError } from 'rxjs/operators';
-import { fromEvent, of, from, Observable } from 'rxjs';
+import { debounceTime, delay, last, map, concatMap, tap, startWith, catchError } from 'rxjs/operators';
+import { fromEvent, of, from, Observable, BehaviorSubject } from 'rxjs';
 import * as moment from 'moment';
 
 import { Logger } from '@app/core/logger.service';
@@ -382,10 +382,12 @@ export class BoxReaderComponent implements OnInit {
         ? moment(this.loginData.periode.fetchEnd).format('YYYY/MM/DD')
         : null;
 
-      resp = this.backend.login(this.loginData).pipe(
-        map(() => {
-          logReview.debug('User is logged in');
-          return this.readMessages().subscribe();
+      resp = from([this.backend.login(this.loginData), this.readMessages()]).pipe(
+        concatMap((data, idx) => {
+          return data;
+        }),
+        tap(results => {
+          logReview.debug('User is logged in with first page loaded', results);
         })
       );
     } else {
@@ -398,18 +400,26 @@ export class BoxReaderComponent implements OnInit {
         });
       // resp = error ?
       throw 'Form not valid';
+      // resp = new Observable(function (observer) {
+      //   observer.next({
+      //     succed: false,
+      //   });
+      //   observer.complete();
+      // });
     }
     return resp;
   }
   loadNext(e: any) {
-    let resp: Observable<BoxReaderComponent> = null;
+    let resp: Observable<any> = null;
     if (this.ctx.messages && this.ctx.messages.nextPage) {
       resp = this.readMessages(this.ctx.messages.nextPage);
     } else {
       logReview.debug('No next page for : ', this.id);
       // resp = TODO error ?
       // throw 'No next page for : ' + this.id;
-      resp = of(this); // No error, load next may be requested even if no load next needed...
+      resp = of({
+        error: 'No next page for ' + this.id
+      }); // No error, load next may be requested even if no load next needed...
     }
     return resp;
   }
