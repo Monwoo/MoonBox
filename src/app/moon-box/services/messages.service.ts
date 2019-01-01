@@ -1,7 +1,12 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
+import { SecuStorageService } from '@moon-box/services/secu-storage.service';
+import { pluck, map, tap } from 'rxjs/operators';
+
+import { Logger } from '@app/core/logger.service';
+const logReview = new Logger('MonwooReview');
 
 export type MsgsStateType = {
   [key: string]: {
@@ -30,7 +35,7 @@ export class MessagesService {
   private ctxByBox = {};
   // public _srcSuggestions: BehaviorSubject<string[]> = new BehaviorSubject(Object.keys(this.suggestionDict));
 
-  constructor() {}
+  constructor(private storage: SecuStorageService) {}
 
   getBoxContext(boxId: string, defaultCtx: any = null) {
     let storedCtx = this.ctxByBox[boxId];
@@ -106,4 +111,42 @@ export class MessagesService {
     this.totalAvailable = 0;
     this.service.next(this.msgs);
   }
+
+  bundleForMemorySave() {
+    return of(this).pipe(
+      pluck('msgs', 'numResults', 'totalCount', 'availability', 'totalAvailable', 'suggestionDict', 'ctxByBox')
+    );
+  }
+
+  _shouldKeepMsgsInMemory = false;
+  shouldKeepMsgsInMemory(should: boolean) {
+    this._shouldKeepMsgsInMemory = should;
+    if (!should) {
+      this.removeMessagesFromMemory();
+    }
+  }
+
+  keepMessagesInMemory() {
+    return this.bundleForMemorySave().pipe(
+      map((bundle: any) => {
+        return this.storage.setItem('moon-box-messages', bundle).pipe(
+          tap(() => {
+            logReview.debug('Messages saved to memory');
+          })
+        );
+      })
+    );
+  }
+
+  removeMessagesFromMemory() {
+    return this.storage.removeItem('moon-box-messages').pipe(
+      tap(() => {
+        logReview.debug('Did remove messages from memory');
+      })
+    );
+  }
+
+  // errorHandler(err: any) {
+  //   logReview.error('Message service error ', err);
+  // }
 }

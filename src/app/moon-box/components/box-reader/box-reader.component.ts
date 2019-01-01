@@ -54,7 +54,7 @@ export class BoxReaderComponent implements OnInit {
   @ViewChild('loginForm') loginForm: NgForm = null;
   @ViewChild('eltRef') eltRef: ElementRef = null;
   @HostListener('submit', ['$event'])
-  onSubmit(event: any) {
+  onSubmit(e: any) {
     if (!this.loginForm.form.valid) {
       let target;
       for (var i in this.loginForm.form.controls) {
@@ -77,6 +77,10 @@ export class BoxReaderComponent implements OnInit {
         if (this.isCondensed) {
           this.toggleConfigs();
         }
+        if (e.preventDefault) e.preventDefault();
+        if (e.stopPropagation) e.stopPropagation();
+        // this.clickOnRemoveAgregationQuickHack = true; // TODO : dose above stopPropagation have no effect ?
+        return false;
       }
     }
   }
@@ -198,7 +202,7 @@ export class BoxReaderComponent implements OnInit {
     formModel(this).then((fm: DynamicFormModel) => {
       this.formModel = fm;
       this.formGroup = this.formService.createFormGroup(this.formModel);
-      logReview.debug('Patching form : ', this.loginData);
+      logReview.debug('Patching box-reader form : ', this.loginData);
       this.formGroup.patchValue(this.loginData);
       this.isFormUpdating = false;
     });
@@ -206,7 +210,7 @@ export class BoxReaderComponent implements OnInit {
 
   loadFormFromStorage() {
     return new Promise<boolean>((resolve, reject) => {
-      if (this.loginData.keepInMemory) {
+      if (this.loginData.keepFormsInMemory) {
         this.storage.getItem<FormType>('moon-box-' + this.id, {}).subscribe(
           loginData => {
             (async () => {
@@ -214,7 +218,7 @@ export class BoxReaderComponent implements OnInit {
               let freshDefaults = shallowMerge(1, await formDefaults(this), this.loginData);
               this.loginData = <FormType>shallowMerge(1, freshDefaults, loginData);
               // transforms... ?
-              // this.loginData.keepInMemory = true;
+              // this.loginData.keepFormsInMemory = true;
               let transforms = this.loginData;
               this.loginData = <FormType>shallowMerge(1, this.loginData, transforms);
               await this.updateForm();
@@ -357,7 +361,7 @@ export class BoxReaderComponent implements OnInit {
           _password: ''
         });
       }
-      if (this.loginData.keepInMemory) {
+      if (this.loginData.keepFormsInMemory) {
         this.storage.setItem('moon-box-' + this.id, storeData).subscribe(() => {
           // TODO : fluent design review : do not show useless msg, if it works, data
           // showing up is enough...

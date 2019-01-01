@@ -235,6 +235,9 @@
 * https://coryrylan.com/blog/angular-async-data-binding-with-ng-if-and-ng-else
 * https://stackoverflow.com/questions/49788228/angular-5-behaviorsubject-data-not-update-ui
 
+* https://www.learnrxjs.io/recipes/progressbar.html
+* https://www.learnrxjs.io/recipes/gameloop.html
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

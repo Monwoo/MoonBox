@@ -16,7 +16,7 @@ export interface FormType extends FiltersFormType {
   _username: string;
   _password: string;
   selectedProvider: ProviderID;
-  keepInMemory: boolean;
+  keepFormsInMemory: boolean;
   params: {
     mailhost: string;
     mailport: string;
@@ -51,7 +51,8 @@ export const formDefaults = async (caller: any) => {
         _username: await fetchTrans(extract('JohnDoe@yopmail.com')),
         _password: '',
         selectedProvider: 'YopMail',
-        keepInMemory: true,
+        keepFormsInMemory: true,
+        keepMessagesInMemory: false,
         keepPasswordsInMemory: false,
         params: {
           // TODO : default provider not working yet... :
@@ -147,9 +148,9 @@ export const formModel = async (caller: any) => {
               })
             ]),
         // new DynamicCheckboxModel({
-        //   id: 'keepInMemory',
+        //   id: 'keepFormsInMemory',
         //   label: await fetchTrans(extract('Conserver la session (Accès au Navigateur == accès aux data)')),
-        //   value: d.keepInMemory
+        //   value: d.keepFormsInMemory
         // }),
         new DynamicFormGroupModel({
           id: 'params',

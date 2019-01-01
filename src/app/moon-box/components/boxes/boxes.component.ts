@@ -28,11 +28,13 @@ import {
   tap,
   startWith,
   concatMap,
+  mergeMap,
+  withLatestFrom,
   concatAll,
   catchError,
   share
 } from 'rxjs/operators';
-import { fromEvent, of, from, BehaviorSubject, Subject } from 'rxjs';
+import { fromEvent, of, from, BehaviorSubject, forkJoin } from 'rxjs';
 import { LocalStorage, JSONSchemaBoolean } from '@ngx-pwa/local-storage';
 
 import { shallowMerge } from '@moon-manager/tools';
@@ -119,21 +121,37 @@ export class BoxesComponent implements OnInit {
     }
   }
   @HostListener('submit', ['$event'])
-  onSubmit(event: any) {
-    // TODO : better design model for animation : should stack etc.... async for now....
-    // if(!this.form.valid) {
-    //   let target;
-    //   for (var i in this.form.controls) {
-    //     if(!this.form.controls[i].valid) {
-    //       target = this.form.controls[i];
-    //       break;
-    //     }
-    //   }
-    //   if(target) {
-    //     $('html,body').animate({scrollTop: $(target.nativeElement).offset().top}, 'slow');
-    //   }
-    // }
+  onSubmit(e: any) {
+    if (!this.filtersForm.form.valid) {
+      let target;
+      for (var i in this.filtersForm.form.controls) {
+        // need to check errors since did use 'setError' method from login action on bad user ids ?
+        // TODO : remove below hack, avoiding tricky case for now :
+        if ('_username' === i) {
+          continue;
+        }
+        if (!this.filtersForm.form.controls[i].valid) {
+          target = this.filtersForm.form.controls[i];
+          break;
+        }
+      }
+      if (target) {
+        // https://stackoverflow.com/questions/41173027/angular-2-focus-on-first-invalid-input-after-click-event
+        // https://stackoverflow.com/questions/43553544/how-can-i-manually-set-an-angular-form-field-as-invalid
+        // $('html,body').animate({scrollTop: $(target.nativeElement).offset().top}, 'slow');
+        // logReview.debug(target);
+        target.markAsTouched(); // TODO : unlike in box-reader login form, markAsTouched have no effet when injecting items in form...
+        if (!this.haveExpandedFilters) {
+          this.toggleFilters();
+        }
+        if (e.preventDefault) e.preventDefault();
+        if (e.stopPropagation) e.stopPropagation();
+        // this.clickOnRemoveAgregationQuickHack = true; // TODO : dose above stopPropagation have no effect ?
+        return false;
+      }
+    }
   }
+
   // https://stackoverflow.com/questions/45350716/detect-window-size-using-angular-4
   // https://getbootstrap.com/docs/4.0/layout/overview/
   size = {
@@ -189,14 +207,14 @@ export class BoxesComponent implements OnInit {
         null === storageExpandBoxesConfigs ? this.expandBoxesConfigs : storageExpandBoxesConfigs;
 
       this.filters = await contextDefaults(this);
-      this.updateForm();
+      this.updateForm().subscribe();
       this.msgs.service.subscribe(messages => {
         // need to update form model to update formfields suggestions
         // TODO : better form design pattern to handle all that in simple form codes...
         // formModel(this).then(model => {
         //   this.filters.model = model;
         // });
-        this.updateForm();
+        this.updateForm().subscribe();
       });
     })();
     this.renderer = this.rendererFactory.createRenderer(null, null);
@@ -204,7 +222,7 @@ export class BoxesComponent implements OnInit {
     this.refreshBoxesIdxs();
     this.storage.onUnlock.subscribe(() => {
       this.refreshBoxesIdxs();
-      this.updateForm();
+      this.updateForm().subscribe();
     });
 
     // https://stackoverflow.com/questions/47034573/ngif-hide-some-content-on-mobile-screen-angular-4
@@ -358,72 +376,92 @@ export class BoxesComponent implements OnInit {
     this.initShadowStickySizes();
   }
 
-  onFiltersChange() {
+  onFiltersChange(e: any) {
+    // Nghost event not already detected ? TODO : avoid quick fix below :
+    this.onSubmit(e);
+
     if (this.filtersForm.form.valid) {
-      this.storage.getItem<FormType>('moon-box-filters', {}).subscribe(filtersData => {
-        (async () => {
-          // Called if data is valid or null
-          let freshDefaults = await formDefaults(this);
-          let transforms = <FormType>shallowMerge(1, freshDefaults, filtersData);
-          this.filters.data = <FormType>shallowMerge(1, transforms, this.filters.group.value);
-
-          this.storage.setItem('moon-box-filters', this.filters.data).subscribe(() => {
-            this.i18nService.get(extract('mb.boxes.notif.changeRegistred')).subscribe(t => {
-              this.notif.success('', t);
-              // this.ll.hideLoader();
-            });
-          }, this.errorHandler);
-
-          logReview.debug('Patching Filters : ', this.filters.data);
-          this.ngZone.run(() => {
-            this.filters.group.patchValue(this.filters.data);
+      this.updateForm(this.filtersForm.form.value).subscribe(filtersData => {
+        this.storage.setItem('moon-box-filters', filtersData).subscribe(() => {
+          this.i18nService.get(extract('mb.boxes.notif.changeRegistred')).subscribe(t => {
+            this.notif.success('', t);
+            // this.ll.hideLoader();
           });
-        })();
+        }, this.errorHandler);
       }, this.errorHandler);
     } else {
-      this.storage.setItem('moon-box-filters', this.filters.data).subscribe(() => {
-        this.i18nService.get(extract('mb.boxes.notif.changeFail')).subscribe(t => {
-          this.notif.error('', t);
-          // this.ll.hideLoader();
-        });
-      }, this.errorHandler);
+      // this.storage.setItem('moon-box-filters', filtersData).subscribe(() => {
+      this.i18nService.get(extract('mb.boxes.notif.changeFail')).subscribe(t => {
+        this.notif.error('', t);
+        // this.ll.hideLoader();
+      });
+      // }, this.errorHandler);
+      return false; // Stop propagation is already done with this.onSubmit(e);
     }
   }
 
-  async updateForm() {
+  updateForm(transforms: any = null) {
+    let resp = of(null);
+    const self = this;
     // Load from params from local storage ? :
     if (this.filters) {
-      this.storage.getItem<FormType>('moon-box-filters', {}).subscribe(
-        filtersData => {
-          (async () => {
-            // Called if data is valid or null
-            let freshDefaults = await formDefaults(this);
-            this.filters.data = <FormType>shallowMerge(1, freshDefaults, filtersData);
-            // transforms... ?
-            let transforms = this.filters.data;
-            this.filters.data = <FormType>shallowMerge(1, this.filters.data, transforms);
-            logReview.debug('Patching form : ', this.filters.data);
-            this.ngZone.run(() => {
-              this.filters.group.patchValue(this.filters.data);
-              // this.filtersForm = this.filtersFormRef.nativeElement;
-              // TODO : do on filters did change event...
-              this.mbegKeyTransformerControl = this.filters.group.get(
-                'params.moonBoxEmailsGrouping.mbegKeyTransformer'
-              ) as FormArray;
-              this.mbegKeyTransformerModel = this.formService.findById(
-                'mbegKeyTransformer',
-                this.filters.model
-              ) as DynamicFormArrayModel;
-            });
-          })();
-        },
-        error => {
-          logReview.error('Fail to fetch config');
-        }
+      /*
+      resp = from([// forkJoin( ....... map((juncture:any[]) => { .... const [filtersData, freshDefaults] = juncture;
+        this.storage.getItem<FormType>('moon-box-filters', {}).pipe(tap(filtersData => {
+          logReview.debug('Reading filters from storage : ', filtersData);
+          self.filters.data = filtersData; // filtersData need to be set for formDefaults to have right layout
+        })),
+        from(formDefaults(this)).pipe(tap(defaultF => {
+          logReview.debug('Having filters defaults : ', defaultF);
+        })),
+      ]).pipe(//concatMap((r:FormType, idx)=>r), concatAll(),
+      mergeMap(q => forkJoin(q)), map((juncture:any[]) => {
+        const [filtersData, freshDefaults] = juncture;
+      */
+      resp = this.storage.getItem<FormType>('moon-box-filters', {}).pipe(
+        tap(filtersData => {
+          logReview.debug('Reading filters from storage : ', filtersData);
+          self.filters.data = filtersData; // filtersData need to be set for formDefaults to have right layout
+        }),
+        withLatestFrom(
+          from(formDefaults(this)).pipe(
+            tap(defaultF => {
+              logReview.debug('Having filters defaults : ', defaultF);
+            })
+          )
+        ),
+        map(([filtersData, freshDefaults]) => {
+          // TODO : this not linked to this class, why only here ? (when using forkJoin, may be typo of old code ?)
+          self.filters.data = <FormType>shallowMerge(1, freshDefaults, filtersData);
+          if (transforms) {
+            self.filters.data = <FormType>shallowMerge(1, self.filters.data, transforms);
+          }
+          // TODO : need to Await ng Zone if using it ? :
+          self.ngZone.run(() => {
+            logReview.debug('Patching filters form : ', self.filters.data);
+            self.filters.group.patchValue(self.filters.data);
+            // self.filtersForm = self.filtersFormRef.nativeElement;
+            // TODO : do on filters did change event...
+            self.mbegKeyTransformerControl = self.filters.group.get(
+              'params.moonBoxEmailsGrouping.mbegKeyTransformer'
+            ) as FormArray;
+            self.mbegKeyTransformerModel = self.formService.findById(
+              'mbegKeyTransformer',
+              self.filters.model
+            ) as DynamicFormArrayModel;
+          });
+          return self.filters.data;
+        }),
+        tap(filtersData => {
+          logReview.debug('Finishing filters transforms : ', filtersData);
+          self.filters.data = filtersData; // filtersData need to be set for formDefaults to have right layout
+        })
       );
     } else {
+      logReview.debug('No filters yet defined');
       // this.filters.group.patchValue(this.filters.data);
     }
+    return resp;
   }
 
   ngOnInit() {
@@ -432,15 +470,17 @@ export class BoxesComponent implements OnInit {
 
   addFilterAgregation(e: any) {
     this.formService.addFormArrayGroup(this.mbegKeyTransformerControl, this.mbegKeyTransformerModel);
+    this.onFiltersChange(e); // TODO : why not auto-call by material component ?
   }
 
   removeFilterAgregation(e: any, context: DynamicFormArrayModel, index: number) {
     // console.log(e);
     // this.formService.clearFormArray(this.mbegKeyTransformerControl, this.mbegKeyTransformerModel);
     this.formService.removeFormArrayGroup(index, this.mbegKeyTransformerControl, context);
-    e.preventDefault();
-    e.stopPropagation();
-    // this.clickOnRemoveAgregationQuickHack = true; // TODO : why above stopPropagation have no effect ?
+    this.onFiltersChange(e); // TODO : why not auto-call by material component ?
+    if (e.preventDefault) e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
+    // this.clickOnRemoveAgregationQuickHack = true; // TODO : dose above stopPropagation have no effect ?
     return false;
   }
 

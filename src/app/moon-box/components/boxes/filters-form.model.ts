@@ -22,7 +22,8 @@ export type FormType = {
     fetchStartStr: string;
     fetchEndStr: string;
   };
-  keepInMemory: boolean;
+  keepFormsInMemory: boolean;
+  keepMessagesInMemory: boolean;
   keepPasswordsInMemory: boolean;
   params: {
     moonBoxEmailsGrouping: {
@@ -59,7 +60,8 @@ export const formDefaults = async (caller: any) => {
           fetchStartStr: null,
           fetchEndStr: null
         },
-        keepInMemory: true,
+        keepFormsInMemory: true,
+        keepMessagesInMemory: false,
         keepPasswordsInMemory: false,
         params: {
           moonBoxEmailsGrouping: {
@@ -130,7 +132,7 @@ export const FORM_LAYOUT = {
       host: 'w-100'
     }
   },
-  keepInMemory: {
+  keepFormsInMemory: {
     element: {
       container: 'condensable'
     }
@@ -214,9 +216,14 @@ export const formModel = async (caller: any) => {
           }
         }),
         new DynamicCheckboxModel({
-          id: 'keepInMemory',
-          label: await fetchTrans(extract('Conserver les identifiants')),
-          value: d.keepInMemory
+          id: 'keepFormsInMemory',
+          label: await fetchTrans(extract('Conserver les formulaires')),
+          value: d.keepFormsInMemory
+        }),
+        new DynamicCheckboxModel({
+          id: 'keepMessagesInMemory',
+          label: await fetchTrans(extract('Conserver les messages')),
+          value: d.keepFormsInMemory
         }),
         new DynamicCheckboxModel({
           id: 'keepPasswordsInMemory',
@@ -246,11 +253,14 @@ export const formModel = async (caller: any) => {
               group: [
                 new DynamicFormArrayModel({
                   id: 'mbegKeyTransformer',
-                  initialCount: 2,
+                  initialCount: caller.filters
+                    ? caller.filters.data.params.moonBoxEmailsGrouping.mbegKeyTransformer.length
+                    : 0,
                   groupFactory: await (async () => {
                     const srcLbl = await fetchTrans(extract('Source'));
                     const assLbl = await fetchTrans(extract('Association'));
                     const srcList = await caller.msgs.srcSuggestions();
+                    const requiredErrMsg = await extract('{{ label }} requis.');
                     const assList = srcList;
                     return () => [
                       new DynamicInputModel({
@@ -261,6 +271,9 @@ export const formModel = async (caller: any) => {
                         validators: {
                           required: null,
                           minLength: 1
+                        },
+                        errorMessages: {
+                          required: requiredErrMsg
                         }
                       }),
                       new DynamicInputModel({
@@ -271,6 +284,9 @@ export const formModel = async (caller: any) => {
                         validators: {
                           required: null,
                           minLength: 1
+                        },
+                        errorMessages: {
+                          required: requiredErrMsg
                         }
                       })
                     ];
