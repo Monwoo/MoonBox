@@ -35,7 +35,24 @@ export class MessagesService {
   private ctxByBox = {};
   // public _srcSuggestions: BehaviorSubject<string[]> = new BehaviorSubject(Object.keys(this.suggestionDict));
 
-  constructor(private storage: SecuStorageService) {}
+  constructor(private storage: SecuStorageService) {
+    this.storage.onUnlock.subscribe(() => {
+      this.storage.getItem('moon-box-messages', null).subscribe(bundle => {
+        logReview.debug('Loading messages from memory : ', bundle);
+
+        if (bundle) {
+          Object.assign(this, bundle);
+        }
+        this.service.pipe(
+          tap(msgs => {
+            if (this._shouldKeepMsgsInMemory) {
+              this.keepMessagesInMemory();
+            }
+          })
+        );
+      });
+    });
+  }
 
   getBoxContext(boxId: string, defaultCtx: any = null) {
     let storedCtx = this.ctxByBox[boxId];
@@ -121,7 +138,9 @@ export class MessagesService {
   _shouldKeepMsgsInMemory = false;
   shouldKeepMsgsInMemory(should: boolean) {
     this._shouldKeepMsgsInMemory = should;
-    if (!should) {
+    if (should) {
+      this.keepMessagesInMemory();
+    } else {
       this.removeMessagesFromMemory();
     }
   }

@@ -77,7 +77,9 @@ export class ParametersComponent implements OnInit {
           !jsonData.hasOwnProperty('eS') ||
           !jsonData.hasOwnProperty('pC') ||
           !jsonData.hasOwnProperty('lvl2') ||
-          !jsonData.hasOwnProperty('language')
+          !jsonData.hasOwnProperty('language') ||
+          !jsonData.hasOwnProperty('current-theme') ||
+          !jsonData.hasOwnProperty('moon-box-messages') // TODO : reduce on backupable keys instead of raw code
         ) {
           this.i18nService.get(extract('mb.param.notif.backupCorruptErr')).subscribe(t => {
             // logReview.warn(t);
@@ -108,6 +110,8 @@ export class ParametersComponent implements OnInit {
           setItem('pC', jsonData.pC);
           setItem('lvl2', jsonData.lvl2);
           setItem('language', jsonData.language);
+          setItem('current-theme', jsonData['current-theme']);
+          setItem('moon-box-messages', jsonData['moon-box-messages']); // TODO : reduce on backupable keys instead of raw code
           // this.storage.checkPassCodeValidity('');
           // this.storage.checkLock();
           this.storage.checkLockScreen();
@@ -162,7 +166,11 @@ export class ParametersComponent implements OnInit {
       bckp['eS'] = localStorage.getItem('eS');
       bckp['pC'] = localStorage.getItem('pC');
       bckp['lvl2'] = localStorage.getItem('lvl2');
+      bckp['current-theme'] = localStorage.getItem('current-theme');
       bckp['language'] = localStorage.getItem('language');
+      bckp['current-theme'] = localStorage.getItem('current-theme');
+      bckp['moon-box-messages'] = localStorage.getItem('moon-box-messages'); // TODO : reduce on backupable keys instead of raw code
+
       let dbgData = {};
       if (!environment.production) {
         // Object.keys(bckp).reduce((acc:any, k:string) => {

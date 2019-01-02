@@ -540,7 +540,7 @@ export class BoxesComponent implements OnInit {
     return from(this.boxViews.toArray()).pipe(
       concatMap((box: BoxReaderComponent, idx) => {
         return box.login(e);
-      }),
+      }), // TODO : concatMap will not forkJOIN => each box is emitted => need combineLatest to ensure loader on all calls ?
       // concatAll(),
       tap(loadedBoxes => {
         logReview.debug('Did login for all boxes', loadedBoxes);
@@ -565,8 +565,8 @@ export class BoxesComponent implements OnInit {
       // concatMap((box: BoxReaderComponent, idx) => {
       concatMap((box: BoxReaderComponent, idx) => {
         return box.loadNext(e);
-      }),
-      concatAll(),
+      }), // TODO : concatMap will not forkJOIN => each box is emitted => need combineLatest to ensure loader on all calls ?
+      // concatAll(),
       tap(loadedMessages => {
         logReview.debug('Did fetch next messages for all boxes', loadedMessages);
         this.ll.releaseLoadingLock();
