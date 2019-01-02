@@ -37,20 +37,7 @@ export class MessagesService {
 
   constructor(private storage: SecuStorageService) {
     this.storage.onUnlock.subscribe(() => {
-      this.storage.getItem('moon-box-messages', null).subscribe(bundle => {
-        logReview.debug('Loading messages from memory : ', bundle);
-
-        if (bundle) {
-          Object.assign(this, bundle);
-        }
-        this.service.pipe(
-          tap(msgs => {
-            if (this._shouldKeepMsgsInMemory) {
-              this.keepMessagesInMemory();
-            }
-          })
-        );
-      });
+      this.loadMsgsFromStorage();
     });
   }
 
@@ -129,28 +116,70 @@ export class MessagesService {
     this.service.next(this.msgs);
   }
 
+  loadMsgsFromStorage() {
+    this.storage.getItem('moon-box-messages', null).subscribe(bundle => {
+      logReview.debug('Loading messages from memory : ', bundle);
+
+      if (bundle) {
+        Object.assign(this, bundle);
+        this.service.next(this.msgs); // Emit freshly loaded messages to get UI refreshs
+      }
+      // // TODO : why below do not work ?
+      // this.service.pipe(
+      //   tap(msgs => {
+      //     if (this._shouldKeepMsgsInMemory) {
+      //       this.keepMessagesInMemory();
+      //     }
+      //   })
+      // );
+      this.service.subscribe(msgs => {
+        if (this._shouldKeepMsgsInMemory) {
+          this.keepMessagesInMemory();
+        }
+      });
+    });
+  }
+
   bundleForMemorySave() {
-    return of(this).pipe(
-      pluck('msgs', 'numResults', 'totalCount', 'availability', 'totalAvailable', 'suggestionDict', 'ctxByBox')
-    );
+    const bundleKeys = [
+      'msgs',
+      'numResults',
+      'totalCount',
+      'availability',
+      'totalAvailable',
+      'suggestionDict',
+      'ctxByBox',
+      '_shouldKeepMsgsInMemory'
+    ];
+    const bundle = {};
+    bundleKeys.forEach(k => {
+      bundle[k] = this[k];
+    });
+    return of(bundle);
   }
 
   _shouldKeepMsgsInMemory = false;
   shouldKeepMsgsInMemory(should: boolean) {
     this._shouldKeepMsgsInMemory = should;
     if (should) {
-      this.keepMessagesInMemory();
+      this.keepMessagesInMemory().subscribe(); // TODO : better design pattern to avoid subscription... ?
     } else {
-      this.removeMessagesFromMemory();
+      this.removeMessagesFromMemory().subscribe(); // TODO : better design pattern to avoid subscription... ?
     }
   }
+
+  // storageHaveKeepMsgsInMemory() {
+  //   return this.storage.getItem("moon-box-filters").pipe(
+  //     pluck('keepMessagesInMemory'),
+  //   );
+  // }
 
   keepMessagesInMemory() {
     return this.bundleForMemorySave().pipe(
       map((bundle: any) => {
         return this.storage.setItem('moon-box-messages', bundle).pipe(
-          tap(() => {
-            logReview.debug('Messages saved to memory');
+          tap(status => {
+            logReview.debug('Messages saved to memory', status);
           })
         );
       })

@@ -36,7 +36,7 @@ export class ParametersComponent implements OnInit {
     private ll: LoadingLoaderService,
     public storage: SecuStorageService,
     public msgs: MessagesService,
-    private themings: ThemingsService
+    public themings: ThemingsService
   ) {}
   dropzoneBckp = {
     url: '#', // Url set to avoid console Error, but will not be used in V1.0.0
@@ -114,6 +114,7 @@ export class ParametersComponent implements OnInit {
           setItem('moon-box-messages', jsonData['moon-box-messages']); // TODO : reduce on backupable keys instead of raw code
           // this.storage.checkPassCodeValidity('');
           // this.storage.checkLock();
+          this.msgs.loadMsgsFromStorage(); // Ensure msgs are loaded to avoid empty message overwrites
           this.storage.checkLockScreen();
 
           this.i18nService

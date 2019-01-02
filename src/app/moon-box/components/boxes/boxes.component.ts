@@ -413,12 +413,14 @@ export class BoxesComponent implements OnInit {
   }
 
   isFormUpdating = false; // TODO : better design pattern with task chancelation and re-spawn from start ?
+  progressiveDelay = 100; // Used to avoid too much back calls on infinit fails...
   updateForm(transforms: any = null): Observable<any> {
     // TODO: add sentinnel to avoid multi parallel calls ??
     if (this.isFormUpdating) {
+      this.progressiveDelay *= 2;
       logReview.debug('Postponing boxes filters update');
       return of(true)
-        .pipe(delay(200))
+        .pipe(delay(this.progressiveDelay))
         .pipe(
           map(_ => {
             // return forkJoin(this.updateForm(transforms));
@@ -427,6 +429,7 @@ export class BoxesComponent implements OnInit {
         );
     }
     this.isFormUpdating = true;
+    this.progressiveDelay = 100;
 
     let resp = of(null);
     const self = this;
@@ -491,6 +494,7 @@ export class BoxesComponent implements OnInit {
           if (transforms) {
             self.filters.data = <FormType>shallowMerge(1, self.filters.data, transforms);
           }
+          this.msgs.shouldKeepMsgsInMemory(self.filters.data.keepMessagesInMemory);
           // TODO : need to Await ng Zone if using it ? :
           self.ngZone.run(() => {
             logReview.debug('Patching filters form : ', self.filters.data);

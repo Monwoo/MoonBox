@@ -183,11 +183,13 @@ export class BoxReaderComponent implements OnInit {
   }
 
   isFormUpdating = false; // TODO : better design pattern with task chancelation and re-spawn from start ?
+  progressiveDelay = 100; // Used to avoid too much back calls on infinit fails...
   async updateForm() {
     if (this.isFormUpdating) {
+      this.progressiveDelay *= 2;
       logReview.debug('Postponing box-reader update');
       of(true)
-        .pipe(delay(200))
+        .pipe(delay(this.progressiveDelay))
         .pipe(
           tap(_ => {
             this.updateForm();
@@ -198,6 +200,7 @@ export class BoxReaderComponent implements OnInit {
       return;
     }
     this.isFormUpdating = true;
+    this.progressiveDelay = 100;
     // Re-generate form : TODO remove code duplication
     formModel(this).then((fm: DynamicFormModel) => {
       this.formModel = fm;

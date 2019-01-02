@@ -186,6 +186,11 @@ export const formModel = async (caller: any) => {
       // throw 'Translation issue';
       return ''; // will be taken as await result on errors
     });
+  if (caller.filters && !caller.filters.data.params) {
+    // TODO : test about caller.filters.data.params should not be empty... Algo issue somewhere ?
+    // TODO BIS : having error her will give infinit 'Postponing boxes filters update'....
+    MonwooReview.warn('TODO : caller.filters.data.params should not be empty', caller.filters);
+  }
   return new Promise<DynamicFormControlModel[]>(function(resolve, reject) {
     (async () => {
       const d = await formDefaults(caller);
@@ -253,9 +258,11 @@ export const formModel = async (caller: any) => {
               group: [
                 new DynamicFormArrayModel({
                   id: 'mbegKeyTransformer',
-                  initialCount: caller.filters
-                    ? caller.filters.data.params.moonBoxEmailsGrouping.mbegKeyTransformer.length
-                    : 0,
+                  // TODO : test about caller.filters.data.params should not be done...
+                  initialCount:
+                    caller.filters && caller.filters.data.params
+                      ? caller.filters.data.params.moonBoxEmailsGrouping.mbegKeyTransformer.length
+                      : 0,
                   groupFactory: await (async () => {
                     const srcLbl = await fetchTrans(extract('Source'));
                     const assLbl = await fetchTrans(extract('Association'));
