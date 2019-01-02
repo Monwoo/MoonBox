@@ -69,7 +69,11 @@ git archive --format=zip -o ~/goinfre/MonwooMoonBox.zip HEAD
 
 # Ajusts manifest to setup Prod base url (TODO : from env file ? + same for proxy...)
 # https://developers.google.com/web/fundamentals/web-app-manifest/
-emacs src/manifest.json
+# emacs src/manifest.json
+# => DO NOT ADD version to manifest.json web serveur URLS to allow multi-PWA on same domain
+# Better to ajust version of Manifest in index.html instead (hoping all will reload well)
+emacs src/index.html
+
 # build productions file in dist folder with correct base-href for deploy :
 yarn run build --base-href '/MoonBox/Demo/'
 # avoid commit productions files to dev repo by reverting them :
