@@ -160,6 +160,7 @@ $app->register(new Silex\Provider\MonologServiceProvider());
 
 
 $logLvl = $app['debug'] ? Logger::DEBUG : Logger::ERROR;
+/*
 $mySaveToFileHandler = new class ($app, $logLvl) extends MH\AbstractProcessingHandler {
     public function __construct($app, $level = Logger::DEBUG, $bubble = true) {
         parent::__construct($level, $bubble);
@@ -202,10 +203,12 @@ $mySaveToFileHandler = new class ($app, $logLvl) extends MH\AbstractProcessingHa
         }
     }
 };
+*/
 // $app['logger']->pushHandler($mySaveToFileHandler);
 // adapted by Miguel Monwoo from :
 // Code/Prototype/src/Monwoo/CVVideo/CVApplication.php
-$logLvl = $app['debug'] ? LogLevel::DEBUG : LogLevel::ERROR;
+$logLvl = ($app['debug'] || $app['prodDebug']) ? LogLevel::DEBUG : LogLevel::ERROR;
+// $logLvl = LogLevel::DEBUG;
 $app['logger']->pushHandler(new MH\RotatingFileHandler($app['cache_dir'] . '/logs.yml', 0,
 $logLvl, true, 0644));
 // var_dump(php_sapi_name()); exit;
@@ -236,7 +239,7 @@ $mailHandler = new MH\NativeMailerHandler('dev@monwoo.com',
 // https://github.com/Seldaek/monolog/blob/master/src/Monolog/Handler/BufferHandler.php
 $bufferHandler = new MH\BufferHandler($mailHandler, 1000);
 $fingersCrossedHandler = new MH\FingersCrossedHandler($bufferHandler,
-LogLevel::ERROR, 1000);
+$logLvl, 1000);
 $app['logger']->pushHandler($fingersCrossedHandler);
 // TODO : keep event in verry verbose mode only. to much useless info in console otherwise
 // unset($app['monolog.listener']);

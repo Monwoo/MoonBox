@@ -6,7 +6,7 @@ import env from './.env';
 //import { extract } from '@app/core'; <- give circular dependencies warning....
 // export let extract = (x:any) => (x);
 export const environment = {
-  production: false,
+  production: true,
   version: env.npm_package_version + '-dev',
   // serverUrl: '/api',
   serverUrl: '/',

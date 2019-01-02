@@ -286,7 +286,7 @@ class ImapDataProvider extends DataProvider
         // https://stackoverflow.com/questions/3885865/regex-to-parse-email-form-to-field
         // preg_match_all('/\b[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,6}\b/i', $subject, $result, PREG_PATTERN_ORDER);
     }
-    protected function startImapProtocole($connection, $accessToken) {
+    protected function startImapProtocole($connection) {
         $self = $this;
         // if ($self->imap) { // TODO : can't symply return for optim, since may have multiple imap connection in multiple mail box...
         //     return $self; // It's already started, TODO : retry if last fail ?
@@ -497,7 +497,7 @@ class ImapDataProvider extends DataProvider
             // var_dump($connections); exit();
             foreach ($connections as $connectionName => $connection) {
                 try {
-                    $self->startImapProtocole($connection, $accessToken);
+                    $self->startImapProtocole($connection);
                     $folders = [];
                 		$foldersRoot = $this->storage->getFolders();
                     $foldersIt = new \RecursiveIteratorIterator(
@@ -724,7 +724,7 @@ class ImapDataProvider extends DataProvider
                 $app->fetchByPath($msgsByIds, $bodyPath)
             );
             if (!$msgBody) {
-                $self->startImapProtocole($connection, $accessToken);
+                $self->startImapProtocole($connection);
                 // * DEBUG
                 $app['log.review']->debug("Loading content at $bodyPath for {$connection['username']}",
                 $app->obfuskData([
