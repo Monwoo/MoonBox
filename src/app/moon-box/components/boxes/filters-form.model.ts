@@ -65,9 +65,11 @@ export const formDefaults = async (caller: any) => {
         keepPasswordsInMemory: false,
         params: {
           moonBoxEmailsGrouping: {
-            mbegKeyTransformer: caller.filters
-              ? caller.filters.data.params.moonBoxEmailsGrouping.mbegKeyTransformer
-              : []
+            // TODO : quick hack : test about caller.filters.data.params should not be done...
+            mbegKeyTransformer:
+              caller.filters && caller.filters.data.params
+                ? caller.filters.data.params.moonBoxEmailsGrouping.mbegKeyTransformer
+                : []
           },
           keywordsSubject: [],
           keywordsBody: [],

@@ -37,7 +37,7 @@ $root_dir = $root_dir ?? __DIR__;
 require_once __DIR__ . '/config.php';
 $prodDebug = $prodDebug ?? false;
 // DEBUG MediumRisk, un-cmt for prod
-// $prodDebug = false; // Un-comment this line to disallow prodDebug feature showing sensitive datas
+$prodDebug = false; // Un-comment this line to disallow prodDebug feature showing sensitive datas
 
 if ($config['debug']) {
     require_once __DIR__ . '/config.dev.php';
