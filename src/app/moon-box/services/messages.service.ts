@@ -59,7 +59,10 @@ export class MessagesService {
     this.availability[messages.dataUser] = messages.nextPage ? 1 : 0;
 
     messages.msgsOrderedByDate.forEach((msg: any) => {
-      msg.moonBoxGroups.forEach((moonBoxGroup: string) => {
+      let g = msg.moonBoxGroups;
+      if (!g) g = ['_'];
+      if (!Array.isArray(g)) g = [g]; // TODO : some monBoxGroups do not have array value, but string ones... should be array... TODO : refactor & tests
+      g.forEach((moonBoxGroup: string) => {
         if (!this.msgs[moonBoxGroup]) {
           this.msgs[moonBoxGroup] = {
             numResults: 0,
