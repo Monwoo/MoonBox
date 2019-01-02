@@ -37,7 +37,7 @@ $root_dir = $root_dir ?? __DIR__;
 require_once __DIR__ . '/config.php';
 $prodDebug = $prodDebug ?? false;
 // DEBUG MediumRisk, un-cmt for prod
-$prodDebug = false; // Un-comment this line to disallow prodDebug feature showing sensitive datas
+// $prodDebug = false; // Un-comment this line to disallow prodDebug feature showing sensitive datas
 
 if ($config['debug']) {
     require_once __DIR__ . '/config.dev.php';
@@ -259,6 +259,7 @@ $app['log.review']->pushHandler(new MH\RotatingFileHandler($app['cache_dir'] . '
 $logLvl, true, 0644));
 
 // function_exists('xdebug_break') && \xdebug_break();
+// $app['log.review']->debug("Did load config : ", $config);
 
 if ($app['debug']) {
     $app->register(new class($app) implements ServiceProviderInterface { // BootableProviderInterface {
@@ -273,7 +274,7 @@ if ($app['debug']) {
     $app['log.review']->pushProcessor(new DebugProcessor());
     $app['consoleLogger'] = new ConsoleLogger(LogLevel::DEBUG);
 }
-$app['log.review']->debug("Backend {Action}", ['Action' => "Init"]);
+$app['log.review']->debug("Backend Init", ['config'=>$config]);
 
 $appCacheDir = $app['cache_dir'] . '/app';
 if (!is_dir($appCacheDir)) {

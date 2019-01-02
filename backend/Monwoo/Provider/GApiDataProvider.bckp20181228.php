@@ -33,7 +33,7 @@ use Monwoo\Middleware\MonwooDataEventsMiddleware;
 use JasonGrimes\Paginator;
 use \Ds\Vector;
 
-class GApiDataProvider extends ImapDataProvider
+class GApiDataProvider20181228 extends ImapDataProvider
 {
     protected function init() {
         $self = $this;

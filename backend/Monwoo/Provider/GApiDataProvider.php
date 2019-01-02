@@ -95,6 +95,7 @@ class GApiDataProvider extends ImapDataProvider
         $credentialPath = $app[
             "{$self->dataset_id}.credentialFile"
         ];
+        $app['log.review']->debug('Will load credentials at ', [$credentialPath]);
 
         $client = new \Google_Client();
         $client->setAuthConfig($credentialPath);
@@ -223,7 +224,7 @@ class GApiDataProvider extends ImapDataProvider
         // TODO : need improve design to handle access_token by connection
         // and find a way to iterate over connextion loading with auth system
         // in the middle...
-        $accessToken = $localUser['accessToken']; // $self->getSession('access_token'); // Better secu if from file than from session ? well, token is already random generated stuff
+        $accessToken = $localUser['accessToken'] ?? null; // $self->getSession('access_token'); // Better secu if from file than from session ? well, token is already random generated stuff
         // var_dump($localUser); exit('==');
         // $accessToken = false; // TODO : have a way to manually reset accessToken & mail cache
         if (isset($accessToken['access_token'])) {

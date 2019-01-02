@@ -33,7 +33,7 @@ use Monwoo\Middleware\MonwooDataEventsMiddleware;
 use JasonGrimes\Paginator;
 use \Ds\Vector;
 
-class ImapDataProvider extends DataProvider
+class ImapDataProvider20181228 extends DataProvider
 {
     const cacheLifetime = 60*30; // 30 minutes
 

@@ -160,6 +160,7 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
         $keepFiles = [
             'Monwoo',
             '.htaccess',
+            'iframe.js',
             'index.php',
             // 'config.php',
             $self->isDev ? 'config.dev.php' : 'config.prod.php',
@@ -233,6 +234,7 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
             ];
             $srcFiles = [
                 'index.php',
+                'iframe.js',
                 'config.php',
                 ($self->isDev ? 'config.dev.php' : 'config.prod.php'),
             ];
