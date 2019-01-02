@@ -29,13 +29,24 @@ import {
   startWith,
   concatMap,
   mergeAll,
+  mergeMap,
   withLatestFrom,
   combineLatest,
+  combineAll,
   concatAll,
   catchError,
   share
 } from 'rxjs/operators';
-import { fromEvent, of, from, BehaviorSubject, forkJoin, interval, Observable } from 'rxjs';
+import {
+  fromEvent,
+  of,
+  from,
+  BehaviorSubject,
+  forkJoin,
+  interval,
+  Observable,
+  combineLatest as combineLatestFrom
+} from 'rxjs';
 import { LocalStorage, JSONSchemaBoolean } from '@ngx-pwa/local-storage';
 
 import { shallowMerge } from '@moon-manager/tools';
@@ -537,11 +548,23 @@ export class BoxesComponent implements OnInit {
     this.ll.requireLoadingLock(); // TODO : add services to listen to time outed lock ? => cancelling all current tasks if loading lock did time out ?
     logReview.debug('Sarting multi-login');
 
-    return from(this.boxViews.toArray()).pipe(
-      concatMap((box: BoxReaderComponent, idx) => {
-        return box.login(e);
-      }), // TODO : concatMap will not forkJOIN => each box is emitted => need combineLatest to ensure loader on all calls ?
-      // concatAll(),
+    // return combineLatestFrom(from(this.boxViews.toArray()).pipe( // Not waiting for all to finish before emitting...
+    // Waiting for all, but not order dependency maintened (all login trigers in //, need sequential) :
+    // return combineLatestFrom(...this.boxViews.toArray().map(box => {
+    //   return box.login(e);
+    // }))
+    return forkJoin(
+      from(this.boxViews.toArray()).pipe(
+        concatMap((box: BoxReaderComponent, idx) => {
+          return box.login(e);
+        })
+        // tap(defaultF => {
+        //   logReview.debug('Sync login from filters : ', defaultF);
+        // })
+      )
+    ).pipe(
+      // https://stackoverflow.com/questions/48666086/rxjs-wait-for-all-observables-to-complete-and-return-results
+      // mergeMap(q => forkJoin(...q)),
       tap(loadedBoxes => {
         logReview.debug('Did login for all boxes', loadedBoxes);
         this.ll.releaseLoadingLock();
@@ -557,18 +580,18 @@ export class BoxesComponent implements OnInit {
     //   box.loadNext(e);
     // });
     this.ll.requireLoadingLock(); // TODO : add services to listen to time outed lock ? => cancelling all current tasks if loading lock did time out ?
-    logReview.debug('Sarting multi-next queries');
+    logReview.debug('Sarting multi-next');
 
-    // TODO : may have buggy conception design : seem to loop infinitly on errors....
-
-    return from(this.boxViews.toArray()).pipe(
-      // concatMap((box: BoxReaderComponent, idx) => {
-      concatMap((box: BoxReaderComponent, idx) => {
-        return box.loadNext(e);
-      }), // TODO : concatMap will not forkJOIN => each box is emitted => need combineLatest to ensure loader on all calls ?
-      // concatAll(),
-      tap(loadedMessages => {
-        logReview.debug('Did fetch next messages for all boxes', loadedMessages);
+    // TODO : check errors resistance of below code :
+    return forkJoin(
+      from(this.boxViews.toArray()).pipe(
+        concatMap((box: BoxReaderComponent, idx) => {
+          return box.loadNext(e);
+        })
+      )
+    ).pipe(
+      tap(loadedBoxes => {
+        logReview.debug('Did get next page for all boxes', loadedBoxes);
         this.ll.releaseLoadingLock();
       }),
       catchError((e, c) => {
