@@ -19,6 +19,7 @@ import { NgForm, FormGroup, Validators, FormBuilder } from '@angular/forms';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { BackendService, ProviderID } from '@moon-box/services/backend.service';
 import { MessagesService } from '@moon-box/services/messages.service';
+import { LoadingLoaderService } from '@moon-manager/services/loading-loader.service';
 
 import { DynamicFormModel, DynamicFormLayout, DynamicFormService, validate } from '@ng-dynamic-forms/core';
 import { I18nService } from '@app/core';
@@ -117,7 +118,8 @@ export class BoxReaderComponent implements OnInit {
     private ngZone: NgZone,
     private notif: NotificationsService,
     private rendererFactory: RendererFactory2,
-    private msgs: MessagesService
+    private msgs: MessagesService,
+    private ll: LoadingLoaderService
   ) {
     this.renderer = this.rendererFactory.createRenderer(null, null);
 
@@ -240,6 +242,7 @@ export class BoxReaderComponent implements OnInit {
   readMessages(page = 1) {
     let resp: Observable<any> = null;
     if (this.formGroup) {
+      this.ll.requireLoadingLock();
       resp = this.backend.fetchMsg(this.loginData.selectedProvider, this.formGroup.value._username, page).pipe(
         tap((messages: any) => {
           if (!messages.status || messages.status.errors.length) {
@@ -272,6 +275,14 @@ export class BoxReaderComponent implements OnInit {
             this.msgs.pushMessages(messages);
             this.updateIFrames();
           }
+          this.ll.releaseLoadingLock();
+        }),
+        catchError((e, c) => {
+          this.ll.releaseLoadingLock();
+          this.i18nService.get(extract('mb.box-reader.login.fail')).subscribe(t => {
+            this.notif.error('', t);
+          });
+          throw e;
         }),
         catchError(this.errorCatchor)
       );
@@ -346,6 +357,7 @@ export class BoxReaderComponent implements OnInit {
     // Nghost event not already detected ? TODO : avoid quick fix below :
     this.onSubmit(event);
     if (this.loginForm.form.valid) {
+      this.ll.requireLoadingLock(); // TODO : add services to listen to time outed lock ? => cancelling all current tasks if loading lock did time out ?
       if (!/\*#__hash/.test(val._password)) {
         val._password = '*' + '#__hash' + (Math.random().toString(36) + '777777777').slice(2, 9) + btoa(val._password);
       }
@@ -400,6 +412,7 @@ export class BoxReaderComponent implements OnInit {
           return this.readMessages();
         }),
         tap(results => {
+          this.ll.releaseLoadingLock();
           logReview.debug('User is logged in with first page loaded', results);
           if (!results.status) {
             this.i18nService.get(extract('mb.box-reader.login.fail')).subscribe(t => {
@@ -416,6 +429,13 @@ export class BoxReaderComponent implements OnInit {
               });
             });
           }
+        }),
+        catchError((e, c) => {
+          this.ll.releaseLoadingLock();
+          this.i18nService.get(extract('mb.box-reader.login.fail')).subscribe(t => {
+            this.notif.error('', t);
+          });
+          throw e;
         })
       );
     } else {

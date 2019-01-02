@@ -6,7 +6,7 @@ import env from './.env';
 //import { extract } from '@app/core'; <- give circular dependencies warning....
 // export let extract = (x:any) => (x);
 export const environment = {
-  production: true,
+  production: false,
   version: env.npm_package_version + '-dev',
   // serverUrl: '/api',
   serverUrl: '/',
@@ -17,7 +17,7 @@ export const environment = {
   moonBoxBackendBasePath: '/',
   defaultLanguage: 'fr-FR',
   supportedLanguages: ['fr-FR', 'en-US'],
-  clientSecret: '3u1zi810mfi83np',
+  clientSecret: 'de2gw073t5hcab9',
   jwtAllowedDomains: ['localhost:6901', '127.0.0.1:6901', '[::1]:6901']
 };
 /*

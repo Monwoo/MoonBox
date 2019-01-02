@@ -156,6 +156,7 @@
   "mb.box-reader.btn.LoadMore.tooltip": "Encore plus d'emails sont disponibles.",
   "mb.box-reader.btn.Login": "Connexion",
   "mb.box-reader.btn.Login.tooltip": "Connecter la boite email",
+  "mb.box-reader.login.fail": "Echec de connexion",
   "mb.box-reader.login.formNotValid": "Formulaire de connexion invalide",
   "mb.box-reader.provider.plhdr": "Connecteur",
   "mb.boxes.btn.LoadMore.tooltip": "Il reste encore des messages",

@@ -10,6 +10,15 @@
         <div class="col text-md-right mr-5">
           <button
             mat-button
+            *ngIf="msgs.totalCount > 0"
+            color="primary"
+            matTooltip="{{'mb.boxes.btn.ClearMsgs.tooltip'|translate}}"
+            (click)="msgs.clearMessages()"
+          >
+            <i class="fas fa-unlink"></i>
+          </button>
+          <button
+            mat-button
             *ngIf="msgs.totalAvailable"
             color="primary"
             matTooltip="{{'mb.boxes.btn.LoadMore.tooltip'|translate}}"
