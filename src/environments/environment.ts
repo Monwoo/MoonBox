@@ -17,7 +17,8 @@ export const environment = {
   moonBoxBackendBasePath: '/',
   defaultLanguage: 'fr-FR',
   supportedLanguages: ['fr-FR', 'en-US'],
-  clientSecret: '1wjgu82x375s5i0'
+  clientSecret: '3u1zi810mfi83np',
+  jwtAllowedDomains: ['localhost:6901', '127.0.0.1:6901', '[::1]:6901']
 };
 /*
  * For easier debugging in development mode, you can import the following file

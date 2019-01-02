@@ -26,6 +26,7 @@ import { JwtModule, JwtModuleOptions, JWT_OPTIONS } from '@auth0/angular-jwt';
 // import { Storage } from '@ionic/storage';
 // import { TokenService } from './app.tokenservice';
 import { LocalStorage } from '@ngx-pwa/local-storage';
+import { environment } from '@env/environment';
 
 // https://github.com/auth0/angular2-jwt
 // export function jwtOptionsFactory(storage) {
@@ -42,7 +43,7 @@ export function jwtOptionsFactory(storage: LocalStorage) {
         )
         .toPromise();
     },
-    whitelistedDomains: ['localhost:6901', '127.0.0.1:6901', '[::1]:6901', 'monwoo.com', 'monwoo.fr']
+    whitelistedDomains: environment.jwtAllowedDomains
     //deps: [TokenService]
     // whitelistedDomains: ['example.com'],
     // blacklistedRoutes: ['example.com/examplebadroute/'],

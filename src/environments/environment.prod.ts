@@ -10,13 +10,14 @@ export const environment = {
   version: env.npm_package_version,
   serverUrl: '',
   moonBoxFrontendUrl: 'https://www.monwoo.com/MoonBox/Demo',
-  moonBoxFrontendDomain: 'monwoo.com',
+  moonBoxFrontendDomain: 'www.monwoo.com',
   moonBoxBackendUrl: 'https://www.monwoo.com/MoonBox/Demo/backend',
-  moonBoxBackendDomain: 'monwoo.com',
+  moonBoxBackendDomain: 'www.monwoo.com',
   moonBoxBackendBasePath: 'backend/',
   defaultLanguage: 'fr-FR',
   supportedLanguages: ['fr-FR', 'en-US'],
-  clientSecret: 'fa2v40gszmdcel8'
+  clientSecret: '9a85j4g1ce808qp',
+  jwtAllowedDomains: ['www.monwoo.com', 'www.monwoo.fr', 'monwoo.com', 'monwoo.fr']
 };
 /*
  * For easier debugging in development mode, you can import the following file
