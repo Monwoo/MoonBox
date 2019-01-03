@@ -346,6 +346,24 @@ export class BoxReaderComponent implements OnInit {
       .subscribe((callback: any) => callback());
   }
 
+  knownErr = {
+    'Http failure response for (unknown url): 0 Unknown Error': extract('mb.err.BackendNotReachable')
+  };
+  knownRegExErr = [{ testor: /Http failure response/, err: extract('mb.err.BackendNotReachable') }];
+  normalizeErr(e: any) {
+    if (this.knownErr[e.message]) {
+      return this.i18nService.get(this.knownErr[e.message]);
+    }
+    // this.knownRegExErr.forEach(e => { });
+    for (let i = 0; i < this.knownRegExErr.length; i++) {
+      const re = this.knownRegExErr[i];
+      if (re.testor.test(e.message)) {
+        return this.i18nService.get(re.err);
+      }
+    }
+    return of(e.message);
+  }
+
   login(event: any) {
     const val: FormType = this.loginForm.form.value;
     let resp: Observable<any> = null;
@@ -432,8 +450,14 @@ export class BoxReaderComponent implements OnInit {
         }),
         catchError((e, c) => {
           this.ll.releaseLoadingLock();
-          this.i18nService.get(extract('mb.box-reader.login.fail')).subscribe(t => {
-            this.notif.error('', t);
+          this.normalizeErr(e).subscribe(ne => {
+            this.i18nService
+              .get(extract('mb.box-reader.login.fail{{err}}'), {
+                err: ne
+              })
+              .subscribe(t => {
+                this.notif.error('', t);
+              });
           });
           throw e;
         })

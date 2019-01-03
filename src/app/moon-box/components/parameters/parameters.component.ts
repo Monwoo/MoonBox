@@ -17,6 +17,7 @@ import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { ThemingsService } from '@moon-box/services/themings.service';
 import { Logger } from '@app/core/logger.service';
 import { MessagesService } from '@moon-box/services/messages.service';
+import { NotificationsBufferService } from '@moon-box/services/notifications-buffer.service';
 import * as moment from 'moment';
 import { environment } from '@env/environment';
 
@@ -36,7 +37,8 @@ export class ParametersComponent implements OnInit {
     private ll: LoadingLoaderService,
     public storage: SecuStorageService,
     public msgs: MessagesService,
-    public themings: ThemingsService
+    public themings: ThemingsService,
+    public notifBuffer: NotificationsBufferService
   ) {}
   dropzoneBckp = {
     url: '#', // Url set to avoid console Error, but will not be used in V1.0.0

@@ -248,6 +248,9 @@
 * https://github.com/Reactive-Extensions/RxJS/issues/1437
 * https://gist.github.com/whiteinge/9dab34105233871f3d660d9b1056a7ad
 
+- https://codeburst.io/js-data-structures-linked-list-3ed4d63e6571
+- https://blog.angular-university.io/angular-debugging/
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

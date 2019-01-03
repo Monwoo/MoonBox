@@ -76,6 +76,33 @@
   <mat-progress-bar mode="determinate" [value]="timingsProgress"></mat-progress-bar>
 </mat-card>
 
+<mat-card *ngIf="!this.storage.isLocked">
+  <p>
+    <strong>
+      {{
+        'mb.param.logTitle{size}{nbMax}'
+          | translate
+            : {
+                nbMax: notifBuffer.maxLength,
+                size: notifBuffer.getSize()
+              }
+      }}
+    </strong>
+  </p>
+  <!-- - -><pre>{   { ((notifBuffer.dataDelayed$F()) | async) | json }}</pre><!- - -->
+  <!--
+    TODO : try to avoid ExpressionChangedAfterItHasBeenCheckedError
+    Below having errors, not solving anything :
+    <div
+    *ngFor="let notif of (((notifBuffer.dataDelayed$F()) | async).all())" [class]="notif.type">
+  -->
+  <div *ngFor="let notif of notifBuffer.all()" [class]="notif.type">
+    <!-- - -><pre>{  { notif | json }}</pre><!- - -->
+    <!-- - -><span [innerHTML]="notif.icon"></span><!- - -->
+    <strong>{{ notif.title }}</strong> {{ notif.content }}
+  </div>
+</mat-card>
+
 <mat-card>
   <a href="https://github.com/Monwoo/MoonBox">
     {{ 'Project under M.I.T. Licence. Build by Monwoo.' | translate }}
