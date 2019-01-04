@@ -8,6 +8,7 @@
 // => but will need to split theme file in one file per components, well, can be done if have time...
 // Quick run for now
 :host ::ng-deep {
+  @import "src/theme/moon-box/base";
   @import "src/theme/moon-box/light";
   @import "src/theme/moon-box/dark";
 }

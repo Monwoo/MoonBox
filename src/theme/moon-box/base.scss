@@ -1,0 +1,28 @@
+// Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
+@import "../theme-mixins";
+
+.router-content {
+  @include media-breakpoint-down(md) {
+    padding: 0 7px 15px 7px;
+  }
+
+  .messages-list {
+    padding: 0px 0px;
+    margin: 0px 1px;
+
+    .mat-card {
+      padding: 7px 0px;
+      margin: 12px 1px;
+
+      .box-reader,
+      .boxes-title {
+        padding: 7px 3px;
+      }
+
+      .col-12 {
+        padding-right: 7px;
+        padding-left: 7px;
+      }
+    }
+  }
+}

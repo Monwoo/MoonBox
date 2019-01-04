@@ -4,14 +4,6 @@
  */
 @import "theme-mixins";
 
-.mat-card {
-  margin: 15px 0px;
-  @include media-breakpoint-down(md) {
-    margin: 1px 0px;
-  }
-  border-top: solid 1px $monwooSecondary;
-}
-
 body {
   @include applyScrollbarTheming();
 
@@ -35,6 +27,17 @@ body {
       outline: 1px auto $monwooPrimary !important;
     }
     &:focus-within {
+    }
+  }
+
+  .mat-card {
+    margin: 15px 0px;
+    border-top: solid 1px $monwooSecondary;
+  }
+
+  .router-content {
+    @include media-breakpoint-down(md) {
+      padding: 1px;
     }
   }
 

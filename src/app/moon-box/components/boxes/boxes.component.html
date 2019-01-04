@@ -88,9 +88,12 @@
     </button>
   </div>
 
-  <div *ngFor="let messages of (msgs.service | async | keyvalue); let groupIndex = index" class="container-fluid">
+  <div
+    *ngFor="let messages of (msgs.service | async | keyvalue); let groupIndex = index"
+    class="container-fluid messages-list"
+  >
     <mat-card class="row">
-      <div class="col-12 text-left expand-trigger" (click)="expandMessages($event, messages.key)">
+      <div class="col-12 text-left expand-trigger boxes-title" (click)="expandMessages($event, messages.key)">
         <strong>{{ messages.key }}</strong> ({{ messages.value.totalCount }})
         <!-- : not accurate enouth yet : /{{ messages.value.totalCount }}) -->
       </div>

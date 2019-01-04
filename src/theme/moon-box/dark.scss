@@ -1,5 +1,6 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
-@import "../theme-constantes";
+@import "../theme-mixins";
+// @import "../theme-constantes";
 
 $dark-bg: #000000;
 $dark-complementary: #ffffff;
@@ -13,10 +14,7 @@ $monwooSecondary: lighten($monwooSecondary, 42%);
   // -webkit-filter: invert(94%);
   // filter: invert(94%);
   background: $dark-bg;
-  // .router-content * {
-  //   color: $dark-complementary;
-  //   // background: $dark-bg;
-  // }
+
   // .mat-form-field-label-wrapper {
   //   background: none;
   // }

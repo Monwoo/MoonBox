@@ -1,5 +1,8 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 @import "theme-constantes";
+@import "~bootstrap/scss/_functions";
+@import "~bootstrap/scss/_variables";
+@import "~bootstrap/scss/_mixins";
 
 // https://gist.github.com/pascalduez/10011785
 @function capitalize($string) {
