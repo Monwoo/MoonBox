@@ -16,7 +16,12 @@ import {
 import { NgForm, FormArray, Validators, FormBuilder } from '@angular/forms';
 import { FormType, FORM_LAYOUT, formDefaults, ContextType, contextDefaults } from './filters-form.model';
 import { I18nService } from '@app/core';
-import { DynamicFormArrayModel, DynamicFormLayout, DynamicFormService, validate } from '@ng-dynamic-forms/core';
+import {
+  DynamicFormArrayModel,
+  DynamicFormGroupModel,
+  DynamicFormService,
+  DynamicInputModel
+} from '@ng-dynamic-forms/core';
 // import { LocalStorage } from '@ngx-pwa/local-storage';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { MessagesService } from '@moon-box/services/messages.service';
@@ -134,6 +139,38 @@ export class BoxesComponent implements OnInit {
   }
   @HostListener('submit', ['$event'])
   onSubmit(e: any) {
+    // https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/ui-material/src/dynamic-material-form.component.ts
+    // https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/core/src/component/dynamic-form-component.ts
+    // https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/ui-material/src/input/dynamic-material-input.component.ts
+    // https://github.com/udos86/ng-dynamic-forms/blob/7d9d30ab1dd08b299ab527244a8479053a6c1204/packages/core/src/model/input/dynamic-input.model.ts
+    // https://github.com/udos86/ng-dynamic-forms/search?p=4&q=%22.multiple%22&unscoped_q=%22.multiple%22
+    // https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/ui-basic/src/input/dynamic-basic-input.component.html
+    // https://github.com/udos86/ng-dynamic-forms/blob/f9d1da46a2daa687a011f3bd352b00694216b070/packages/ui-material/src/chips/dynamic-material-chips.component.html
+    // https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/ui-material/src/dynamic-material-form-control-container.component.ts
+    // https://github.com/udos86/ng-dynamic-forms/blob/5389c2bd617b870f50ac6cd1e6d9cc0773afb48c/packages/ui-material/src/chips/dynamic-material-chips.component.spec.ts
+    // https://github.com/udos86/ng-dynamic-forms/blob/5389c2bd617b870f50ac6cd1e6d9cc0773afb48c/packages/ui-material/src/chips/dynamic-material-chips.component.ts
+    // https://github.com/udos86/ng-dynamic-forms/search?q=onChipInputTokenEnd&unscoped_q=onChipInputTokenEnd
+    // https://github.com/udos86/ng-dynamic-forms/blob/f9d1da46a2daa687a011f3bd352b00694216b070/packages/ui-material/src/chips/dynamic-material-chips.component.ts
+    // https://github.com/udos86/ng-dynamic-forms/blob/f9d1da46a2daa687a011f3bd352b00694216b070/packages/ui-material/src/chips/dynamic-material-chips.component.html
+    // https://stackoverflow.com/questions/1249531/how-to-get-a-javascript-objects-class
+
+    /*
+    Play with Google Chrome webconsole :
+    inputWithMultiples = {'keywordsSubject':true, 'keywordsBody':true};
+    m = this.filters.model.find(m => m.id === 'params').group.find(m => m.id in inputWithMultiples && inputWithMultiples[m.id]);
+    Object.keys(m).map(k => k.constructor ? k.constructor.name : null)
+    
+    */
+
+    // https://github.com/udos86/ng-dynamic-forms/blob/5389c2bd617b870f50ac6cd1e6d9cc0773afb48c/packages/ui-material/src/chips/dynamic-material-chips.component.ts
+    // https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/core/src/component/dynamic-form-control.component.ts
+    // https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/core/src/component/dynamic-form-control.interface.ts
+
+    // Ajusting Multiple textFields Possible not handled submission of switch Input events
+    // TODO : find a way to call DynamicMaterialChipsComponent.onChipInputTokenEnd(e) to remove 'hackyMultiple'
+    // const inputWithMultiples = {'keywordsSubject':true, 'keywordsBody':true};
+    // this.filters.model.find(m => m.id in inputWithMultiples && inputWithMultiples[m.id])
+
     if (!this.filtersForm.form.valid) {
       let target;
       for (var i in this.filtersForm.form.controls) {
@@ -186,6 +223,8 @@ export class BoxesComponent implements OnInit {
   boxesIdxsLookup: { [key: string]: boolean } = {};
   isScreenSmall$: any;
 
+  inputWithMultiples = { keywordsSubject: true, keywordsBody: true };
+
   constructor(
     private i18nService: I18nService,
     private formService: DynamicFormService,
@@ -219,6 +258,18 @@ export class BoxesComponent implements OnInit {
         null === storageExpandBoxesConfigs ? this.expandBoxesConfigs : storageExpandBoxesConfigs;
 
       this.filters = await contextDefaults(this);
+      /*
+      Object.keys(this.inputWithMultiples).forEach(k => {
+        let m = <DynamicInputModel>
+        (<DynamicFormGroupModel>this.filters.model.find(m => m.id === 'params'))
+        .group.find(m => m.id === k);
+
+        m.valueUpdates.subscribe(v => {
+          logReview.debug("Having Input as Multiple update", v); // Wrong way, do not seem to be called...
+        });
+      });
+      */
+
       this.updateForm().subscribe();
       this.msgs.service.subscribe(messages => {
         // need to update form model to update formfields suggestions
@@ -412,9 +463,17 @@ export class BoxesComponent implements OnInit {
     }
   }
 
+  onMatEvent(e: any) {
+    logReview.debug(`Material ${e.type} event on: ${e.model.id}: `, e);
+  }
+
   isFormUpdating = false; // TODO : better design pattern with task chancelation and re-spawn from start ?
   progressiveDelay = 100; // Used to avoid too much back calls on infinit fails...
   updateForm(transforms: any = null): Observable<any> {
+    // https://stackblitz.com/edit/angular-kgppaa?file=src%2Fapp%2Fapp.component.html
+    // https://github.com/udos86/ng-dynamic-forms/issues/774
+    // https://github.com/udos86/ng-dynamic-forms/blob/f9d1da46a2daa687a011f3bd352b00694216b070/sample/app/ui-material/material-sample-form.component.html
+    //
     // TODO: add sentinnel to avoid multi parallel calls ??
     if (this.isFormUpdating) {
       this.progressiveDelay *= 2;

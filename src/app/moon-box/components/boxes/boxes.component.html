@@ -36,11 +36,22 @@
           </button>
         </div>
       </div>
+      <!--
+        https://github.com/angular/angular/issues/3406
+        https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/ui-material/src/dynamic-material-form.component.ts
+        https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/core/src/component/dynamic-form-component.ts
+        change => Too early event, TextInput with multiples did not update data yet
+        matEvent => no output log in consol
+        ngModelChange => no Trigger on form change
+        modelChange => no Trigger on form change
+        onChange => no Trigger on form change
+      -->
       <dynamic-material-form
         [group]="filters.group"
         [model]="filters.model"
         [layout]="filters.layout"
         (change)="onFiltersChange($event)"
+        (matEvent)="onMatEvent($event)"
         class="condensable"
       >
         <!--

@@ -177,6 +177,7 @@
   "mb.common.logLimit.isTooLow.lbl{max}{input}": "Wrong {{input}}. Log limit must be over {{max}}.",
   "mb.common.logLimit.plhdr": "Logs Limit",
   "mb.err.BackendNotReachable": "Backend failure, fail to connect to MoonBox server",
+  "mb.filters.hint.typeEnterToAddChip": "Type 'Return' to add a word",
   "mb.lock-screen.unlock.success": "Unlock OK",
   "mb.notif-buffer.notif.setLogLimit{newSize}": "Logs limit set to {{newSize}}",
   "mb.param.exportBckp.btn": "Export backup",

@@ -6,7 +6,8 @@ import {
   DynamicInputModel,
   DynamicFormArrayModel,
   DynamicFormControlModel,
-  DynamicCheckboxModel
+  DynamicCheckboxModel,
+  DYNAMIC_FORM_CONTROL_INPUT_TYPE_TEXT
 } from '@ng-dynamic-forms/core';
 import { extract } from '@app/core';
 import { Logger } from '@app/core/logger.service';
@@ -243,13 +244,25 @@ export const formModel = async (caller: any) => {
           group: [
             new DynamicInputModel({
               id: 'keywordsSubject',
-              placeholder: await fetchTrans(extract('Recherche dans les sujets')),
+              placeholder:
+                (await fetchTrans(extract('Recherche dans les sujets'))) +
+                '. ' +
+                (await fetchTrans(extract('mb.filters.hint.typeEnterToAddChip'))),
+              inputType: DYNAMIC_FORM_CONTROL_INPUT_TYPE_TEXT,
+              // TODO : hint not showing, theming issue ?
+              hint: await fetchTrans(extract('mb.filters.hint.typeEnterToAddChip')),
               multiple: true,
               value: d.params.keywordsSubject
             }),
             new DynamicInputModel({
               id: 'keywordsBody',
-              placeholder: await fetchTrans(extract('Recherche dans les contenus')),
+              placeholder:
+                (await fetchTrans(extract('Recherche dans les contenus'))) +
+                '.' +
+                (await fetchTrans(extract('mb.filters.hint.typeEnterToAddChip'))),
+              inputType: DYNAMIC_FORM_CONTROL_INPUT_TYPE_TEXT,
+              // TODO : hint not showing, theming issue ?
+              hint: await fetchTrans(extract('mb.filters.hint.typeEnterToAddChip')),
               multiple: true,
               // validators: { required: null },
               value: d.params.keywordsBody

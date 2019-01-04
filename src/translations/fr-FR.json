@@ -177,6 +177,7 @@
   "mb.common.logLimit.isTooLow.lbl{max}{input}": "{{input}} inadéquat. La taille des logs doit dépasser {{max}}.",
   "mb.common.logLimit.plhdr": "Limite des logs",
   "mb.err.BackendNotReachable": "Erreur backend. Echec de connexion au serveur MoonBox",
+  "mb.filters.hint.typeEnterToAddChip": "Tapez 'Entrer' pour ajouter un mot",
   "mb.lock-screen.unlock.success": "Déverrouilage OK",
   "mb.notif-buffer.notif.setLogLimit{newSize}": "Limite des logs ajustée à {{newSize}}",
   "mb.param.exportBckp.btn": "Exporter un backup",
