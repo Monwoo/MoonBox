@@ -7,7 +7,7 @@
     // overflow: auto;
     // zoom: 1;
     // https://www.w3schools.com/howto/howto_css_clearfix.asp
-    ::after {
+    &::after {
       content: "";
       clear: both;
       display: table;
@@ -16,6 +16,19 @@
       .mat-form-field-wrapper {
         // padding-bottom: 0px;
       }
+    }
+  }
+
+  .mat-form-field {
+    // overflow: auto;
+    // &::after {
+    //   content: "";
+    //   clear: both;
+    //   display: table;
+    // }
+    .mat-form-field-underline,
+    .mat-form-field-subscript-wrapper {
+      position: initial; // Removing Absolut since erros overlap on next fields...
     }
   }
 
