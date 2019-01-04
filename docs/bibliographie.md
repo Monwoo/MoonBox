@@ -255,6 +255,12 @@
 * https://material.angular.io/components/input/overview
 * https://stackoverflow.com/questions/45487647/input-number-in-angular-material-design
 
+* https://stackoverflow.com/questions/16730597/apply-css-properties-when-transition-ends/16731051#16731051
+* https://jonsuh.com/blog/detect-the-end-of-css-animations-and-transitions-with-javascript/
+* https://www.bennadel.com/blog/3219-using-animation-callbacks-when-animation-transitions-are-interrupted-in-angular-2-4-4.htm
+* https://css-tricks.com/animations-the-angular-way/
+* https://angular.io/guide/animations
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

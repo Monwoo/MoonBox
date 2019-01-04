@@ -188,6 +188,17 @@ a {
   background: black;
 }
 
+// https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting?page=1&tab=votes#tab-top
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
 // KEEP THIS AT END OF FILE to allow easy themings ovewrites without need of !important hack...
 // Theme customization
 @import "theme/theme";

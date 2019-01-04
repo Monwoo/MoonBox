@@ -1,44 +1,51 @@
 <!-- Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com -->
-<!-- TODO : https://material.angular.io/components/expansion/overview -->
+<!-- In Progress : https://material.angular.io/components/expansion/overview -->
 
-<div *ngIf="!this.storage.isLocked && this.filters">
-  <mat-card class="filters-container" [ngClass]="{ sticky: isSticky }">
-    <div class="global-count">{{ msgs.numResults }} / {{ msgs.totalCount }}</div>
-
+<mat-accordion *ngIf="!this.storage.isLocked && this.filters">
+  <mat-expansion-panel
+    class="filters-container"
+    [ngClass]="{ sticky: isSticky }"
+    (opened)="toggleFilters($event)"
+    (closed)="toggleFilters($event)"
+  >
+    <mat-expansion-panel-header class="noselect">
+      <mat-panel-title>
+        <div class="global-count">{{ msgs.numResults }} / {{ msgs.totalCount }}</div>
+      </mat-panel-title>
+      <mat-panel-description>
+        <div class="w-100">
+          <div class="col text-md-right mr-5">
+            <button
+              mat-button
+              *ngIf="msgs.totalCount > 0"
+              color="primary"
+              matTooltip="{{'mb.boxes.btn.ClearMsgs.tooltip'|translate}}"
+              (click)="msgs.clearMessages()"
+            >
+              <i class="fas fa-unlink"></i>
+            </button>
+            <button
+              mat-button
+              *ngIf="msgs.totalAvailable"
+              color="primary"
+              matTooltip="{{'mb.boxes.btn.LoadMore.tooltip'|translate}}"
+              (click)="loadNext($event).subscribe()"
+            >
+              <i class="fas fa-download"></i>
+            </button>
+            <button
+              mat-button
+              color="primary"
+              matTooltip="{{'mb.boxes.btn.Login.tooltip'|translate}}"
+              (click)="login($event).subscribe()"
+            >
+              <i class="fas fa-envelope"></i>
+            </button>
+          </div>
+        </div>
+      </mat-panel-description>
+    </mat-expansion-panel-header>
     <form *ngIf="filters" class="condensed" [formGroup]="filters.group" #filtersFormRef #filtersForm="ngForm">
-      <div class="row">
-        <div class="col-3 text-md-left">
-          <button mat-button color="primary" type="button" (click)="toggleFilters($event)">...</button>
-        </div>
-        <div class="col text-md-right mr-5">
-          <button
-            mat-button
-            *ngIf="msgs.totalCount > 0"
-            color="primary"
-            matTooltip="{{'mb.boxes.btn.ClearMsgs.tooltip'|translate}}"
-            (click)="msgs.clearMessages()"
-          >
-            <i class="fas fa-unlink"></i>
-          </button>
-          <button
-            mat-button
-            *ngIf="msgs.totalAvailable"
-            color="primary"
-            matTooltip="{{'mb.boxes.btn.LoadMore.tooltip'|translate}}"
-            (click)="loadNext($event).subscribe()"
-          >
-            <i class="fas fa-download"></i>
-          </button>
-          <button
-            mat-button
-            color="primary"
-            matTooltip="{{'mb.boxes.btn.Login.tooltip'|translate}}"
-            (click)="login($event).subscribe()"
-          >
-            <i class="fas fa-envelope"></i>
-          </button>
-        </div>
-      </div>
       <!--
         https://github.com/angular/angular/issues/3406
         https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/ui-material/src/dynamic-material-form.component.ts
@@ -84,24 +91,29 @@
         {{ 'Add item' | translate }}
       </button>
     </form>
-  </mat-card>
-
-  <button mat-button color="primary" type="button" (click)="toggleBoxesConfigs($event)">...</button>
-  <div [class.d-none]="expandBoxesConfigs">
-    <ng-container *ngFor="let idx of boxesIdxs">
-      <ng-template #extendedActions let-boxId="boxId">
-        <button class="" mat-button color="primary" type="button" (click)="removeBox($event, idx)">
-          {{ 'Déconnecter la boite' | translate }}
-        </button>
-      </ng-template>
-      <moon-box-reader [id]="idx" [filters]="filters.group.value" [extendedActions]="extendedActions">
-      </moon-box-reader>
-    </ng-container>
-    <button class="" mat-button color="primary" type="button" (click)="addBox()">
-      {{ 'Ajouter une boite' | translate }}
-    </button>
-  </div>
-
+  </mat-expansion-panel>
+  <mat-expansion-panel (opened)="toggleBoxesConfigs($event)" (closed)="toggleBoxesConfigs($event)">
+    <mat-expansion-panel-header>
+      <mat-panel-title> </mat-panel-title>
+      <mat-panel-description> </mat-panel-description>
+    </mat-expansion-panel-header>
+    <div [class.d-none]="expandBoxesConfigs">
+      <ng-container *ngFor="let idx of boxesIdxs">
+        <ng-template #extendedActions let-boxId="boxId">
+          <button class="" mat-button color="primary" type="button" (click)="removeBox($event, idx)">
+            {{ 'Déconnecter la boite' | translate }}
+          </button>
+        </ng-template>
+        <moon-box-reader [id]="idx" [filters]="filters.group.value" [extendedActions]="extendedActions">
+        </moon-box-reader>
+      </ng-container>
+      <button class="" mat-button color="primary" type="button" (click)="addBox()">
+        {{ 'Ajouter une boite' | translate }}
+      </button>
+    </div>
+  </mat-expansion-panel>
+</mat-accordion>
+<div>
   <div
     *ngFor="let messages of (msgs.service | async | keyvalue); let groupIndex = index"
     class="container-fluid messages-list"

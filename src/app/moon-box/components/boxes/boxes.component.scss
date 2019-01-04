@@ -18,6 +18,14 @@
 }
 
 :host ::ng-deep {
+  .mat-accordion * {
+    &:focus {
+      outline: none !important;
+    }
+    &:focus-within {
+    }
+  }
+
   dynamic-material-form-control div[role="group"] > dynamic-material-form-control {
     display: inline-block;
     margin-bottom: 0;
@@ -32,7 +40,7 @@
     position: absolute;
     top: 0px;
     right: 0px;
-    padding: 10px;
+    padding: 3px 10px;
   }
 
   .mat-card-header {
@@ -80,6 +88,26 @@
     @include applyScrollbarTheming();
     border-top: solid 2px $monwooPrimary;
     border-bottom: solid 2px $monwooPrimary;
+
+    .mat-expansion-panel-header {
+      position: relative;
+    }
+
+    &.mat-expanded {
+      .mat-expansion-panel-content {
+        margin-top: -69px;
+        // https://stackoverflow.com/questions/16730597/apply-css-properties-when-transition-ends/16731051#16731051
+        // transition: margin 300ms 400ms;
+        transition: margin 0ms 42ms;
+
+        // TODO ? :
+        // https://css-tricks.com/animations-the-angular-way/
+        // https://angular.io/guide/animations
+        // &.ng-animate {
+        //   margin-top: 0px;
+        // }
+      }
+    }
 
     .periode {
       margin-top: 15px;
