@@ -16,7 +16,9 @@
 
       .box-reader,
       .boxes-title {
-        padding: 7px 3px;
+        // Ajusting for outline to stay in element + may need to refactor
+        // Since breaking BS => may be better to re-code from clean than hack BS...
+        // margin: 7px -4px 7px 4px;
       }
 
       .col-12 {
