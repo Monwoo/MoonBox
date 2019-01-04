@@ -21,8 +21,13 @@ $monwooSecondary: lighten($monwooSecondary, 42%);
   //   background: none;
   // }
   .mat-card {
-    margin: 15px 0px;
     border-top: solid 1px $monwooSecondary;
+    border-left: solid 1px rgba(255, 255, 255, 0.21);
+    border-right: solid 1px rgba(255, 255, 255, 0.21);
+    // box-shadow:
+    // 0 2px 1px -1px transparent,
+    // 0 1px 1px 0 rgba(255,255,255,.14),
+    // 0 1px 3px 0 rgba(255,255,255,.12);
   }
   footer {
     .copyright {

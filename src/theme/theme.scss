@@ -6,6 +6,9 @@
 
 .mat-card {
   margin: 15px 0px;
+  @include media-breakpoint-down(md) {
+    margin: 1px 0px;
+  }
   border-top: solid 1px $monwooSecondary;
 }
 

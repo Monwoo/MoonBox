@@ -23,7 +23,9 @@ export class NotificationsBufferService {
   constructor(private notif: NotificationsService, private i18nService: I18nService, private storage: LocalStorage) {
     // https://github.com/flauc/angular2-notifications/blob/master/src/services/notifications.service.ts
     notif.emitter.subscribe(e => {
-      this.addEvent(e.notification);
+      if (e.add) {
+        this.addEvent(e.notification);
+      }
     });
     this.storage.getItem('notif-buffer.logLimit').subscribe((storedSize: number) => {
       this._maxLength = storedSize || this._maxLength; // Keep default size if fail to fetch
