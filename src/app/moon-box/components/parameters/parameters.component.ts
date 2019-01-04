@@ -22,9 +22,11 @@ import * as moment from 'moment';
 import { environment } from '@env/environment';
 import { FormControl, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+
+import { debounceTime, distinctUntilChanged, delay, tap } from 'rxjs/operators';
+import { of } from 'rxjs';
+
 import { BackendService } from '@moon-box/services/backend.service';
-// import { fromEvent, of, from, Observable, BehaviorSubject } from 'rxjs';
 const logReview = new Logger('MonwooReview');
 
 // https://material.angular.io/components/input/overview
@@ -54,9 +56,23 @@ export class ParametersComponent implements OnInit {
   // https://stackoverflow.com/questions/50647234/how-can-i-get-validators-from-the-formcontrol-directly
   common = {
     fetchSize: {
-      Ctrl: new FormControl(this.backend.getFetchSize(), Validators.compose([Validators.required, Validators.min(1)])),
+      Ctrl: new FormControl('', Validators.compose([Validators.required, Validators.min(1), Validators.minLength(1)])),
       errMatcher: new MyErrorStateMatcher(),
       init: () => {
+        // Seem that error do not show on first form load since it wait for data loads...
+        // otherwise it may show wrong data while it's only a loading delay issue...
+        // + MUST BE Called Async to work ? : with only patchValue, none works...
+        // https://github.com/angular/angular/issues/12470
+        // https://www.devexpress.com/Support/Center/Question/Details/T463337/validation-messages-are-displayed-on-the-first-load-if-dxvalidator-is-used-and-values
+        //
+        const self = this; // Only for chrome debug or other ? did work for all past dev without .bind....
+        // of('#angular/angular/issues/12470').pipe(delay(0), tap((() => {
+        // this.common.fetchSize.Ctrl.reset();
+        this.common.fetchSize.Ctrl.patchValue(this.backend.getFetchSize());
+        // this.common.fetchSize.Ctrl.updateValueAndValidity();
+        this.common.fetchSize.Ctrl.markAsTouched(); // <- this one mark form as dirty ? => not really, but works for form reload, current aim OK
+        // TODO : understand dirty concept => was not the raison of error msgs not displayed
+        // logReview.assert(this.common.fetchSize.Ctrl.dirty, "Fail to force form refresh");
         this.common.fetchSize.Ctrl.valueChanges
           .pipe(
             debounceTime(500),
@@ -65,6 +81,28 @@ export class ParametersComponent implements OnInit {
           .subscribe(event => {
             if (this.common.fetchSize.Ctrl.valid) {
               this.backend.setFetchSize(this.common.fetchSize.Ctrl.value);
+            }
+          });
+        // }).bind(self))).subscribe();
+      }
+    },
+    logLimit: {
+      Ctrl: new FormControl(
+        this.notifBuffer.getlogLimit(),
+        Validators.compose([Validators.required, Validators.min(1), Validators.minLength(1)])
+      ),
+      errMatcher: new MyErrorStateMatcher(),
+      init: () => {
+        this.common.logLimit.Ctrl.markAsTouched(); // <- this one mark form as dirty ? => not really, but works for form reload, current aim OK
+        // logReview.assert(this.common.fetchSize.Ctrl.dirty, "Fail to force form refresh");
+        this.common.logLimit.Ctrl.valueChanges
+          .pipe(
+            debounceTime(500),
+            distinctUntilChanged()
+          )
+          .subscribe(event => {
+            if (this.common.logLimit.Ctrl.valid) {
+              this.notifBuffer.setlogLimit(this.common.logLimit.Ctrl.value);
             }
           });
       }
@@ -82,7 +120,7 @@ export class ParametersComponent implements OnInit {
     public notifBuffer: NotificationsBufferService
   ) {
     Object.keys(this.common).forEach(k => {
-      this.common[k].init();
+      this.common[k].init.bind(this)();
     });
   }
 

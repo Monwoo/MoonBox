@@ -1,4 +1,8 @@
 <!-- Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com -->
+
+<ng-template #formField> <div class="condensable" [innerHTML]="msg.iframeBody | safeHtml"></div> </ng-template>
+<ng-container *ngTemplateOutlet="msgBody"> </ng-container>
+
 <mat-card class="toolbox bs">
   <div>
     <button
@@ -67,7 +71,6 @@
         [formControl]="common.fetchSize.Ctrl"
         [errorStateMatcher]="common.fetchSize.errMatcher"
       />
-      <mat-hint>Errors appear instantly!</mat-hint>
       <mat-error *ngIf="common.fetchSize.Ctrl.errors"> {{ 'mb.common.fetchSize.hasErr.lbl' | translate }} </mat-error>
       <mat-error *ngIf="common.fetchSize.Ctrl.hasError('min')">
         <!---->
@@ -77,6 +80,27 @@
               : {
                   max: common.fetchSize.Ctrl.errors.min.min,
                   input: common.fetchSize.Ctrl.errors.min.actual
+                }
+        }}
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field class="full-width">
+      <input
+        matInput
+        [placeholder]="'mb.common.logLimit.plhdr' | translate"
+        type="number"
+        [formControl]="common.logLimit.Ctrl"
+        [errorStateMatcher]="common.logLimit.errMatcher"
+      />
+      <mat-error *ngIf="common.logLimit.Ctrl.errors"> {{ 'mb.common.logLimit.hasErr.lbl' | translate }} </mat-error>
+      <mat-error *ngIf="common.logLimit.Ctrl.hasError('min')">
+        <!---->
+        {{
+          'mb.common.logLimit.isTooLow.lbl{max}{input}'
+            | translate
+              : {
+                  max: common.logLimit.Ctrl.errors.min.min,
+                  input: common.logLimit.Ctrl.errors.min.actual
                 }
         }}
       </mat-error>

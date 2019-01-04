@@ -5,6 +5,9 @@ import { NotificationsService, Notification } from 'angular2-notifications';
 import { LinkedList, IterableClass } from '@moon-box/tools/linked-list';
 import { of, BehaviorSubject } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
+import { LocalStorage } from '@ngx-pwa/local-storage';
+import { extract } from '@app/core';
+import { I18nService } from '@app/core';
 
 @Injectable({
   providedIn: 'root'
@@ -12,12 +15,18 @@ import { delay, map } from 'rxjs/operators';
 export class NotificationsBufferService {
   private data: Notification[] = []; // V1 & V2
   // private data = new LinkedList<Notification>(); // V3 => pb : data iterator do not seem stable...
-  public maxLength: number = 42;
+  get maxLength() {
+    return this._maxLength;
+  }
+  private _maxLength: number = 21;
 
-  constructor(private notif: NotificationsService) {
+  constructor(private notif: NotificationsService, private i18nService: I18nService, private storage: LocalStorage) {
     // https://github.com/flauc/angular2-notifications/blob/master/src/services/notifications.service.ts
     notif.emitter.subscribe(e => {
       this.addEvent(e.notification);
+    });
+    this.storage.getItem('notif-buffer.logLimit').subscribe((storedSize: number) => {
+      this._maxLength = storedSize || this._maxLength; // Keep default size if fail to fetch
     });
   }
 
@@ -25,7 +34,7 @@ export class NotificationsBufferService {
     this.data.push(e); // V1 : Complexity : O(1) for this.data as array
     // this.data.unshift(e); // V2 : Complexity : O(n) for this.data as array
     // this.data.addToHead(e); // V3 : Complexity : O(~1) for this.data as LinkedList
-    while (this.data.length > this.maxLength) {
+    while (this.data.length > this._maxLength) {
       this.data.slice(1); // V1 : Complexity : O(n - 1) for this.data as array
       // this.data.pop(); // V2 : Complexity : O(n - 1) for this.data as array
       // this.data.removeFromTail(); // V3 : Complexity : O(~1) for this.data as LinkedList
@@ -63,5 +72,22 @@ export class NotificationsBufferService {
 
   getSize() {
     return this.data.length;
+  }
+
+  getlogLimit() {
+    return this._maxLength;
+  }
+
+  setlogLimit(newSize: number) {
+    this._maxLength = newSize;
+    this.storage.setItem('notif-buffer.logLimit', this._maxLength).subscribe(() => {
+      this.i18nService
+        .get(extract('mb.notif-buffer.notif.setLogLimit{newSize}'), {
+          newSize: this._maxLength
+        })
+        .subscribe(t => {
+          this.notif.info('', t);
+        });
+    });
   }
 }

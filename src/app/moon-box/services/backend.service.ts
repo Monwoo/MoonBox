@@ -93,7 +93,7 @@ export class BackendService {
     window.addEventListener('message', (e: any) => this.authListener(e));
     window.addEventListener('beforeunload', (e: any) => this.unloadListener(e));
     this.storage.getItem('backend.fetchSize').subscribe((storedSize: number) => {
-      this.fetchSize = storedSize;
+      this.fetchSize = storedSize || this.fetchSize; // Keep default size if fail to fetch
     });
   }
 
