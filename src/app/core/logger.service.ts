@@ -110,6 +110,14 @@ export class Logger {
     this.log(console.error, LogLevel.Error, objects);
   }
 
+  // Will test condition and trow error if fail. Error content displayed in dev env only
+  assert(test: boolean, ...objects: any[]) {
+    if (!test) {
+      this.warn(objects);
+      throw 'MoonBox Assert Exception';
+    }
+  }
+
   private log(func: Function, level: LogLevel, objects: any[]) {
     if (level <= Logger.level) {
       const log = this.source ? ['[' + this.source + ']'].concat(objects) : objects;

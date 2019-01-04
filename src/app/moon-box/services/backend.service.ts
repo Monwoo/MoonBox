@@ -34,6 +34,7 @@ const httpOptions = {
 export class BackendService {
   apiBaseUrl: string = environment.moonBoxBackendUrl;
   apiUsername: string = null;
+  private fetchSize = 21;
 
   public providers = {
     // TODO : all https://accedinfo.com/dns-pop-imap/ ? how to keep simple then ?...
@@ -91,6 +92,9 @@ export class BackendService {
     // Quick hack, since host listener to gets debug, TODO : HostListener bad usage to fix ?
     window.addEventListener('message', (e: any) => this.authListener(e));
     window.addEventListener('beforeunload', (e: any) => this.unloadListener(e));
+    this.storage.getItem('backend.fetchSize').subscribe((storedSize: number) => {
+      this.fetchSize = storedSize;
+    });
   }
 
   generateApiUsername() {
@@ -191,7 +195,10 @@ export class BackendService {
   }
 
   bulkCount: {} = {};
-  fetchMsg(provider: string, username: string, page: number = 1, limit: number = 21) {
+  fetchMsg(provider: string, username: string, page: string = '1', limit: number = null) {
+    limit = limit || this.fetchSize;
+    logReview.assert(limit > 0, 'Fetch Limit must be > 1', limit, this);
+
     return (
       this.http
         .post<any>(
@@ -343,7 +350,12 @@ export class BackendService {
     return res;
   }
   lastApiAuthWindow: any = null;
-  promptGApiAuth(config: any, provider: string, username: string, page: number = 1, limit: number = 21) {
+  promptGApiAuth(config: any, provider: string, username: string, page: string = '1', limit: number = null) {
+    limit = limit || this.fetchSize;
+    logReview.assert(limit > 0, 'Fetch Limit must be > 1', limit, this);
+    // TODO : add timeout for Auth + auto-close winwdow => will remove buggy infinit loader on user closing Auth window...
+    // => re-spawn on user ACTIVITY to avoid closing the window while he do stuff
+    // + find quick hack to detect closed window...
     /*Return messages*/
     return new Promise<any>((resolve, reject) => {
       (async () => {
@@ -384,6 +396,22 @@ export class BackendService {
           await this.rejectLastApiAuth();
         }
       })();
+    });
+  }
+
+  getFetchSize() {
+    return this.fetchSize;
+  }
+  setFetchSize(newSize: number) {
+    this.fetchSize = newSize;
+    this.storage.setItem('backend.fetchSize', this.fetchSize).subscribe(() => {
+      this.i18nService
+        .get(extract('mb.backend.notif.setFetchSize{newSize}'), {
+          newSize: this.fetchSize
+        })
+        .subscribe(t => {
+          this.notif.info('Backend', t);
+        });
     });
   }
 }

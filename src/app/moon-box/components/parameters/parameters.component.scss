@@ -19,6 +19,16 @@
     }
   }
 
+  .common-params-form {
+    min-width: 150px;
+    max-width: 500px;
+    width: 100%;
+  }
+
+  .full-width {
+    width: 100%; // TODO : refactor : multiple class with this same purpose...
+  }
+
   // Drop zones design :
   .dropzone .dz-preview {
     display: none !important;

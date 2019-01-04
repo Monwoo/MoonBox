@@ -239,7 +239,7 @@ export class BoxReaderComponent implements OnInit {
     });
   }
 
-  readMessages(page = 1) {
+  readMessages(page = '1') {
     let resp: Observable<any> = null;
     if (this.formGroup) {
       this.ll.requireLoadingLock();

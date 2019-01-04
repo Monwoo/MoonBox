@@ -20,8 +20,21 @@ import { MessagesService } from '@moon-box/services/messages.service';
 import { NotificationsBufferService } from '@moon-box/services/notifications-buffer.service';
 import * as moment from 'moment';
 import { environment } from '@env/environment';
-
+import { FormControl, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { ErrorStateMatcher } from '@angular/material/core';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { BackendService } from '@moon-box/services/backend.service';
+// import { fromEvent, of, from, Observable, BehaviorSubject } from 'rxjs';
 const logReview = new Logger('MonwooReview');
+
+// https://material.angular.io/components/input/overview
+/** Error when invalid control is dirty, touched, or submitted. */
+export class MyErrorStateMatcher implements ErrorStateMatcher {
+  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+    const isSubmitted = form && form.submitted;
+    return !!(control && control.invalid && (control.dirty || control.touched || isSubmitted));
+  }
+}
 
 @Component({
   selector: 'app-parameters',
@@ -31,15 +44,48 @@ const logReview = new Logger('MonwooReview');
 export class ParametersComponent implements OnInit {
   langPlaceholder: string = extract('Langue');
   passCode: string = '';
+
+  // https://stackoverflow.com/questions/47884655/display-custom-validator-error-with-mat-error
+  // https://www.infragistics.com/community/blogs/b/infragistics/posts/how-to-create-custom-validators-for-angular-reactive-forms
+  // https://dzone.com/articles/how-to-create-custom-validators-in-angular
+  // https://angular.io/api/forms/Validators
+  // https://angular.io/api/forms/FormControl
+
+  // https://stackoverflow.com/questions/50647234/how-can-i-get-validators-from-the-formcontrol-directly
+  common = {
+    fetchSize: {
+      Ctrl: new FormControl(this.backend.getFetchSize(), Validators.compose([Validators.required, Validators.min(1)])),
+      errMatcher: new MyErrorStateMatcher(),
+      init: () => {
+        this.common.fetchSize.Ctrl.valueChanges
+          .pipe(
+            debounceTime(500),
+            distinctUntilChanged()
+          )
+          .subscribe(event => {
+            if (this.common.fetchSize.Ctrl.valid) {
+              this.backend.setFetchSize(this.common.fetchSize.Ctrl.value);
+            }
+          });
+      }
+    }
+  };
+
   constructor(
     private i18nService: I18nService,
     private notif: NotificationsService,
     private ll: LoadingLoaderService,
+    public backend: BackendService,
     public storage: SecuStorageService,
     public msgs: MessagesService,
     public themings: ThemingsService,
     public notifBuffer: NotificationsBufferService
-  ) {}
+  ) {
+    Object.keys(this.common).forEach(k => {
+      this.common[k].init();
+    });
+  }
+
   dropzoneBckp = {
     url: '#', // Url set to avoid console Error, but will not be used in V1.0.0
     autoProcessQueue: false, // We will no upload to server, only local processings for V1.0.0

@@ -58,6 +58,33 @@
 </mat-card>
 
 <mat-card *ngIf="!this.storage.isLocked">
+  <form class="common-params-form">
+    <mat-form-field class="full-width">
+      <input
+        matInput
+        [placeholder]="'mb.common.fetchSize.plhdr' | translate"
+        type="number"
+        [formControl]="common.fetchSize.Ctrl"
+        [errorStateMatcher]="common.fetchSize.errMatcher"
+      />
+      <mat-hint>Errors appear instantly!</mat-hint>
+      <mat-error *ngIf="common.fetchSize.Ctrl.errors"> {{ 'mb.common.fetchSize.hasErr.lbl' | translate }} </mat-error>
+      <mat-error *ngIf="common.fetchSize.Ctrl.hasError('min')">
+        <!---->
+        {{
+          'mb.common.fetchSize.isTooLow.lbl{max}{input}'
+            | translate
+              : {
+                  max: common.fetchSize.Ctrl.errors.min.min,
+                  input: common.fetchSize.Ctrl.errors.min.actual
+                }
+        }}
+      </mat-error>
+    </mat-form-field>
+  </form>
+</mat-card>
+
+<mat-card *ngIf="!this.storage.isLocked">
   <strong>{{ 'mb.param.exportBckp.slct.lbl' | translate }}</strong>
   <button
     mat-button

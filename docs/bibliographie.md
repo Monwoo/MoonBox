@@ -251,6 +251,10 @@
 - https://codeburst.io/js-data-structures-linked-list-3ed4d63e6571
 - https://blog.angular-university.io/angular-debugging/
 
+* https://material.angular.io/components/categories
+* https://material.angular.io/components/input/overview
+* https://stackoverflow.com/questions/45487647/input-number-in-angular-material-design
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
