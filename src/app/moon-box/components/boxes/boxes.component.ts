@@ -360,6 +360,7 @@ export class BoxesComponent implements OnInit {
       } while ((elem = elem.offsetParent));
       return offsetTop;
     };
+    // TODO : buggy offset top...
     this.initialStickyOffset = getOffsetTop(this.stickyContainer.nativeElement);
     // TODO : find back in Monwoo CVVideo or Ecole de la Vie how to get real div Height...
     // This height is missing margin/padding and border size....
@@ -368,7 +369,8 @@ export class BoxesComponent implements OnInit {
 
   ngAfterViewChecked() {
     this.storage.ensureLockIsNotClosable();
-    if (this.stickyContainer && !this.initialStickyOffset) {
+    // Checking isSticky to avoid re-computing offset on fixed pos instead of relative to parent
+    if (this.stickyContainer && !this.initialStickyOffset && !this.isSticky) {
       this.initShadowStickySizes();
     }
   }
