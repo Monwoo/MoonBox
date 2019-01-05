@@ -131,6 +131,10 @@ export class BoxesComponent implements OnInit {
     const deltaScrollAvailable = document.body.scrollHeight - document.body.clientHeight;
 
     this.isSticky = window.pageYOffset >= this.initialStickyOffset && deltaScrollAvailable > 200;
+
+    // TODO : refactor with listener on sticky event system ?
+    // this.lastScrollPos = 0; // do not scroll back if he start scrolling ?
+
     // this.stickyContainer.nativeElement.getBoundingClientRect().bottom;
     // if (this.isSticky) {
     //   this.stickyContainer.nativeElement.parentElement.parentElement.style.marginTop = this.initialStickyHeight + 'px';
