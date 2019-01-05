@@ -30,6 +30,12 @@
 .mat-button.mat-primary,
 .mat-icon-button.mat-primary,
 .mat-stroked-button.mat-primary {
+  color: $monwooPrimary;
+}
+
+.mat-button.mat-secondary,
+.mat-icon-button.mat-secondary,
+.mat-stroked-button.mat-secondary {
   color: $monwooSecondary;
 }
 
