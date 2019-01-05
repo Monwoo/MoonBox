@@ -45,7 +45,7 @@
     "@angular/router": "^7.0.0",
     "@angular/service-worker": "^7.0.0",
     "@auth0/angular-jwt": "^2.1.0",
-    "@fortawesome/fontawesome-free-webfonts": "^1.0.9",
+    "@fortawesome/fontawesome-free": "^5.6.3",
     "@ng-bootstrap/ng-bootstrap": "^4.0.0",
     "@ng-dynamic-forms/core": "^7.0.1",
     "@ng-dynamic-forms/ui-material": "^7.0.1",

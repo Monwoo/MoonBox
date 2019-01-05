@@ -10,6 +10,17 @@
       <mat-panel-description #stickyContainer [ngClass]="{ sticky: isSticky }">
         <div class="w-100">
           <div class="col text-md-right mr-5">
+            <span matTooltip="{{'mb.boxes.indic.PasswordsAreSaved.tooltip'|translate}}">
+              <i class="fas fa-key"></i>
+            </span>
+            <span matTooltip="{{'mb.boxes.indic.MessagesAreSaved.tooltip'|translate}}">
+              <!--
+                TODO : not available passport, wrong new fontawsome integration or paid one ?
+                <i class="fas fa-passport"></i>
+              -->
+              <i class="fas fa-save"></i>
+            </span>
+
             <button
               mat-button
               *ngIf="isSticky"

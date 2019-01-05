@@ -261,6 +261,8 @@
 * https://css-tricks.com/animations-the-angular-way/
 * https://angular.io/guide/animations
 
+* https://fontawesome.com/how-to-use/on-the-web/setup/using-package-managers
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

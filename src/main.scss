@@ -13,10 +13,15 @@
     @import "~bootstrap/scss/bootstrap";
   }
 }
-@import "~@fortawesome/fontawesome-free-webfonts/scss/fontawesome.scss";
-@import "~@fortawesome/fontawesome-free-webfonts/scss/fa-brands.scss";
-@import "~@fortawesome/fontawesome-free-webfonts/scss/fa-regular.scss";
-@import "~@fortawesome/fontawesome-free-webfonts/scss/fa-solid.scss";
+@import "~@fortawesome/fontawesome-free/scss/fontawesome.scss";
+@import "~@fortawesome/fontawesome-free/scss/brands.scss";
+@import "~@fortawesome/fontawesome-free/scss/regular.scss";
+@import "~@fortawesome/fontawesome-free/scss/solid.scss";
+@import "~@fortawesome/fontawesome-free/scss/_icons.scss";
+// TODO: some icons fail to load : passport, <i class="fas fa-quran"></i>
+// <i class="fas fa-journal-whills"></i>
+// https://fontawesome.com/how-to-use/on-the-web/setup/upgrading-from-version-4
+@import "~@fortawesome/fontawesome-free/scss/v4-shims.scss";
 
 @import url("https://fonts.googleapis.com/css?family=Montserrat:400,700");
 @import url("https://fonts.googleapis.com/icon?family=Material+Icons");

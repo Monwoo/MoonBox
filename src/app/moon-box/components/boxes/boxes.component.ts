@@ -489,6 +489,9 @@ export class BoxesComponent implements OnInit {
     // Nghost event not already detected ? TODO : avoid quick fix below :
     this.onSubmit(e);
 
+    // TODO : Switching Password and Msgs save indicator as Btn or only keep as indicator ?
+    // => Work on colors meanings => Mail Actions / Mail Indicator having Actions (actif/inactif) /
+
     if (this.filtersForm.form.valid) {
       this.updateForm(this.filtersForm.form.value).subscribe(filtersData => {
         this.storage.setItem('moon-box-filters', filtersData).subscribe(() => {
