@@ -305,24 +305,34 @@ export class BoxesComponent implements OnInit {
   }
 
   lastScrollPos = 0;
+  scrollInterval: any = null;
 
   scrollTop(e: any) {
+    // RxJs Way ?
+    if (this.scrollInterval) {
+      window.clearInterval(this.scrollInterval);
+    }
     this.lastScrollPos = window.pageYOffset;
-    let scrollToTop = window.setInterval(() => {
+    this.scrollInterval = window.setInterval(() => {
       const pos = window.pageYOffset;
       let delta = pos - this.lastScrollPos * 0.2;
       if (delta > 0) {
         window.scrollTo(0, delta); // how far to scroll on each step
       } else {
         window.scrollTo(0, 0);
-        window.clearInterval(scrollToTop);
+        window.clearInterval(this.scrollInterval);
+        this.scrollInterval = null;
       }
     }, 16);
   }
 
   scrollBackDown(e: any) {
+    // RxJs Way ?
+    if (this.scrollInterval) {
+      window.clearInterval(this.scrollInterval);
+    }
     this.lastScrollPos = window.pageYOffset;
-    let scrollToTop = window.setInterval(() => {
+    this.scrollInterval = window.setInterval(() => {
       const pos = window.pageYOffset;
       let delta = pos > this.lastScrollPos ? pos - this.lastScrollPos * 0.2 : pos + this.lastScrollPos * 0.2;
       if (
@@ -332,7 +342,7 @@ export class BoxesComponent implements OnInit {
         window.scrollTo(0, delta); // how far to scroll on each step
       } else {
         window.scrollTo(0, this.lastScrollPos);
-        window.clearInterval(scrollToTop);
+        window.clearInterval(this.scrollInterval);
       }
     }, 16);
   }
