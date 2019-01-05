@@ -18,7 +18,7 @@
           <button
             *ngIf="ctx.hasMoreMsgs"
             mat-button
-            color="primary"
+            color="secondary"
             matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
             (click)="loadNext($event).subscribe()"
           >
@@ -27,7 +27,7 @@
           </button>
           <button
             mat-button
-            color="primary"
+            color="secondary"
             matTooltip="{{'mb.box-reader.btn.Login.tooltip'|translate}}"
             (click)="login($event).subscribe()"
           >
@@ -36,7 +36,7 @@
           </button>
         </ng-container>
 
-        <button mat-button color="primary" type="button" (click)="toggleConfigs()">...</button>
+        <button mat-button color="secondary" type="button" (click)="toggleConfigs()">...</button>
       </div>
       <div class="col-12 text-md-right">
         <ng-container *ngIf="(isScreenSmall$ | async)">
@@ -46,7 +46,7 @@
           <button
             *ngIf="ctx.hasMoreMsgs"
             mat-button
-            color="primary"
+            color="secondary"
             matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
             (click)="loadNext($event).subscribe()"
           >
@@ -55,7 +55,7 @@
           </button>
           <button
             mat-button
-            color="primary"
+            color="secondary"
             matTooltip="{{'mb.box-reader.btn.Login.tooltip'|translate}}"
             (click)="login($event).subscribe()"
           >
@@ -64,7 +64,7 @@
           </button>
         </ng-container>
       </div>
-      <div class="col-12 col-md-6 text-md-left condensable">
+      <div class="col-12 col-md-6 text-md-left height-animable condensable">
         <mat-form-field class="float-right">
           <mat-icon matSuffix>sentiment_very_satisfied</mat-icon>
           <mat-select
@@ -82,7 +82,7 @@
           </mat-select>
         </mat-form-field>
       </div>
-      <div class="col-12 col-md-6 text-md-left condensable">
+      <div class="col-12 col-md-6 text-md-left height-animable condensable">
         <form *ngIf="formGroup" [formGroup]="formGroup" #loginForm="ngForm">
           <dynamic-material-form [group]="formGroup" [model]="formModel" [layout]="formLayout">
             <ng-template modelId="_username">
@@ -117,9 +117,9 @@
                   <mat-card-subtitle>{{ msg.expeditorFullName }}</mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
-                  <pre class="msg-header condensable">{{ msg.headers }}</pre>
+                  <pre class="msg-header height-animable condensable">{{ msg.headers }}</pre>
                   <ng-template #msgBody>
-                    <div class="condensable" [innerHTML]="msg.iframeBody | safeHtml"></div>
+                    <div class="height-animable condensable" [innerHTML]="msg.iframeBody | safeHtml"></div>
                   </ng-template>
                   <ng-container *ngTemplateOutlet="msgBody"> </ng-container>
                 </mat-card-content>

@@ -12,7 +12,7 @@
       <img class="secondary-brand" src="assets/logos/MoonBox-64-secondary.png?v=2" alt="{{'MoonBox logo'|translate}}" />
       <span class="d-none d-md-inline m-md-2">{{ appTitle }}</span>
     </a>
-    <button mat-button color="primary" matTooltip="{{'Verouiller Moon Box'|translate}}" (click)="lockScreen($event)">
+    <button mat-button color="secondary" matTooltip="{{'Verouiller Moon Box'|translate}}" (click)="lockScreen($event)">
       <i class="fas fa-lock"></i> <span class="d-none d-md-inline"> {{ 'Verouiller' | translate }} </span>
     </button>
 
@@ -22,7 +22,7 @@
         <!-- li><a routerLink="/moon-manager/parameters">moon-manager.nav.parameters</a></li -->
 
         <li>
-          <button mat-button color="primary" matTooltip="{{'Paramètres'|translate}}" (click)="goToParameters($event)">
+          <button mat-button color="secondary" matTooltip="{{'Paramètres'|translate}}" (click)="goToParameters($event)">
             <i class="fas fa-cogs"></i>
           </button>
         </li>

@@ -99,6 +99,7 @@ export class BoxesComponent implements OnInit {
   // @ViewChild('filtersForm') filtersForm: ElementRef<NgForm> = null;
   @ViewChild('filtersFormRef') filtersFormRef: ElementRef<HTMLFormElement> = null;
   @ViewChild('filtersForm') filtersForm: NgForm = null;
+  @ViewChild('stickyContainer') stickyContainer: ElementRef<HTMLDivElement> = null;
   @ViewChildren(BoxReaderComponent) boxViews!: QueryList<BoxReaderComponent>;
 
   isSticky: boolean = false;
@@ -110,13 +111,13 @@ export class BoxesComponent implements OnInit {
     if (!this.isSticky) {
       return; // ignoring in no sticky effect
     }
-    if (this.filtersFormRef.nativeElement.contains(event.target)) {
+    if (this.stickyContainer.nativeElement.contains(event.target)) {
       // ok, inside sticky click
     } else {
-      // if expanded, need to collapse :
-      if (this.haveExpandedFilters) {
-        this.toggleFilters();
-      }
+      // if expanded, need to collapse : => no collapse on sticky anymore, only Actions btn
+      // if (this.haveExpandedFilters) {
+      //   this.toggleFilters();
+      // }
     }
   }
 
@@ -126,16 +127,16 @@ export class BoxesComponent implements OnInit {
       return; // ignoring sticky effect for mobile devices
     }
 
-    if (!this.filtersFormRef) return; // will waith for filters to be displayed
+    if (!this.stickyContainer) return; // will waith for sticky to be displayed
     const deltaScrollAvailable = document.body.scrollHeight - document.body.clientHeight;
 
     this.isSticky = window.pageYOffset >= this.initialStickyOffset && deltaScrollAvailable > 200;
-    // this.filtersFormRef.nativeElement.getBoundingClientRect().bottom;
-    if (this.isSticky) {
-      this.filtersFormRef.nativeElement.parentElement.parentElement.style.marginTop = this.initialStickyHeight + 'px';
-    } else {
-      this.filtersFormRef.nativeElement.parentElement.parentElement.style.marginTop = '0px';
-    }
+    // this.stickyContainer.nativeElement.getBoundingClientRect().bottom;
+    // if (this.isSticky) {
+    //   this.stickyContainer.nativeElement.parentElement.parentElement.style.marginTop = this.initialStickyHeight + 'px';
+    // } else {
+    //   this.stickyContainer.nativeElement.parentElement.parentElement.style.marginTop = '0px';
+    // }
   }
   @HostListener('submit', ['$event'])
   onSubmit(e: any) {
@@ -303,6 +304,39 @@ export class BoxesComponent implements OnInit {
     this.isScreenSmall$ = screenSizeChanged$.pipe(startWith(checkScreenSize()));
   }
 
+  lastScrollPos = 0;
+
+  scrollTop(e: any) {
+    this.lastScrollPos = window.pageYOffset;
+    let scrollToTop = window.setInterval(() => {
+      const pos = window.pageYOffset;
+      let delta = pos - this.lastScrollPos * 0.2;
+      if (delta > 0) {
+        window.scrollTo(0, delta); // how far to scroll on each step
+      } else {
+        window.scrollTo(0, 0);
+        window.clearInterval(scrollToTop);
+      }
+    }, 16);
+  }
+
+  scrollBackDown(e: any) {
+    this.lastScrollPos = window.pageYOffset;
+    let scrollToTop = window.setInterval(() => {
+      const pos = window.pageYOffset;
+      let delta = pos > this.lastScrollPos ? pos - this.lastScrollPos * 0.2 : pos + this.lastScrollPos * 0.2;
+      if (
+        (pos > this.lastScrollPos && delta < this.lastScrollPos) ||
+        (pos < this.lastScrollPos && delta > this.lastScrollPos)
+      ) {
+        window.scrollTo(0, delta); // how far to scroll on each step
+      } else {
+        window.scrollTo(0, this.lastScrollPos);
+        window.clearInterval(scrollToTop);
+      }
+    }, 16);
+  }
+
   refreshBoxesIdxs() {
     this.storage.setupStorage('lvl2'); // TODO: why need to set lvl 2, need better storage design pattern...
     this.storage.getItem('boxesIdxs').subscribe((bIdxs: string[]) => {
@@ -326,15 +360,15 @@ export class BoxesComponent implements OnInit {
       } while ((elem = elem.offsetParent));
       return offsetTop;
     };
-    this.initialStickyOffset = getOffsetTop(this.filtersFormRef.nativeElement);
+    this.initialStickyOffset = getOffsetTop(this.stickyContainer.nativeElement);
     // TODO : find back in Monwoo CVVideo or Ecole de la Vie how to get real div Height...
     // This height is missing margin/padding and border size....
-    this.initialStickyHeight = this.filtersFormRef.nativeElement.getClientRects()[0].height + 15 * 2 + 16 * 2 + 1 * 2;
+    this.initialStickyHeight = this.stickyContainer.nativeElement.getClientRects()[0].height + 15 * 2 + 16 * 2 + 1 * 2;
   }
 
   ngAfterViewChecked() {
     this.storage.ensureLockIsNotClosable();
-    if (this.filtersFormRef && !this.initialStickyOffset) {
+    if (this.stickyContainer && !this.initialStickyOffset) {
       this.initShadowStickySizes();
     }
   }
@@ -351,7 +385,7 @@ export class BoxesComponent implements OnInit {
 
   ngAfterViewInit() {
     // filtersFormRef might be null if lockscreen activated...
-    // this.initialOffset = this.filtersFormRef.nativeElement.offsetTop;
+    // this.initialOffset = this.stickyContainer.nativeElement.offsetTop;
     this.boxViews.changes.subscribe((box: BoxReaderComponent) => {
       // Box did changes event (some boxes gets added to the page...)
     });
@@ -683,14 +717,25 @@ export class BoxesComponent implements OnInit {
       this.isMsgsCondensedEmitter.get(moonBoxGroup).next(false);
       this.msgsOpenedIdx[moonBoxGroup] = { isOpen: true };
     }
+    // TODO : give infinit loop, will not use if DOM node wipe out => TODO : do it for OPTIM if needed (it unload component... making page lighter...)
+    this.animationDelay = this.animationWorkload;
+    of(0)
+      .pipe(delay(this.animationWorkload))
+      .subscribe(endState => {
+        this.animationDelay = endState;
+      });
   }
+  animationWorkload = 2000;
+  animationDelay = 0;
   isMsgsCondensedEmitter = new Map(); //  = new BehaviorSubject<boolean>(true); // new Subject<boolean>(); //
-  isMsgsCondensed(moonBoxGroup: string) {
+  isMsgsCondensed(moonBoxGroup: string, delayInMs: number = 0) {
     // const _isMsgsCondensed = !(this.msgsOpenedIdx[moonBoxGroup] || { isOpen : false }).isOpen;
     if (!this.isMsgsCondensedEmitter.has(moonBoxGroup)) {
       this.isMsgsCondensedEmitter.set(moonBoxGroup, new BehaviorSubject<boolean>(true));
     }
     // https://coryrylan.com/blog/angular-async-data-binding-with-ng-if-and-ng-else
+    // Delay of 2 second, letting css animations ends...
+    // => break stuffs, not using If optim for now : delay(delayInMs),
     return this.isMsgsCondensedEmitter.get(moonBoxGroup).pipe(share());
   }
   async expandMessage(e: any, moonBoxGroup: string, msgIdx: string) {

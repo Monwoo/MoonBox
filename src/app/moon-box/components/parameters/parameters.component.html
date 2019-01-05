@@ -1,13 +1,10 @@
 <!-- Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com -->
 
-<ng-template #formField> <div class="condensable" [innerHTML]="msg.iframeBody | safeHtml"></div> </ng-template>
-<ng-container *ngTemplateOutlet="msgBody"> </ng-container>
-
 <mat-card class="toolbox bs">
   <div>
     <button
       mat-button
-      color="primary"
+      color="secondary"
       matTooltip="{{'Reset parameters to factory'|translate}}"
       (click)="resetToFactory($event)"
     >
@@ -32,7 +29,7 @@
 
 <mat-card *ngIf="this.storage.isLocked">
   <p>{{ 'Stockage verouillé, vous pouvez reset tout le stockage ou essayer de le déverouiller :' }}</p>
-  <button mat-button color="primary" matTooltip="{{'Déverouiller Moon Box'|translate}}" (click)="lockScreen($event)">
+  <button mat-button color="secondary" matTooltip="{{'Déverouiller Moon Box'|translate}}" (click)="lockScreen($event)">
     <i class="fas fa-unlock"></i> {{ 'Déverouiller' | translate }}
   </button>
 </mat-card>
@@ -53,7 +50,7 @@
   </form>
   <button
     mat-button
-    color="primary"
+    color="secondary"
     matTooltip="{{'Définir le code de sécurité'|translate}}"
     (click)="setSecurityCode($event)"
   >
@@ -112,7 +109,7 @@
   <strong>{{ 'mb.param.exportBckp.slct.lbl' | translate }}</strong>
   <button
     mat-button
-    color="primary"
+    color="secondary"
     matTooltip="{{'mm.param.exportBckp.tooltip'|translate}}"
     (click)="processingBckpExport($event)"
   >

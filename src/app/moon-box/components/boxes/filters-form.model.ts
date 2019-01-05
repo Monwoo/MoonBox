@@ -137,7 +137,7 @@ export const FORM_LAYOUT = {
   },
   keepFormsInMemory: {
     element: {
-      container: 'condensable'
+      container: 'height-animable condensable'
     }
   },
   periode: {
@@ -147,22 +147,22 @@ export const FORM_LAYOUT = {
   },
   fetchStart: {
     element: {
-      container: 'condensable' // TODO : in sticky mode only (caller.isSticky)
+      container: 'height-animable condensable' // TODO : in sticky mode only (caller.isSticky)
     }
   },
   fetchEnd: {
     element: {
-      container: 'condensable' // TODO : in sticky mode only (caller.isSticky)
+      container: 'height-animable condensable' // TODO : in sticky mode only (caller.isSticky)
     }
   },
   keepPasswordsInMemory: {
     element: {
-      container: 'condensable'
+      container: 'height-animable condensable'
     }
   },
   params: {
     element: {
-      container: 'condensable'
+      container: 'height-animable condensable'
     }
   },
   key: {

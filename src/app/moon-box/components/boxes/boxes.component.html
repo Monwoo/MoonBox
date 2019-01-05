@@ -2,23 +2,37 @@
 <!-- In Progress : https://material.angular.io/components/expansion/overview -->
 
 <mat-accordion *ngIf="!this.storage.isLocked && this.filters">
-  <mat-expansion-panel
-    class="filters-container"
-    [ngClass]="{ sticky: isSticky }"
-    (opened)="toggleFilters($event)"
-    (closed)="toggleFilters($event)"
-  >
+  <mat-expansion-panel class="filters-container" (opened)="toggleFilters($event)" (closed)="toggleFilters($event)">
     <mat-expansion-panel-header class="noselect">
       <mat-panel-title>
         <div class="global-count">{{ msgs.numResults }} / {{ msgs.totalCount }}</div>
       </mat-panel-title>
-      <mat-panel-description>
+      <mat-panel-description #stickyContainer [ngClass]="{ sticky: isSticky }">
         <div class="w-100">
           <div class="col text-md-right mr-5">
             <button
               mat-button
-              *ngIf="msgs.totalCount > 0"
+              *ngIf="isSticky"
               color="primary"
+              matTooltip="{{'mb.boxes.btn.GoUp.tooltip'|translate}}"
+              (click)="scrollTop($event)"
+            >
+              <i class="fas fa-arrow-alt-circle-up"></i>
+            </button>
+            <button
+              mat-button
+              *ngIf="lastScrollPos"
+              color="primary"
+              matTooltip="{{'mb.boxes.btn.GoBackDown.tooltip'|translate}}"
+              (click)="scrollBackDown($event)"
+            >
+              <i class="fas fa-arrow-alt-circle-down"></i>
+            </button>
+
+            <button
+              mat-button
+              *ngIf="msgs.totalCount > 0"
+              color="secondary"
               matTooltip="{{'mb.boxes.btn.ClearMsgs.tooltip'|translate}}"
               (click)="msgs.clearMessages()"
             >
@@ -27,7 +41,7 @@
             <button
               mat-button
               *ngIf="msgs.totalAvailable"
-              color="primary"
+              color="secondary"
               matTooltip="{{'mb.boxes.btn.LoadMore.tooltip'|translate}}"
               (click)="loadNext($event).subscribe()"
             >
@@ -35,7 +49,7 @@
             </button>
             <button
               mat-button
-              color="primary"
+              color="secondary"
               matTooltip="{{'mb.boxes.btn.Login.tooltip'|translate}}"
               (click)="login($event).subscribe()"
             >
@@ -62,7 +76,7 @@
         [layout]="filters.layout"
         (change)="onFiltersChange($event)"
         (matEvent)="onMatEvent($event)"
-        class="condensable"
+        class="height-animable condensable"
       >
         <!--
           ng-template modelId="_password">
@@ -81,33 +95,44 @@
         <ng-template modelId="mbegKeyTransformer" let-context="context" let-index="index">
           <!-- <pre>{{  index  | json }}</pre> -->
 
-          <button mat-button color="primary" type="button" (click)="removeFilterAgregation($event, context, index)">
+          <button mat-button color="secondary" type="button" (click)="removeFilterAgregation($event, context, index)">
             {{ 'Remove' | translate }}
           </button>
         </ng-template>
       </dynamic-material-form>
 
-      <button class="condensable" mat-button color="primary" type="button" (click)="addFilterAgregation($event)">
+      <button
+        class="height-animable condensable"
+        mat-button
+        color="secondary"
+        type="button"
+        (click)="addFilterAgregation($event)"
+      >
         {{ 'Add item' | translate }}
       </button>
     </form>
   </mat-expansion-panel>
-  <mat-expansion-panel (opened)="toggleBoxesConfigs($event)" (closed)="toggleBoxesConfigs($event)">
+  <mat-expansion-panel
+    class="boxes-configs-container"
+    (opened)="toggleBoxesConfigs($event)"
+    (closed)="toggleBoxesConfigs($event)"
+  >
     <mat-expansion-panel-header>
       <mat-panel-title> </mat-panel-title>
       <mat-panel-description> </mat-panel-description>
     </mat-expansion-panel-header>
-    <div [class.d-none]="expandBoxesConfigs">
+    <!-- <div [class.d-none]="expandBoxesConfigs"> -->
+    <div>
       <ng-container *ngFor="let idx of boxesIdxs">
         <ng-template #extendedActions let-boxId="boxId">
-          <button class="" mat-button color="primary" type="button" (click)="removeBox($event, idx)">
+          <button class="" mat-button color="secondary" type="button" (click)="removeBox($event, idx)">
             {{ 'Déconnecter la boite' | translate }}
           </button>
         </ng-template>
         <moon-box-reader [id]="idx" [filters]="filters.group.value" [extendedActions]="extendedActions">
         </moon-box-reader>
       </ng-container>
-      <button class="" mat-button color="primary" type="button" (click)="addBox()">
+      <button class="" mat-button color="secondary" type="button" (click)="addBox()">
         {{ 'Ajouter une boite' | translate }}
       </button>
     </div>
@@ -125,7 +150,12 @@
           <!-- : not accurate enouth yet : /{{ messages.value.totalCount }}) -->
         </div>
       </div>
-      <div class="col-12 text-md-left condensed" *ngIf="!(isMsgsCondensed(messages.key) | async)">
+      <!--
+        TODO : If Optim :
+        *ngIf="!(isMsgsCondensed(messages.key, animationDelay) | async)"
+        [hidden]="!(isMsgsCondensed(messages.key) | async)"
+      -->
+      <div class="col-12 text-md-left condensed" [class.condensable]="isMsgsCondensed(messages.key) | async">
         <mat-card *ngFor="let msgKey of messages.value.sortedKey; let index = index" class="bs box-reader">
           <ng-template #boxContent let-msg="msg">
             <div class="p-2">
@@ -141,7 +171,7 @@
             <mat-card-content *ngIf="!(isMsgCondensed(messages.key, msg.msgUniqueId) | async)">
               <span> {{ '[' + msg.expeditor + '] => ' + msg.to + ' | ' + msg.cc + ' | ' + msg.bcc }} </span>
               <ng-template #msgBody>
-                <div class="msg-wrapper condensable-lvl2" [innerHTML]="msg.iframeBody | safeHtml"></div>
+                <div class="msg-wrapper height-animable condensable-lvl2" [innerHTML]="msg.iframeBody | safeHtml"></div>
               </ng-template>
               <ng-container *ngTemplateOutlet="msgBody"> </ng-container>
             </mat-card-content>
@@ -163,7 +193,7 @@
         <button
           *ngIf="hasMoreMsgs"
           mat-button
-          color="primary"
+          color="secondary"
           matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
           (click)="loadNext($event)"
         >

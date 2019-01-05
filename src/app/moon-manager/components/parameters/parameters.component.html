@@ -4,7 +4,7 @@
   <div>
     <button
       mat-button
-      color="primary"
+      color="secondary"
       matTooltip="{{'Reset parameters to factory'|translate}}"
       (click)="resetConfigAction($event)"
     >
@@ -65,7 +65,7 @@
 
 <div class="bs">
   <div class="text-right">
-    <button mat-button color="primary" matTooltip="{{'Save params'|translate}}" (click)="saveAction($event)">
+    <button mat-button color="secondary" matTooltip="{{'Save params'|translate}}" (click)="saveAction($event)">
       <i class="fas fa-save"></i> {{ 'Save' | translate }}
     </button>
   </div>
@@ -87,7 +87,7 @@
         </mat-form-field>
         <button
           mat-button
-          color="primary"
+          color="secondary"
           matTooltip="{{'mm.param.exportMedias.tooltip'|translate}}"
           (click)="processingExport($event, 'medias')"
         >
@@ -112,7 +112,7 @@
         </mat-form-field>
         <button
           mat-button
-          color="primary"
+          color="secondary"
           matTooltip="{{'mm.param.exportTimings.tooltip'|translate}}"
           (click)="processingExport($event, 'timings')"
         >
