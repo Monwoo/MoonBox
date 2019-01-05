@@ -322,16 +322,28 @@ export class BoxesComponent implements OnInit {
         window.scrollTo(0, 0);
         window.clearInterval(this.scrollInterval);
         this.scrollInterval = null;
+        // TODO : why listener not called ? it do not stick back anymore ...
+        // => Well, it works, was a double call to checkSroll somewhere else the buggy stuff...
+        // this.checkScroll();
       }
     }, 16);
+    // Try to avoid other expand actions :
+    if (e.preventDefault) e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
+    return false;
   }
 
   scrollBackDown(e: any) {
+    this.hackIsGoingDown = true; // start hacky code
+
+    // TODO V2 : link to user history : allow him to scroll back
+    // to all positions he previously scroll up
+    // => need ergonomie study : may need new btn ? already too much btns...
+
     // RxJs Way ?
     if (this.scrollInterval) {
       window.clearInterval(this.scrollInterval);
     }
-    this.lastScrollPos = window.pageYOffset;
     this.scrollInterval = window.setInterval(() => {
       const pos = window.pageYOffset;
       let delta = pos > this.lastScrollPos ? pos - this.lastScrollPos * 0.2 : pos + this.lastScrollPos * 0.2;
@@ -343,8 +355,13 @@ export class BoxesComponent implements OnInit {
       } else {
         window.scrollTo(0, this.lastScrollPos);
         window.clearInterval(this.scrollInterval);
+        this.lastScrollPos = 0;
       }
     }, 16);
+    // Try to avoid other expand actions :
+    if (e.preventDefault) e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
+    return false;
   }
 
   refreshBoxesIdxs() {
@@ -377,12 +394,12 @@ export class BoxesComponent implements OnInit {
     this.initialStickyHeight = this.stickyContainer.nativeElement.getClientRects()[0].height + 15 * 2 + 16 * 2 + 1 * 2;
   }
 
+  /*
+  WARNING : be carful with ngAfterViewChecked => avoid front updates, may get 
+  error of refreshing data already locked for rendreing.....
+  */
   ngAfterViewChecked() {
     this.storage.ensureLockIsNotClosable();
-    // Checking isSticky to avoid re-computing offset on fixed pos instead of relative to parent
-    if (this.stickyContainer && !this.initialStickyOffset && !this.isSticky) {
-      this.initShadowStickySizes();
-    }
   }
 
   errorHandler(err: any) {
@@ -396,6 +413,9 @@ export class BoxesComponent implements OnInit {
   }
 
   ngAfterViewInit() {
+    logReview.assert(!!this.stickyContainer, 'Fail to load sticky container');
+    this.initShadowStickySizes();
+
     // filtersFormRef might be null if lockscreen activated...
     // this.initialOffset = this.stickyContainer.nativeElement.offsetTop;
     this.boxViews.changes.subscribe((box: BoxReaderComponent) => {
@@ -473,7 +493,17 @@ export class BoxesComponent implements OnInit {
   }
 
   haveExpandedFilters = false;
+  // TODO : refactor design... remove hack
+  hackIsGoingDown = false;
   toggleFilters() {
+    if (this.isSticky) {
+      return; // ignore filters expands on sticky mode
+    }
+    if (this.hackIsGoingDown) {
+      this.hackIsGoingDown = false; // consume hacky code
+      return; // ignore filters expands on going back down
+    }
+
     //if (this.filtersForm.classList (this.filtersForm, 'src'))
     this.haveExpandedFilters = !this.haveExpandedFilters;
     // this.filtersFormRef.nativeElement.classList.contains('condensed')
@@ -482,7 +512,7 @@ export class BoxesComponent implements OnInit {
     } else {
       this.renderer.addClass(this.filtersFormRef.nativeElement, 'condensed');
     }
-    this.initShadowStickySizes();
+    // this.initShadowStickySizes();
   }
 
   onFiltersChange(e: any) {
