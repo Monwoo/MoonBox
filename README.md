@@ -55,6 +55,9 @@ yarn run translations:extract # Generate template.json
 # Replace with :
 # "$1": "$1",
 
+# play with generate commands :
+yarn run generate class moon-box/services/MyService --project=monwoo-moon-box --spec=true --type='FormClass.model'
+
 # Display project documentation :
 yarn run docs
 # Running tests via Karma in watch mode for it to launch on each change you do to the code

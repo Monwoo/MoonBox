@@ -1,4 +1,4 @@
-// Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
+// Copyright Monwoo 2018-2019, made by Miguel Monwoo, service@monwoo.com
 
 import { Injectable, ViewContainerRef, NgZone } from '@angular/core';
 import { environment } from '@env/environment';
@@ -12,6 +12,8 @@ import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
 import { BackendService } from '@moon-box/services/backend.service';
 import { BehaviorSubject } from 'rxjs';
+import { ContextType, FormCallable, contextDefaults } from '@moon-box/services/secu-storage.session.model';
+import { DynamicFormService } from '@ng-dynamic-forms/core';
 
 import { Logger } from '@app/core/logger.service';
 const logReview = new Logger('MonwooReview');
@@ -23,7 +25,7 @@ const SecureLS = require('secure-ls');
 @Injectable({
   providedIn: 'root'
 })
-export class SecuStorageService {
+export class SecuStorageService implements FormCallable {
   private storage: any = null;
   public lockDownTimeInMs: number = 12 * 60 * 1000; // 12 minutes en millisecondes
   private lastLockCheckDate: Date = null;
@@ -43,11 +45,21 @@ export class SecuStorageService {
     private backend: BackendService,
     private dialog: MatDialog,
     private ngZone: NgZone,
-    private i18nService: I18nService,
+    public i18nService: I18nService,
+    public formService: DynamicFormService,
     private notif: NotificationsService,
     private localStorage: LocalStorage
   ) {
     this.checkLock();
+    (async () => {
+      // const storageExpandBoxesConfigs = <boolean>await this.localStorage
+      // .getItem<boolean>('expand-boxes-configs')
+      // .toPromise();
+      // this.expandBoxesConfigs =
+      //   null === storageExpandBoxesConfigs ? this.expandBoxesConfigs : storageExpandBoxesConfigs;
+
+      this.session = await contextDefaults(this);
+    })();
   }
 
   public checkLock() {
@@ -402,5 +414,17 @@ export class SecuStorageService {
 
   public getItemHash(key: string) {
     return localStorage.getItem(key);
+  }
+
+  private session: ContextType = null;
+  public getCurrentSession() {
+    // TODO : do not return null session, await for it to be setup from constructor...
+    return of(this.session);
+  }
+
+  public setCurrentSession(sessId: string) {
+    let succed = false;
+
+    return of(succed);
   }
 }
