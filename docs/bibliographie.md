@@ -268,6 +268,8 @@
 * https://stackoverflow.com/questions/3525007/making-a-sass-mixin-with-optional-arguments
 * https://robots.thoughtbot.com/sass-default
 
+* https://la-cascade.io/la-premiere-variable-css-currentcolor/
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

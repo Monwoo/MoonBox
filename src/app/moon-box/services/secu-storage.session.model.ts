@@ -100,13 +100,11 @@ export const contextDefaults = async (caller: FormCallable, patchData: any = {})
 };
 
 export const formLayout = async (caller: FormCallable) => ({
-  // https://github.com/udos86/ng-dynamic-forms/blob/bfea1d8b/packages/core/src/model/misc/dynamic-form-control-layout.model.ts#L8
-  //
-  // name: {
-  //   element: {
-  //     container: 'height-animable condensable'
-  //   }
-  // },
+  currentSession: {
+    element: {
+      container: 'w-100'
+    }
+  },
   copyCurrentSession: {
     element: {
       container: 'height-animable condensable'
