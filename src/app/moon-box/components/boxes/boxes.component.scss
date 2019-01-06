@@ -114,18 +114,15 @@
 
     @include media-breakpoint-down(md) {
       padding: 3px;
-      .mat-button {
-        padding: 4px;
-      }
     }
 
     @include media-breakpoint-up(md) {
       max-height: 80vh;
       padding: 7px;
-      .mat-button {
-        padding: 7px;
-      }
     }
+  }
+  .mat-button {
+    padding: 7px;
   }
 
   .filters-container {
