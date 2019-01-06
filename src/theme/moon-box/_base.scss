@@ -40,6 +40,8 @@
 
   .sticky {
     box-shadow: $boxShadowStrong;
+    border-top: solid 2px $monwooPrimary;
+    border-bottom: solid 2px $monwooPrimary;
   }
 
   .mat-button[disabled] {

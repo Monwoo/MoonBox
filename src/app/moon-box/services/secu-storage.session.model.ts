@@ -58,16 +58,16 @@ export type ContextType = {
   model: DynamicFormModel;
   layout: DynamicFormLayout;
   group: FormGroup;
-  data: FormType;
 };
 
 export interface FormCallable {
   i18nService: any; // TODO : rewrite code with interfaces to avoid circular inclusion possible warnings ???
   formService: DynamicFormService;
-  getCurrentSession: () => Observable<ContextType>;
+  // getCurrentSession$: () => Observable<ContextType>;
+  getCurrentSession: () => ContextType;
 }
 
-export const contextDefaults = async (caller: FormCallable) => {
+export const contextDefaults = async (caller: FormCallable, patchData: any = {}) => {
   const translate = caller.i18nService;
   const fetchTrans = (t: string) =>
     new Promise<string>(r =>
@@ -81,12 +81,15 @@ export const contextDefaults = async (caller: FormCallable) => {
     });
   return new Promise<ContextType>(function(resolve, reject) {
     (async () => {
+      const session = caller.getCurrentSession();
+      if (session) {
+        session.group.patchValue(patchData);
+      }
       const model = await formModel(caller);
       resolve({
         model: model,
         layout: await formLayout(caller),
-        group: caller.formService.createFormGroup(model),
-        data: await formDefaults(caller)
+        group: caller.formService.createFormGroup(model)
       });
     })();
   }).catch(e => {
@@ -125,7 +128,9 @@ export const formModel = async (caller: FormCallable) => {
     });
   return new Promise<DynamicFormControlModel[]>(function(resolve, reject) {
     (async () => {
-      const d = await formDefaults(caller);
+      const session = caller.getCurrentSession();
+      const d = session ? session.group.value : await formDefaults(caller);
+
       resolve([
         // new DynamicSelectModel({
         //   id: 'currentSession',
@@ -136,8 +141,7 @@ export const formModel = async (caller: FormCallable) => {
           id: 'currentSession',
           placeholder: await fetchTrans(extract('Choisir la session')),
           inputType: DYNAMIC_FORM_CONTROL_INPUT_TYPE_TEXT,
-          // TODO : hint not showing, theming issue ?
-          hint: await fetchTrans(extract('mb.filters.hint.typeEnterToAddChip')),
+          // hint: await fetchTrans(extract('mb.filters.hint.typeEnterToAddChip')),
           list: ['Session TODO'], // ["Alabama", "Alaska", "Arizona", "Arkansas"]
           value: d.currentSession
         }),

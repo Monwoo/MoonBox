@@ -11,8 +11,9 @@ import { I18nService } from '@app/core';
 import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
 import { BackendService } from '@moon-box/services/backend.service';
-import { BehaviorSubject } from 'rxjs';
-import { ContextType, FormCallable, contextDefaults } from '@moon-box/services/secu-storage.session.model';
+import { BehaviorSubject, ReplaySubject, from } from 'rxjs';
+import { map, combineLatest, tap, mergeAll } from 'rxjs/operators';
+import { ContextType, FormType, FormCallable, contextDefaults } from '@moon-box/services/secu-storage.session.model';
 import { DynamicFormService } from '@ng-dynamic-forms/core';
 
 import { Logger } from '@app/core/logger.service';
@@ -51,15 +52,7 @@ export class SecuStorageService implements FormCallable {
     private localStorage: LocalStorage
   ) {
     this.checkLock();
-    (async () => {
-      // const storageExpandBoxesConfigs = <boolean>await this.localStorage
-      // .getItem<boolean>('expand-boxes-configs')
-      // .toPromise();
-      // this.expandBoxesConfigs =
-      //   null === storageExpandBoxesConfigs ? this.expandBoxesConfigs : storageExpandBoxesConfigs;
-
-      this.session = await contextDefaults(this);
-    })();
+    this.setCurrentSession('').subscribe();
   }
 
   public checkLock() {
@@ -417,14 +410,54 @@ export class SecuStorageService implements FormCallable {
   }
 
   private session: ContextType = null;
+  // May return null session if not setted up...
   public getCurrentSession() {
     // TODO : do not return null session, await for it to be setup from constructor...
-    return of(this.session);
+    return this.session;
+  }
+  private session$: ReplaySubject<ContextType> = new ReplaySubject<ContextType>();
+  public onCurrentSession$() {
+    // TODO : do not return null session, await for it to be setup from constructor...
+    return this.session$;
   }
 
   public setCurrentSession(sessId: string) {
-    let succed = false;
+    return this.getItem<string[]>('session-ids').pipe(
+      combineLatest(
+        from(
+          contextDefaults(this, {
+            currentSession: sessId
+          })
+        ).pipe(
+          tap(defaultF => {
+            logReview.debug('Having session defaults : ', defaultF);
+          })
+        )
+      ),
+      map(([sessIds, freshDefaults]) => {
+        sessIds = sessIds || [];
+        sessIds.push(sessId);
+        this.session = freshDefaults;
+        this.session$.next(this.session);
+        return this.setItem('session-ids', sessIds);
+      }),
+      mergeAll(),
+      map(didSet => {
+        logReview.debug('Did set session Ids : ', didSet);
+        return true;
+      })
+    );
+  }
 
-    return of(succed);
+  addNewSessionFromForm(e: any, ctx: any) {
+    const data = <FormType>this.session.group.value;
+    const sessId = data.currentSession;
+    logReview.debug('Will add session : ', sessId, data);
+  }
+
+  onSessionChange(e: any) {
+    // TODO : check form validity : must not rewrite existing session ids...
+    // + regex formats ?
+    logReview.debug('Checking Session form validity : ', this.session);
   }
 }

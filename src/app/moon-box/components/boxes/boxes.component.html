@@ -1,5 +1,24 @@
 <!-- Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com -->
 <!-- In Progress : https://material.angular.io/components/expansion/overview -->
+<ng-container *ngIf="(storage.onCurrentSession$() | async); let s = this">
+  <!---->
+  <pre>{{ s | json }}</pre>
+  <!---->
+  <form class="condensed" [formGroup]="(storage.onCurrentSession$() | async).group">
+    <dynamic-material-form
+      [group]="(storage.onCurrentSession$() | async).group"
+      [model]="(storage.onCurrentSession$() | async).model"
+      [layout]="(storage.onCurrentSession$() | async).layout"
+      (change)="storage.onSessionChange($event)"
+    >
+      <ng-template modelId="copyCurrentSession" let-context="context" let-index="index">
+        <button mat-button color="secondary" type="button" (click)="storage.addNewSessionFromForm($event, context)">
+          {{ 'Ajouter une session' | translate }}
+        </button>
+      </ng-template>
+    </dynamic-material-form>
+  </form>
+</ng-container>
 
 <mat-accordion *ngIf="!this.storage.isLocked && this.filters">
   <mat-expansion-panel class="filters-container" (opened)="toggleFilters($event)" (closed)="toggleFilters($event)">
