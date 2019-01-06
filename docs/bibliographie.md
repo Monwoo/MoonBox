@@ -263,6 +263,11 @@
 
 * https://fontawesome.com/how-to-use/on-the-web/setup/using-package-managers
 
+* https://github.com/webpack-contrib/sass-loader#environment-variables
+* https://stackoverflow.com/questions/17598996/sass-use-variables-across-multiple-files
+* https://stackoverflow.com/questions/3525007/making-a-sass-mixin-with-optional-arguments
+* https://robots.thoughtbot.com/sass-default
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

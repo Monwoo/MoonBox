@@ -1,0 +1,71 @@
+// Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
+
+/*
+ * Application global constantes.
+ */
+
+// Set Font Awesome font path
+$fa-font-path: "~@fortawesome/fontawesome-free/webfonts" !default;
+
+//
+// Color system
+//
+$white: #fff !default;
+$gray-100: #f8f9fa !default;
+$gray-200: #e9ecef !default;
+$gray-300: #dee2e6 !default;
+$gray-400: #ced4da !default;
+$gray-500: #adb5bd !default;
+$gray-600: #868e96 !default;
+$gray-700: #495057 !default;
+$gray-800: #343a40 !default;
+$gray-900: #212529 !default;
+$black: #000 !default;
+
+$blue: #0073dd !default;
+$indigo: #6610f2 !default;
+$purple: #6f42c1 !default;
+$pink: #e83e8c !default;
+$red: #dc3545 !default;
+$orange: #fd7e14 !default;
+$yellow: #ffc107 !default;
+$green: #28a745 !default;
+$teal: #20c997 !default;
+$cyan: #17a2b8 !default;
+
+$theme-colors: (
+  primary: $blue,
+  secondary: $gray-600,
+  success: $green,
+  info: $cyan,
+  warning: $yellow,
+  danger: $red,
+  light: $gray-100,
+  dark: $gray-800
+);
+
+$greenLightning: #57ed00 !default; // rbg(87, 237, 0) !default;
+$greenLeaf: #119a4c !default; // TODO : add tool to inject inside index.html instead of  copy/past...
+$deepBlue: #11589a !default;
+$lightBlue: #a2abdb !default;
+
+$indicatorGreen: #146601 !default;
+$indicatorBlue: #11589a !default;
+$indicatorYellow: #c3c11c !default;
+$indicatorRed: #d11232 !default;
+
+$monwooPrimary: #11589a !default;
+$monwooSecondary: #330066 !default; // #33096b !default;
+
+$scrollThumbColor: rgb(0, 165, 176) !default;
+
+$backgroundRegular: #fff !default;
+$colorRegular: #000 !default;
+$colorDisabled: rgba(0, 0, 0, 0.26) !default;
+$boxShadowRegular: 0px 4px 3px 0px rgba(0, 0, 0, 0.25) !default;
+$boxShadowStrong: 0px 4px 3px 0px rgba(0, 0, 0, 0.25) !default;
+//
+// Sizes system
+//
+
+$focus-border-size: 1px !default;

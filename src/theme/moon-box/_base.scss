@@ -27,4 +27,27 @@
       }
     }
   }
+
+  .sticky,
+  .mat-expansion-panel {
+    color: $colorRegular;
+    background: $backgroundRegular;
+  }
+
+  .mat-expansion-panel {
+    box-shadow: $boxShadowRegular;
+  }
+
+  .sticky {
+    box-shadow: $boxShadowStrong;
+  }
+
+  .mat-button[disabled] {
+    color: $colorDisabled;
+  }
+
+  .mat-expansion-indicator::after,
+  .mat-expansion-panel-header-description {
+    color: $colorRegular;
+  }
 }

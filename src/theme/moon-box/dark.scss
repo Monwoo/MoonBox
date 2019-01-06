@@ -2,13 +2,21 @@
 @import "../theme-mixins";
 // @import "../theme-constantes";
 
+// Dark theme constants
 $dark-bg: #000000;
 $dark-complementary: #ffffff;
 $dark-light-complementary: #777;
 
-$monwooSecondary: lighten($monwooSecondary, 42%);
-
 .dark-theme {
+  // Ovewrite base theme constants
+  $backgroundRegular: $dark-bg;
+  $colorRegular: $dark-complementary;
+  $colorDisabled: rgba(255, 255, 255, 0.26);
+  $boxShadowRegular: 0px 0px 3px 0px rgba(255, 255, 255, 0.25);
+  $boxShadowStrong: 0px 4px 3px 0px rgba(255, 255, 255, 0.25);
+  $monwooSecondary: lighten($monwooSecondary, 42%);
+  @import "base";
+
   // Inspired from : https://davidwalsh.name/invert-colors-css
   // https://stackoverflow.com/questions/17741629/invert-color-using-css
   // -webkit-filter: invert(94%);
