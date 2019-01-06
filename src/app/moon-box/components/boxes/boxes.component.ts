@@ -338,7 +338,7 @@ export class BoxesComponent implements OnInit {
   }
 
   scrollBackDown(e: any) {
-    this.hackIsGoingDown = true; // start hacky code
+    // this.hackIsGoingDown = true; // start hacky code
 
     // TODO V2 : link to user history : allow him to scroll back
     // to all positions he previously scroll up
@@ -497,16 +497,17 @@ export class BoxesComponent implements OnInit {
   }
 
   haveExpandedFilters = false;
-  // TODO : refactor design... remove hack
-  hackIsGoingDown = false;
+  // DONE : refactor design... remove hack
+  // hackIsGoingDown = false;
   toggleFilters() {
-    if (this.isSticky) {
-      return; // ignore filters expands on sticky mode
-    }
-    if (this.hackIsGoingDown) {
-      this.hackIsGoingDown = false; // consume hacky code
-      return; // ignore filters expands on going back down
-    }
+    // Below hack solved by using JS PreventDefault event :
+    // if (this.isSticky) {
+    //   return; // ignore filters expands on sticky mode
+    // }
+    // if (this.hackIsGoingDown) {
+    //   this.hackIsGoingDown = false; // consume hacky code
+    //   return; // ignore filters expands on going back down
+    // }
 
     //if (this.filtersForm.classList (this.filtersForm, 'src'))
     this.haveExpandedFilters = !this.haveExpandedFilters;
