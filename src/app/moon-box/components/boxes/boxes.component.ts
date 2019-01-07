@@ -387,6 +387,7 @@ export class BoxesComponent implements OnInit {
       if (bIdxs) {
         this.boxesIdxs = bIdxs;
       } else {
+        this.boxesIdxs = [];
         this.addBox();
       }
     }, this.errorHandler);

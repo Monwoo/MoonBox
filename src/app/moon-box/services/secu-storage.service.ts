@@ -559,15 +559,16 @@ export class SecuStorageService implements FormCallable {
     );
   }
 
-  addNewSessionFromForm(e: any, ctx: any) {
+  addNewSessionFromForm(e: any, ctx: any, formRef: HTMLFormElement) {
     const data = <FormType>this.session.group.value;
     const sessId = data.currentSession;
+    this.sessionFormRef = formRef;
     logReview.debug('Will add session : ', sessId, data);
     this.setCurrentSession(sessId).subscribe(); // TODO : OK or strange to need subscribe ? well, instinctivly i forget it and it take space...
   }
 
   private sessionChangeHandler$ = new ReplaySubject<HTMLFormElement>();
-  onSessionChange(e: any, formRef: HTMLFormElement) {
+  onSessionChange(e: any, formRef: HTMLFormElement, updateSession: boolean = true) {
     // TODO : find a better way to check ReplaySubject is empty (no first emit)
     if (!this.sessionChangeHandler$.observers.length) {
       this.sessionChangeHandler$
@@ -579,7 +580,9 @@ export class SecuStorageService implements FormCallable {
               const keyExist = !!this.sessIds[sessData.currentSession];
               if (keyExist) {
                 this.renderer.addClass(formRef, 'condensed');
-                this.setCurrentSession(sessData.currentSession).subscribe();
+                if (updateSession) {
+                  this.setCurrentSession(sessData.currentSession).subscribe();
+                }
               } else {
                 this.renderer.removeClass(formRef, 'condensed');
               }
@@ -616,7 +619,7 @@ export class SecuStorageService implements FormCallable {
   onSessionKeyUp(e: any) {
     // logReview.debug('Having key up : ', e);
     if (this.isSessionFocused) {
-      this.onSessionChange(e, this.sessionFormRef);
+      this.onSessionChange(e, this.sessionFormRef, false);
       // logReview.debug('Did review key up for : ', this.sessionFormRef);
     }
   }
