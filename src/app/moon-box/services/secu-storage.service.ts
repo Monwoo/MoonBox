@@ -1,6 +1,14 @@
 // Copyright Monwoo 2018-2019, made by Miguel Monwoo, service@monwoo.com
 
-import { Injectable, ViewContainerRef, NgZone, ElementRef, Renderer2, RendererFactory2 } from '@angular/core';
+import {
+  Injectable,
+  ViewContainerRef,
+  NgZone,
+  ElementRef,
+  Renderer2,
+  RendererFactory2,
+  HostListener
+} from '@angular/core';
 import { environment } from '@env/environment';
 import { forkJoin, of, interval } from 'rxjs';
 import { Md5 } from 'ts-md5/dist/md5';
@@ -435,6 +443,7 @@ export class SecuStorageService implements FormCallable {
   }
 
   public setCurrentSession(sessId: string) {
+    this.sessIds[sessId] = new Date();
     return this.getItem<SessionStoreType>('session-ids').pipe(
       combineLatest(
         from(
@@ -448,8 +457,9 @@ export class SecuStorageService implements FormCallable {
         )
       ),
       map(([sessIds, freshDefaults]) => {
-        this.sessIds = sessIds || sessionStoreInitialState;
-        this.sessIds[sessId] = new Date();
+        sessIds = sessIds || sessionStoreInitialState;
+        sessIds[sessId] = this.sessIds[sessId];
+        this.sessIds = sessIds;
         this.session = freshDefaults;
         this.session$.next(this.session);
         return this.setItem('session-ids', this.sessIds);
@@ -466,13 +476,13 @@ export class SecuStorageService implements FormCallable {
     const data = <FormType>this.session.group.value;
     const sessId = data.currentSession;
     logReview.debug('Will add session : ', sessId, data);
-    this.setCurrentSession(sessId);
+    this.setCurrentSession(sessId).subscribe(); // TODO : OK or strange to need subscribe ? well, instinctivly i forget it and it take space...
   }
 
   onSessionChange(e: any, formRef: HTMLFormElement) {
     // TODO : check form validity : must not rewrite existing session ids...
     // + regex formats ?
-    logReview.debug('Checking Session form validity : ', this.session);
+    // logReview.debug('Checking Session form validity : ', this.session);
     if (this.session.group.valid) {
       const sessData = <FormType>this.session.group.value;
       const keyExist = !!this.sessIds[sessData.currentSession];
@@ -483,7 +493,37 @@ export class SecuStorageService implements FormCallable {
       }
     }
   }
-  getSessionIds() {
-    return this.getItem<SessionStoreType>('session-ids');
+  private isSessionFocused = false;
+  private sessionFormRef: HTMLFormElement = null;
+  onSessionFocus(e: any, formRef: HTMLFormElement) {
+    this.isSessionFocused = true;
+    this.sessionFormRef = formRef;
+    // logReview.debug('Did focus session form : ', formRef);
+  }
+  onSessionBlur(e: any, formRef: HTMLFormElement) {
+    this.isSessionFocused = false;
+    logReview.assert(
+      formRef === this.sessionFormRef,
+      'Having buggy session Blur, missing balenced onSessionFocus listener ?'
+    );
+    this.sessionFormRef = null;
+    // logReview.debug('Did blur session form : ', formRef);
+  }
+  // TODO : why work in component and not in services :
+  // Missing some Deps ?
+  // @HostListener('window:keyup', ['$event']) ?
+  // @HostListener('document:keyup', ['$event'])
+  onSessionKeyUp(e: any) {
+    // logReview.debug('Having key up : ', e);
+    if (this.isSessionFocused) {
+      this.onSessionChange(e, this.sessionFormRef);
+      // logReview.debug('Did review key up for : ', this.sessionFormRef);
+    }
+  }
+
+  getSessionIds$() {
+    // This : less reliable than object's memory
+    // return this.getItem<SessionStoreType>('session-ids');
+    return of(this.sessIds);
   }
 }

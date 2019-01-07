@@ -169,6 +169,8 @@
       [model]="(storage.onCurrentSession$() | async).model"
       [layout]="(storage.onCurrentSession$() | async).layout"
       (change)="storage.onSessionChange($event, sessionFormRef)"
+      (blur)="storage.onSessionBlur($event, sessionFormRef)"
+      (focus)="storage.onSessionFocus($event, sessionFormRef)"
     >
       <ng-template modelId="copyCurrentSession" let-context="context" let-index="index">
         <button mat-button color="secondary" type="button" (click)="storage.addNewSessionFromForm($event, context)">

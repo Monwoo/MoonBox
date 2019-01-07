@@ -71,7 +71,8 @@ export interface FormCallable {
   formService: DynamicFormService;
   // getCurrentSession$: () => Observable<ContextType>;
   getCurrentSession: () => ContextType;
-  getSessionIds: () => Observable<SessionStoreType>;
+  getSessionIds$: () => Observable<SessionStoreType>;
+  // getSessionIds: () => SessionStoreType;
 }
 
 export const contextDefaults = async (caller: FormCallable, patchData: any = {}) => {
@@ -92,7 +93,7 @@ export const contextDefaults = async (caller: FormCallable, patchData: any = {})
       if (session) {
         session.group.patchValue(patchData);
       }
-      const model = await formModel(caller);
+      const model = await formModel(caller, patchData);
       resolve({
         model: model,
         layout: await formLayout(caller),
@@ -119,7 +120,7 @@ export const formLayout = async (caller: FormCallable) => ({
   }
 });
 
-export const formModel = async (caller: FormCallable) => {
+export const formModel = async (caller: FormCallable, patchData: any) => {
   const translate = caller.i18nService;
   const fetchTrans = (t: string) =>
     new Promise<string>(r =>
@@ -134,7 +135,8 @@ export const formModel = async (caller: FormCallable) => {
   return new Promise<DynamicFormControlModel[]>(function(resolve, reject) {
     (async () => {
       const session = caller.getCurrentSession();
-      const d = session ? session.group.value : await formDefaults(caller);
+      const d = { ...(session ? session.group.value : await formDefaults(caller)), ...patchData };
+      const suggestions = Object.keys((await caller.getSessionIds$().toPromise()) || {});
 
       resolve([
         // new DynamicSelectModel({
@@ -147,7 +149,7 @@ export const formModel = async (caller: FormCallable) => {
           placeholder: await fetchTrans(extract('Choisir la session')),
           inputType: DYNAMIC_FORM_CONTROL_INPUT_TYPE_TEXT,
           // hint: await fetchTrans(extract('mb.filters.hint.typeEnterToAddChip')),
-          list: Object.keys((await caller.getSessionIds().toPromise()) || {}),
+          list: suggestions,
           autoComplete: 'off',
           value: d.currentSession
         }),

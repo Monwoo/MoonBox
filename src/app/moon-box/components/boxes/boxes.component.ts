@@ -143,6 +143,11 @@ export class BoxesComponent implements OnInit {
     //   this.stickyContainer.nativeElement.parentElement.parentElement.style.marginTop = '0px';
     // }
   }
+  @HostListener('window:keyup', ['$event'])
+  keyUp(e: any) {
+    // logReview.debug("Having Key Up Event :", e);
+    this.storage.onSessionKeyUp(e);
+  }
   @HostListener('submit', ['$event'])
   onSubmit(e: any) {
     // https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/ui-material/src/dynamic-material-form.component.ts
