@@ -33,6 +33,7 @@ import {
 import { DynamicFormService } from '@ng-dynamic-forms/core';
 
 import { Logger } from '@app/core/logger.service';
+import { DynamicMaterialFormGroupComponent } from '@ng-dynamic-forms/ui-material';
 const logReview = new Logger('MonwooReview');
 
 // https://github.com/softvar/secure-ls
@@ -568,7 +569,17 @@ export class SecuStorageService implements FormCallable {
   }
 
   private sessionChangeHandler$ = new ReplaySubject<HTMLFormElement>();
-  onSessionChange(e: any, formRef: HTMLFormElement, updateSession: boolean = true) {
+  // https://stackoverflow.com/questions/46360927/add-listener-when-autocomplete-component-suggestion-panel-closes-in-angular-2
+  // https://github.com/angular/material2/issues/3645
+  // https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/ui-material/src/input/dynamic-material-input.component.ts
+  // https://medium.com/@tkssharma/understanding-viewchildren-viewchild-contentchildren-and-contentchild-b16c9e0358e
+  // https://stackoverflow.com/questions/37635404/angular-2-how-to-trigger-a-method-on-a-child-from-the-parent
+  onSessionChange(
+    e: any,
+    formRef: HTMLFormElement,
+    form: DynamicMaterialFormGroupComponent,
+    updateSession: boolean = true
+  ) {
     // TODO : find a better way to check ReplaySubject is empty (no first emit)
     if (!this.sessionChangeHandler$.observers.length) {
       this.sessionChangeHandler$
@@ -619,7 +630,7 @@ export class SecuStorageService implements FormCallable {
   onSessionKeyUp(e: any) {
     // logReview.debug('Having key up : ', e);
     if (this.isSessionFocused) {
-      this.onSessionChange(e, this.sessionFormRef, false);
+      this.onSessionChange(e, this.sessionFormRef, null, false);
       // logReview.debug('Did review key up for : ', this.sessionFormRef);
     }
   }

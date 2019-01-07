@@ -46,9 +46,17 @@ import { I18nService } from '@app/core';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { CookieService } from 'ngx-cookie-service';
 import { DropzoneModule } from 'ngx-dropzone-wrapper';
+import { SessionFormComponent } from './components/session-form/session-form.component';
 
 @NgModule({
-  declarations: [BoxReaderComponent, ParametersComponent, BoxesComponent, LockScreenComponent, SafeHtmlPipe],
+  declarations: [
+    BoxReaderComponent,
+    ParametersComponent,
+    BoxesComponent,
+    LockScreenComponent,
+    SafeHtmlPipe,
+    SessionFormComponent
+  ],
   imports: [
     CommonModule,
     TranslateModule,

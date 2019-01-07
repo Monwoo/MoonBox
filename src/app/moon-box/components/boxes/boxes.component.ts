@@ -104,7 +104,6 @@ export const MY_FORMATS = {
 })
 export class BoxesComponent implements OnInit {
   // @ViewChild('filtersForm') filtersForm: ElementRef<NgForm> = null;
-  @ViewChild('sessionFormRef') sessionFormRef: ElementRef<HTMLFormElement> = null;
   @ViewChild('filtersFormRef') filtersFormRef: ElementRef<HTMLFormElement> = null;
   @ViewChild('filtersForm') filtersForm: NgForm = null; // TODO : refactor => ref is already inside this.filters...
   @ViewChild('stickyContainer') stickyContainer: ElementRef<HTMLDivElement> = null;
@@ -149,11 +148,6 @@ export class BoxesComponent implements OnInit {
     // } else {
     //   this.stickyContainer.nativeElement.parentElement.parentElement.style.marginTop = '0px';
     // }
-  }
-  @HostListener('window:keyup', ['$event'])
-  keyUp(e: any) {
-    // logReview.debug("Having Key Up Event :", e);
-    this.storage.onSessionKeyUp(e);
   }
   @HostListener('submit', ['$event'])
   onSubmit(e: any) {

@@ -1,0 +1,49 @@
+<!-- Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com -->
+<ng-container *ngIf="(storage.onCurrentSession$() | async); let s = this">
+  <!--
+    - ->
+    <pre>{{ s | json }}</pre>
+    <!- -
+  -->
+  <form
+    class="condensed session-form"
+    #sessionFormRef
+    #sessionForm="ngForm"
+    [formGroup]="(storage.onCurrentSession$() | async).group"
+  >
+    <dynamic-material-form
+      [group]="(storage.onCurrentSession$() | async).group"
+      [model]="(storage.onCurrentSession$() | async).model"
+      [layout]="(storage.onCurrentSession$() | async).layout"
+      (change)="onChange($event)"
+      (blur)="storage.onSessionBlur($event, sessionFormRef)"
+      (focus)="storage.onSessionFocus($event, sessionFormRef)"
+      (customEvent)="storage.onSessionBlur($event, sessionFormRef)"
+    >
+      <ng-template modelId="copyCurrentSession" let-context="context" let-index="index">
+        <button
+          mat-button
+          color="secondary"
+          type="button"
+          (click)="storage.addNewSessionFromForm($event, context, sessionFormRef)"
+        >
+          {{ 'Ajouter une session' | translate }}
+        </button>
+      </ng-template>
+      <!--
+        https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/ui-material/src/input/dynamic-material-input.component.ts
+        https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/ui-primeng/src/editor/dynamic-primeng-editor.component.html
+      -->
+      <ng-template modelId="currentSession" let-context="context" let-index="index">
+        <!--
+          <ng-template modelId="currentSession"
+          [formControlName]="'model.id'"
+          let-context="context" let-index="index">
+              <button mat-button color="secondary" type="button" (click)="storage.addNewSessionFromForm($event, context, sessionFormRef)">
+                {{ 'Définir la session' | translate }}
+              </button>
+        -->
+      </ng-template>
+    </dynamic-material-form>
+  </form>
+</ng-container>

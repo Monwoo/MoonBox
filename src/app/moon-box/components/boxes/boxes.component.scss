@@ -18,11 +18,15 @@
 }
 
 :host ::ng-deep {
-  .mat-accordion * {
-    &:focus {
-      outline: none !important;
-    }
-    &:focus-within {
+  .mat-accordion {
+    padding-bottom: 14px;
+    display: block;
+    * {
+      &:focus {
+        outline: none !important;
+      }
+      &:focus-within {
+      }
     }
   }
 

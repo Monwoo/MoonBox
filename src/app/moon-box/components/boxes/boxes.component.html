@@ -159,39 +159,7 @@
   </mat-expansion-panel>
 </mat-accordion>
 
-<ng-container *ngIf="(storage.onCurrentSession$() | async); let s = this">
-  <!---->
-  <pre>{{ s | json }}</pre>
-  <!---->
-  <form class="condensed session-form" #sessionFormRef [formGroup]="(storage.onCurrentSession$() | async).group">
-    <dynamic-material-form
-      [group]="(storage.onCurrentSession$() | async).group"
-      [model]="(storage.onCurrentSession$() | async).model"
-      [layout]="(storage.onCurrentSession$() | async).layout"
-      (change)="storage.onSessionChange($event, sessionFormRef, false)"
-      (blur)="storage.onSessionBlur($event, sessionFormRef)"
-      (focus)="storage.onSessionFocus($event, sessionFormRef)"
-    >
-      <ng-template modelId="copyCurrentSession" let-context="context" let-index="index">
-        <button
-          mat-button
-          color="secondary"
-          type="button"
-          (click)="storage.addNewSessionFromForm($event, context, sessionFormRef)"
-        >
-          {{ 'Ajouter une session' | translate }}
-        </button>
-      </ng-template>
-      <!--
-        <ng-template modelId="currentSession" let-context="context" let-index="index">
-          <button mat-button color="secondary" type="button" (click)="storage.addNewSessionFromForm($event, context, sessionFormRef)">
-            {{ 'Définir la session' | translate }}
-          </button>
-        </ng-template>
-      -->
-    </dynamic-material-form>
-  </form>
-</ng-container>
+<moon-box-session-form></moon-box-session-form>
 
 <div>
   <div
