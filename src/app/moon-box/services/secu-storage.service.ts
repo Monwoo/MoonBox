@@ -10,7 +10,7 @@ import {
   HostListener
 } from '@angular/core';
 import { environment } from '@env/environment';
-import { forkJoin, of, interval } from 'rxjs';
+import { forkJoin, of, interval, Subscription } from 'rxjs';
 import { Md5 } from 'ts-md5/dist/md5';
 import { LocalStorage } from '@ngx-pwa/local-storage';
 import { MatDialog, MatDialogRef } from '@angular/material';
@@ -568,6 +568,7 @@ export class SecuStorageService implements FormCallable {
     this.setCurrentSession(sessId).subscribe(); // TODO : OK or strange to need subscribe ? well, instinctivly i forget it and it take space...
   }
 
+  private sessionSubcriber: Subscription = null;
   private sessionChangeHandler$ = new ReplaySubject<HTMLFormElement>();
   // https://stackoverflow.com/questions/46360927/add-listener-when-autocomplete-component-suggestion-panel-closes-in-angular-2
   // https://github.com/angular/material2/issues/3645
@@ -581,27 +582,33 @@ export class SecuStorageService implements FormCallable {
     updateSession: boolean = true
   ) {
     // TODO : find a better way to check ReplaySubject is empty (no first emit)
-    if (!this.sessionChangeHandler$.observers.length) {
-      this.sessionChangeHandler$
-        .pipe(
-          debounceTime(500),
-          tap((formRef: HTMLFormElement) => {
-            if (this.session.group.valid) {
-              const sessData = <FormType>this.session.group.value;
-              const keyExist = !!this.sessIds[sessData.currentSession];
-              if (keyExist) {
-                this.renderer.addClass(formRef, 'condensed');
-                if (updateSession) {
-                  this.setCurrentSession(sessData.currentSession).subscribe();
-                }
-              } else {
-                this.renderer.removeClass(formRef, 'condensed');
-              }
-            }
-          })
-        )
-        .subscribe();
+    // if (!this.sessionChangeHandler$.observers.length) {
+    // Well, updateSession will keep first init value if this kine of design pattern
+    // having buggy effect since need to be real-time argument...
+    // Quick hack : unsubscribe old and new subscribtion on each call...
+    // }
+    if (this.sessionSubcriber) {
+      this.sessionSubcriber.unsubscribe();
     }
+    this.sessionSubcriber = this.sessionChangeHandler$
+      .pipe(
+        debounceTime(500),
+        tap((formRef: HTMLFormElement) => {
+          if (this.session.group.valid) {
+            const sessData = <FormType>this.session.group.value;
+            const keyExist = !!this.sessIds[sessData.currentSession];
+            if (keyExist) {
+              this.renderer.addClass(formRef, 'condensed');
+              if (updateSession) {
+                this.setCurrentSession(sessData.currentSession).subscribe();
+              }
+            } else {
+              this.renderer.removeClass(formRef, 'condensed');
+            }
+          }
+        })
+      )
+      .subscribe();
     this.sessionChangeHandler$.next(formRef);
     // TODO : check form validity : must not rewrite existing session ids...
     // + regex formats ?

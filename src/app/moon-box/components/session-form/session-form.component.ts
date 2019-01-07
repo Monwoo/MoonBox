@@ -26,6 +26,7 @@ export class SessionFormComponent implements OnInit, AfterViewInit {
   // https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/ui-material/src/input/dynamic-material-input.component.ts
   // @ViewChild(MatAutocomplete) matAutocomplete: MatAutocomplete;
   // @ViewChildren(MatAutocompleteTrigger) matAutocompletes!: QueryList<MatAutocompleteTrigger>;
+  // TODO : how to get matAutocomplete to know if change comes from autocomplete or from other change event ?
   @ViewChild('.mat-autocomplete-panel') matAutocomplete: MatAutocomplete;
 
   @HostListener('window:keyup', ['$event'])
@@ -48,6 +49,6 @@ export class SessionFormComponent implements OnInit, AfterViewInit {
 
   onChange(e: any) {
     logReview.debug('Autocomplete : ', this.matAutocomplete);
-    this.storage.onSessionChange(e, this.sessionFormRef.nativeElement, null, false);
+    this.storage.onSessionChange(e, this.sessionFormRef.nativeElement, null, true);
   }
 }
