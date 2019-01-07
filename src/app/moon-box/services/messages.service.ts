@@ -37,6 +37,7 @@ export class MessagesService {
 
   constructor(private storage: SecuStorageService) {
     this.storage.onUnlock.subscribe(() => {
+      this.clearMessages();
       this.loadMsgsFromStorage();
     });
   }
