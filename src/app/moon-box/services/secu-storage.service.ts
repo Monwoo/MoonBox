@@ -20,7 +20,7 @@ import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
 import { BackendService } from '@moon-box/services/backend.service';
 import { BehaviorSubject, ReplaySubject, from } from 'rxjs';
-import { map, combineLatest, tap, mergeAll } from 'rxjs/operators';
+import { map, combineLatest, tap, mergeAll, debounce, debounceTime } from 'rxjs/operators';
 import {
   ContextType,
   FormType,
@@ -479,19 +479,31 @@ export class SecuStorageService implements FormCallable {
     this.setCurrentSession(sessId).subscribe(); // TODO : OK or strange to need subscribe ? well, instinctivly i forget it and it take space...
   }
 
+  private sessionChangeHandler$ = new ReplaySubject<HTMLFormElement>();
   onSessionChange(e: any, formRef: HTMLFormElement) {
+    // TODO : find a better way to check ReplaySubject is empty (no first emit)
+    if (!this.sessionChangeHandler$.observers.length) {
+      this.sessionChangeHandler$
+        .pipe(
+          debounceTime(500),
+          tap((formRef: HTMLFormElement) => {
+            if (this.session.group.valid) {
+              const sessData = <FormType>this.session.group.value;
+              const keyExist = !!this.sessIds[sessData.currentSession];
+              if (keyExist) {
+                this.renderer.addClass(formRef, 'condensed');
+              } else {
+                this.renderer.removeClass(formRef, 'condensed');
+              }
+            }
+          })
+        )
+        .subscribe();
+    }
+    this.sessionChangeHandler$.next(formRef);
     // TODO : check form validity : must not rewrite existing session ids...
     // + regex formats ?
     // logReview.debug('Checking Session form validity : ', this.session);
-    if (this.session.group.valid) {
-      const sessData = <FormType>this.session.group.value;
-      const keyExist = !!this.sessIds[sessData.currentSession];
-      if (keyExist) {
-        this.renderer.addClass(formRef, 'condensed');
-      } else {
-        this.renderer.removeClass(formRef, 'condensed');
-      }
-    }
   }
   private isSessionFocused = false;
   private sessionFormRef: HTMLFormElement = null;

@@ -163,7 +163,7 @@
   <!---->
   <pre>{{ s | json }}</pre>
   <!---->
-  <form class="condensed" #sessionFormRef [formGroup]="(storage.onCurrentSession$() | async).group">
+  <form class="condensed session-form" #sessionFormRef [formGroup]="(storage.onCurrentSession$() | async).group">
     <dynamic-material-form
       [group]="(storage.onCurrentSession$() | async).group"
       [model]="(storage.onCurrentSession$() | async).model"

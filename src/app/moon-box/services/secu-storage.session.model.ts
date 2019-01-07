@@ -117,6 +117,11 @@ export const formLayout = async (caller: FormCallable) => ({
     element: {
       container: 'height-animable condensable'
     }
+  },
+  addSession: {
+    element: {
+      container: 'session-addSession'
+    }
   }
 });
 

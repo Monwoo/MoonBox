@@ -52,4 +52,14 @@
   .mat-expansion-panel-header-description {
     color: $colorRegular;
   }
+
+  .session-form {
+    dynamic-material-form-control {
+      display: block;
+    }
+
+    .session-addSession {
+      text-align: right;
+    }
+  }
 }
