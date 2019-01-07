@@ -48,6 +48,12 @@ export enum LogLevel {
   Debug
 }
 
+export class AssertError extends Error {
+  constructor(public assertSummary: string, public ctx: any[]) {
+    super(assertSummary);
+  }
+}
+
 /**
  * Log output handler function.
  */
@@ -111,10 +117,11 @@ export class Logger {
   }
 
   // Will test condition and trow error if fail. Error content displayed in dev env only
-  assert(test: boolean, ...objects: any[]) {
+  assert(test: boolean, assertSummary: string, ...objects: any[]) {
+    // TODO: how to type : any[1..N] ?
     if (!test) {
-      this.warn(objects);
-      throw 'MoonBox Assert Exception';
+      this.warn('ASSERT FAILUR : ', assertSummary, objects);
+      throw new AssertError(assertSummary, _isProduction ? [] : objects);
     }
   }
 

@@ -8,6 +8,12 @@ import { Logger } from '../logger.service';
 
 const log = new Logger('ErrorHandlerInterceptor');
 
+export class InterceptedError extends Error {
+  constructor(public response: any, ...args: any[]) {
+    super(...args);
+  }
+}
+
 /**
  * Adds a default error handler to all requests.
  */
@@ -23,6 +29,7 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
       // Do something with the error
       log.error('Request error', response);
     }
-    throw response;
+    let e = new InterceptedError('Request error : ' + response.type.toString, response);
+    throw e;
   }
 }

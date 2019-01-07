@@ -52,7 +52,7 @@ export class SecuStorageService implements FormCallable {
   private lockDialogRef: MatDialogRef<LockScreenComponent> = null;
   private rawCode: string = '';
   private lastRawCode: string = '';
-  public onUnlock: BehaviorSubject<void> = new BehaviorSubject(null);
+  public onUnlock: ReplaySubject<void> = new ReplaySubject();
   // TODO: design it to be nice to integrate in parameters component...
   // public secuKeys: string[] = [
   //   "boxesIdxs", "moon-box-filters", "boxes", "moon-box-messages"
@@ -338,7 +338,13 @@ export class SecuStorageService implements FormCallable {
 
   public async checkPassCodeValidity(rawCode: string) {
     this.rawCode = this.toHex(rawCode ? rawCode : '');
-    const lvl2 = await this.getItem<string>('lvl2', null).toPromise();
+    const lvl2 = await this.getItem<string>('lvl2', null)
+      .pipe(
+        catchError((e: any, caugh) => {
+          return of(-1);
+        })
+      )
+      .toPromise();
     // const isValid = !!(await this.getItem('lvl2', false).toPromise());
     let isValid = 'ok' === lvl2;
     if (isValid) {

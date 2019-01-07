@@ -257,47 +257,45 @@ export class BoxesComponent implements OnInit {
     // => but not really working for our case, still cross domain issue to access iframe height...
     document.domain = environment.moonBoxFrontendDomain;
 
-    (async () => {
-      // http://json-schema.org/latest/json-schema-validation.html
-      //
-      const storageExpandBoxesConfigs = <boolean>await this.localStorage
-        .getItem<boolean>('expand-boxes-configs', <JSONSchemaBoolean>{
-          type: 'boolean',
-          default: this.expandBoxesConfigs // TODO : why not using default if storage not found ??
-        })
-        .toPromise();
-      this.expandBoxesConfigs =
-        null === storageExpandBoxesConfigs ? this.expandBoxesConfigs : storageExpandBoxesConfigs;
-
-      this.filters = await contextDefaults(this);
-      /*
-      Object.keys(this.inputWithMultiples).forEach(k => {
-        let m = <DynamicInputModel>
-        (<DynamicFormGroupModel>this.filters.model.find(m => m.id === 'params'))
-        .group.find(m => m.id === k);
-
-        m.valueUpdates.subscribe(v => {
-          logReview.debug("Having Input as Multiple update", v); // Wrong way, do not seem to be called...
-        });
-      });
-      */
-
-      this.updateForm().subscribe();
-      this.msgs.service.subscribe(messages => {
-        // need to update form model to update formfields suggestions
-        // TODO : better form design pattern to handle all that in simple form codes...
-        // formModel(this).then(model => {
-        //   this.filters.model = model;
-        // });
-        this.updateForm().subscribe();
-      });
-    })();
     this.renderer = this.rendererFactory.createRenderer(null, null);
     this.storage.setLockContainer(this.eltRef);
-    this.refreshBoxesIdxs();
     this.storage.onUnlock.subscribe(() => {
-      this.refreshBoxesIdxs();
-      this.updateForm().subscribe();
+      (async () => {
+        // http://json-schema.org/latest/json-schema-validation.html
+        //
+        const storageExpandBoxesConfigs = <boolean>await this.localStorage
+          .getItem<boolean>('expand-boxes-configs', <JSONSchemaBoolean>{
+            type: 'boolean',
+            default: this.expandBoxesConfigs // TODO : why not using default if storage not found ??
+          })
+          .toPromise();
+        this.expandBoxesConfigs =
+          null === storageExpandBoxesConfigs ? this.expandBoxesConfigs : storageExpandBoxesConfigs;
+
+        this.filters = await contextDefaults(this);
+        /*
+        Object.keys(this.inputWithMultiples).forEach(k => {
+          let m = <DynamicInputModel>
+          (<DynamicFormGroupModel>this.filters.model.find(m => m.id === 'params'))
+          .group.find(m => m.id === k);
+  
+          m.valueUpdates.subscribe(v => {
+            logReview.debug("Having Input as Multiple update", v); // Wrong way, do not seem to be called...
+          });
+        });
+        */
+
+        this.refreshBoxesIdxs();
+        this.updateForm().subscribe();
+        this.msgs.service.subscribe(messages => {
+          // need to update form model to update formfields suggestions
+          // TODO : better form design pattern to handle all that in simple form codes...
+          // formModel(this).then(model => {
+          //   this.filters.model = model;
+          // });
+          this.updateForm().subscribe();
+        });
+      })();
     });
 
     // https://stackoverflow.com/questions/47034573/ngif-hide-some-content-on-mobile-screen-angular-4
@@ -424,15 +422,35 @@ export class BoxesComponent implements OnInit {
     }, this.errorHandler);
   }
 
+  private viewInitProgressiveDelay = 100;
   ngAfterViewInit() {
-    logReview.assert(!!this.stickyContainer, 'Fail to load sticky container');
-    this.initShadowStickySizes();
+    const initHandler = () => {
+      logReview.assert(!!this.stickyContainer, 'Fail to load sticky container');
+      logReview.debug('Will init boxes views');
+      this.initShadowStickySizes();
 
-    // filtersFormRef might be null if lockscreen activated...
-    // this.initialOffset = this.stickyContainer.nativeElement.offsetTop;
-    this.boxViews.changes.subscribe((box: BoxReaderComponent) => {
-      // Box did changes event (some boxes gets added to the page...)
-    });
+      // filtersFormRef might be null if lockscreen activated...
+      // this.initialOffset = this.stickyContainer.nativeElement.offsetTop;
+      this.boxViews.changes.subscribe((box: BoxReaderComponent) => {
+        // Box did changes event (some boxes gets added to the page...)
+      });
+    };
+    if (this.storage.isLocked) {
+      this.viewInitProgressiveDelay *= 2;
+      logReview.debug('Postponing boxes filters update');
+      return of(true)
+        .pipe(delay(this.viewInitProgressiveDelay))
+        .pipe(
+          // map(_ => (initHandler())),
+          tap(() => {
+            this.ngAfterViewInit();
+          })
+        )
+        .subscribe();
+    } else {
+      this.viewInitProgressiveDelay = 100;
+      initHandler();
+    }
   }
 
   newRandomIndex() {
