@@ -59,7 +59,7 @@ export class SecuStorageService implements FormCallable {
   //   , "", "", "", ""
   //   , "", "", "", ""
   // ]
-  private notSessionableKeys = { '': true };
+  private notSessionableKeys = { 'session-ids': true };
 
   private eS: string = null;
   private lastEs: string = null;
@@ -81,7 +81,7 @@ export class SecuStorageService implements FormCallable {
   ) {
     this.renderer = this.rendererFactory.createRenderer(null, null);
     this.checkLock();
-    this.setCurrentSession('').subscribe();
+    this.setCurrentSession(this.defaultSessionId).subscribe();
   }
 
   public checkLock() {
@@ -432,10 +432,12 @@ export class SecuStorageService implements FormCallable {
           })
         );
   }
+  protected defaultSessionId = '_';
   protected getSessId(targetKey: string = null) {
-    // TODO : configure empty ID or will break some suff ? using '' as default for now...
     const sessId =
-      this.session && !(targetKey in this.notSessionableKeys) ? this.session.group.value.currentSession : '';
+      this.session && !(targetKey in this.notSessionableKeys)
+        ? this.session.group.value.currentSession
+        : this.defaultSessionId;
     return sessId;
   }
   public setItem<T>(key: string, value: T) {

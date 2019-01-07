@@ -37,7 +37,7 @@ export class NotificationsBufferService {
     // this.data.unshift(e); // V2 : Complexity : O(n) for this.data as array
     // this.data.addToHead(e); // V3 : Complexity : O(~1) for this.data as LinkedList
     while (this.data.length > this._maxLength) {
-      this.data.slice(1); // V1 : Complexity : O(n - 1) for this.data as array
+      this.data = this.data.slice(1); // V1 : Complexity : O(n - 1) for this.data as array
       // this.data.pop(); // V2 : Complexity : O(n - 1) for this.data as array
       // this.data.removeFromTail(); // V3 : Complexity : O(~1) for this.data as LinkedList
     }
