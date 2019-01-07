@@ -14,7 +14,14 @@ import {
   ViewChildren
 } from '@angular/core';
 import { NgForm, FormArray, Validators, FormBuilder } from '@angular/forms';
-import { FormType, FORM_LAYOUT, formDefaults, ContextType, contextDefaults } from './filters-form.model';
+import {
+  FormType,
+  FORM_LAYOUT,
+  formDefaults,
+  ContextType,
+  contextDefaults,
+  filtersInitialState
+} from './filters-form.model';
 import { I18nService } from '@app/core';
 import {
   DynamicFormArrayModel,
@@ -499,7 +506,7 @@ export class BoxesComponent implements OnInit {
     // }
     // boxIds.pop();
     // this.boxesIdxs = boxIds;
-    await this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: number[]) => {}, this.errorHandler);
+    await this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: string[]) => {}, this.errorHandler);
   }
 
   haveExpandedFilters = false;
@@ -597,7 +604,7 @@ export class BoxesComponent implements OnInit {
       mergeMap(q => forkJoin(q)), map((juncture:any[]) => {
         const [filtersData, freshDefaults] = juncture;
       */
-      resp = this.storage.getItem<FormType>('moon-box-filters', {}).pipe(
+      resp = this.storage.getItem<FormType>('moon-box-filters', filtersInitialState(this)).pipe(
         tap(filtersData => {
           logReview.debug('Reading filters from storage : ', filtersData);
           if (transforms) {

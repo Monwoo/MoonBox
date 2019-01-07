@@ -40,6 +40,31 @@ export type FormType = {
   };
 };
 
+export const filtersInitialState = (caller: any) =>
+  <FormType>{
+    periode: {
+      fetchStart: null,
+      fetchEnd: null,
+      fetchStartStr: null,
+      fetchEndStr: null
+    },
+    keepFormsInMemory: true,
+    keepMessagesInMemory: false,
+    keepPasswordsInMemory: false,
+    params: {
+      moonBoxEmailsGrouping: {
+        // TODO : quick hack : test about caller.filters.data.params should not be done...
+        mbegKeyTransformer:
+          caller.filters && caller.filters.data.params
+            ? caller.filters.data.params.moonBoxEmailsGrouping.mbegKeyTransformer
+            : []
+      },
+      keywordsSubject: [],
+      keywordsBody: [],
+      avoidwords: []
+    }
+  };
+
 export const formDefaults = async (caller: any) => {
   const translate = caller.i18nService;
   const fetchTrans = (t: string) =>
@@ -54,29 +79,7 @@ export const formDefaults = async (caller: any) => {
     });
   return new Promise<FormType>(function(resolve, reject) {
     (async () => {
-      resolve({
-        periode: {
-          fetchStart: null,
-          fetchEnd: null,
-          fetchStartStr: null,
-          fetchEndStr: null
-        },
-        keepFormsInMemory: true,
-        keepMessagesInMemory: false,
-        keepPasswordsInMemory: false,
-        params: {
-          moonBoxEmailsGrouping: {
-            // TODO : quick hack : test about caller.filters.data.params should not be done...
-            mbegKeyTransformer:
-              caller.filters && caller.filters.data.params
-                ? caller.filters.data.params.moonBoxEmailsGrouping.mbegKeyTransformer
-                : []
-          },
-          keywordsSubject: [],
-          keywordsBody: [],
-          avoidwords: []
-        }
-      });
+      resolve(filtersInitialState(caller));
     })();
   }).catch(e => {
     MonwooReview.debug('Fail to get defaults', e);

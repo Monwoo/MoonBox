@@ -158,6 +158,7 @@ export class ParametersComponent implements OnInit {
           !jsonData.hasOwnProperty('_secure__ls__metadata') ||
           !jsonData.hasOwnProperty('boxesIdxs') ||
           !jsonData.hasOwnProperty('moon-box-filters') ||
+          !jsonData.hasOwnProperty('session-ids') ||
           !jsonData.hasOwnProperty('boxes') ||
           !jsonData.hasOwnProperty('cS') ||
           !jsonData.hasOwnProperty('eS') ||
@@ -187,6 +188,7 @@ export class ParametersComponent implements OnInit {
           setItem('_secure__ls__metadata', jsonData._secure__ls__metadata);
           setItem('boxesIdxs', jsonData.boxesIdxs);
           setItem('moon-box-filters', jsonData['moon-box-filters']);
+          setItem('session-ids', jsonData['session-ids']);
           for (let i = 0; i < jsonData.boxes.length; i++) {
             const b = jsonData.boxes[i];
             setItem('moon-box-' + b.id, b.data);
@@ -248,6 +250,7 @@ export class ParametersComponent implements OnInit {
       bckp['_secure__ls__metadata'] = localStorage.getItem('_secure__ls__metadata');
       bckp['boxesIdxs'] = localStorage.getItem('boxesIdxs');
       bckp['moon-box-filters'] = localStorage.getItem('moon-box-filters');
+      bckp['session-ids'] = localStorage.getItem('session-ids');
       bckp['boxes'] = localStorage.getItem('boxes');
       bckp['cS'] = localStorage.getItem('cS');
       bckp['eS'] = localStorage.getItem('eS');

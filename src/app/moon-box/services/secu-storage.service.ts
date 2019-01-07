@@ -20,11 +20,12 @@ import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
 import { BackendService } from '@moon-box/services/backend.service';
 import { BehaviorSubject, ReplaySubject, from } from 'rxjs';
-import { map, combineLatest, tap, mergeAll, debounce, debounceTime } from 'rxjs/operators';
+import { map, combineLatest, tap, mergeAll, concatMap, debounceTime } from 'rxjs/operators';
 import {
   ContextType,
   FormType,
   SessionStoreType,
+  ItemStoreType,
   FormCallable,
   contextDefaults,
   sessionStoreInitialState
@@ -51,6 +52,14 @@ export class SecuStorageService implements FormCallable {
   private rawCode: string = '';
   private lastRawCode: string = '';
   public onUnlock: BehaviorSubject<void> = new BehaviorSubject(null);
+  // TODO: design it to be nice to integrate in parameters component...
+  // public secuKeys: string[] = [
+  //   "boxesIdxs", "moon-box-filters", "boxes", "moon-box-messages"
+  //   , "session-ids", "", "", ""
+  //   , "", "", "", ""
+  //   , "", "", "", ""
+  // ]
+  private notSessionableKeys = { '': true };
 
   private eS: string = null;
   private lastEs: string = null;
@@ -320,7 +329,7 @@ export class SecuStorageService implements FormCallable {
   public async checkPassCodeValidity(rawCode: string) {
     this.rawCode = this.toHex(rawCode ? rawCode : '');
     // const isValid = !!(await this.getItem('lvl2', false).toPromise());
-    let isValid = 'ok' === (await this.getItem<string>('lvl2', false).toPromise());
+    let isValid = 'ok' === (await this.getItem<string>('lvl2', null).toPromise());
     if (isValid) {
       this.setPassCode(rawCode, false);
       this.onUnlock.next(null);
@@ -397,7 +406,7 @@ export class SecuStorageService implements FormCallable {
 
     return of(true);
   }
-  public getItem<T>(key: string, failback: any = null) {
+  public getItem<T>(key: string, failback: T = null) {
     let i = null;
     try {
       this.setupStorage('lvl2');
@@ -411,18 +420,41 @@ export class SecuStorageService implements FormCallable {
       //     });
       //   });
       // })();
-      this.storage.isLocked = true;
+      this.storage.isLocked = true; // TODO : push lock event instead... bool may not be enough to refresh all
       logReview.warn(error);
     }
-    return of<T>(null === i ? failback : i);
+    return null === i
+      ? of<T>(failback)
+      : of<ItemStoreType<T>>(i).pipe(
+          map((val: ItemStoreType<T>) => {
+            const sessId = this.getSessId(key);
+            return val.hasOwnProperty(sessId) ? val[sessId] : failback;
+          })
+        );
   }
-  public setItem<T>(key: string, value: any) {
+  protected getSessId(targetKey: string = null) {
+    // TODO : configure empty ID or will break some suff ? using '' as default for now...
+    const sessId =
+      this.session && !(targetKey in this.notSessionableKeys) ? this.session.group.value.currentSession : '';
+    return sessId;
+  }
+  public setItem<T>(key: string, value: T) {
     this.setupStorage('lvl2');
-    return of<T>(this.storage.set(key, value));
+    const sessId = this.getSessId(key);
+    const i = <ItemStoreType<T>>this.storage.get(key) || {};
+    i[sessId] = value;
+    return of<T>(this.storage.set(key, i));
   }
   public removeItem<T>(key: string) {
     this.setupStorage('lvl2');
-    return of<T>(this.storage.remove(key));
+    const sessId = this.getSessId(key);
+    const i = <ItemStoreType<T>>this.storage.get(key) || {};
+    delete i[sessId];
+    if (Object.keys.length) {
+      return of<T>(this.storage.set(key, i));
+    } else {
+      return of<T>(this.storage.remove(key));
+    }
   }
 
   public getItemHash(key: string) {
@@ -444,27 +476,48 @@ export class SecuStorageService implements FormCallable {
 
   public setCurrentSession(sessId: string) {
     this.sessIds[sessId] = new Date();
-    return this.getItem<SessionStoreType>('session-ids').pipe(
-      combineLatest(
+    return forkJoin(
+      from([
+        this.getItem<SessionStoreType>('session-ids').pipe(
+          map(sessIds => {
+            sessIds = sessIds || sessionStoreInitialState;
+            sessIds[sessId] = this.sessIds[sessId];
+            this.sessIds = sessIds;
+            logReview.debug('Did set session ids to : ', this.sessIds);
+            return this.setItem('session-ids', this.sessIds);
+          })
+        ),
         from(
           contextDefaults(this, {
             currentSession: sessId
           })
         ).pipe(
-          tap(defaultF => {
-            logReview.debug('Having session defaults : ', defaultF);
+          tap(freshDefaults => {
+            logReview.debug('Having session defaults : ', freshDefaults);
+            this.session = freshDefaults;
+            this.session$.next(this.session);
+            // Reset frontend UI by sending a secu onUnlock event.
+            this.onUnlock.next(null);
           })
         )
-      ),
+      ]).pipe(
+        concatMap((input: any, idx: number) => {
+          return input; // Only using concatMap to ensure tasks orders...
+        })
+        // tap(defaultF => {
+        //   logReview.debug('Sync login from filters : ', defaultF);
+        // })
+      )
+    ).pipe(
+      debounceTime(500),
       map(([sessIds, freshDefaults]) => {
-        sessIds = sessIds || sessionStoreInitialState;
-        sessIds[sessId] = this.sessIds[sessId];
-        this.sessIds = sessIds;
-        this.session = freshDefaults;
-        this.session$.next(this.session);
-        return this.setItem('session-ids', this.sessIds);
+        this.i18nService.get(extract('mb.secu-storage.setSession.success')).subscribe(t => {
+          this.notif.success(t);
+        });
+        logReview.debug('Did end session setup : ', [sessIds, freshDefaults]);
+        return [sessIds, freshDefaults];
       }),
-      mergeAll(),
+      // mergeAll(), // To much ? already ended from fork join ?
       map(didSet => {
         logReview.debug('Did set session Ids : ', didSet);
         return true;
@@ -492,6 +545,7 @@ export class SecuStorageService implements FormCallable {
               const keyExist = !!this.sessIds[sessData.currentSession];
               if (keyExist) {
                 this.renderer.addClass(formRef, 'condensed');
+                this.setCurrentSession(sessData.currentSession).subscribe();
               } else {
                 this.renderer.removeClass(formRef, 'condensed');
               }

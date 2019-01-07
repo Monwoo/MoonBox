@@ -29,6 +29,10 @@ export type SessionStoreType = {
   [k: string]: Date;
 };
 
+export type ItemStoreType<T> = {
+  [k: string]: T;
+};
+
 export const sessionStoreInitialState = {};
 
 export const formDefaults = async (caller: FormCallable) => {
