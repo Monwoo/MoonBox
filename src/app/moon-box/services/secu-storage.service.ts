@@ -59,7 +59,11 @@ export class SecuStorageService implements FormCallable {
   //   , "", "", "", ""
   //   , "", "", "", ""
   // ]
-  private notSessionableKeys = { 'session-ids': true };
+  private notSessionableKeys = {
+    'session-ids': true,
+    lvl2: true
+    // 'lvl1':true,
+  };
 
   private eS: string = null;
   private lastEs: string = null;
@@ -81,7 +85,8 @@ export class SecuStorageService implements FormCallable {
   ) {
     this.renderer = this.rendererFactory.createRenderer(null, null);
     this.checkLock();
-    this.setCurrentSession(this.defaultSessionId).subscribe();
+    this.reloadLastSession();
+    // this.setCurrentSession(this.defaultSessionId).subscribe();
   }
 
   public checkLock() {
@@ -129,8 +134,8 @@ export class SecuStorageService implements FormCallable {
             } else {
               this.storage = new SecureLS({ encodingType: 'aes' });
             }
-            const lvl2Ok = this.storage.get('lvl2') || 'ok'; // Ensuring storage reading is set correctly (This line will throw error if none)
-            this.storage.set('lvl2', lvl2Ok); // Forcing storage update on new setup by setting an item in the storage
+            const lvl2Ok = (this.storage.get('lvl2') || { [this.defaultSessionId]: 'ok' })[this.defaultSessionId]; // Ensuring storage reading is set correctly (This line will throw error if none)
+            this.storage.set('lvl2', { [this.defaultSessionId]: lvl2Ok }); // Forcing storage update on new setup by setting an item in the storage
           }
           break;
         case 'lastEs':
@@ -144,8 +149,8 @@ export class SecuStorageService implements FormCallable {
             } else {
               this.storage = new SecureLS({ encodingType: 'aes' });
             }
-            const lvlOk = this.storage.get('lastEs') || 'ok'; // Ensuring storage reading is set correctly (This line will throw error if none)
-            this.storage.set('lastEs', lvlOk); // Forcing storage update on new setup by setting an item in the storage
+            const lvlOk = (this.storage.get('lastEs') || { [this.defaultSessionId]: 'ok' })[this.defaultSessionId]; // Ensuring storage reading is set correctly (This line will throw error if none)
+            this.storage.set('lastEs', { [this.defaultSessionId]: lvlOk }); // Forcing storage update on new setup by setting an item in the storage
           }
           break;
         default:
@@ -307,6 +312,10 @@ export class SecuStorageService implements FormCallable {
     this.lastEs = null;
     this.rawCode = '';
     this.lastRawCode = '';
+    this.sessIds = sessionStoreInitialState;
+    this.setItem('session-ids', this.sessIds).subscribe(() => {
+      this.setCurrentSession(this.defaultSessionId).subscribe();
+    });
   }
 
   // https://gist.github.com/valentinkostadinov/5875467
@@ -328,8 +337,9 @@ export class SecuStorageService implements FormCallable {
 
   public async checkPassCodeValidity(rawCode: string) {
     this.rawCode = this.toHex(rawCode ? rawCode : '');
+    const lvl2 = await this.getItem<string>('lvl2', null).toPromise();
     // const isValid = !!(await this.getItem('lvl2', false).toPromise());
-    let isValid = 'ok' === (await this.getItem<string>('lvl2', null).toPromise());
+    let isValid = 'ok' === lvl2;
     if (isValid) {
       this.setPassCode(rawCode, false);
       this.onUnlock.next(null);
@@ -476,6 +486,27 @@ export class SecuStorageService implements FormCallable {
     return this.session$;
   }
 
+  public reloadLastSession() {
+    this.getItem<SessionStoreType>('session-ids', this.sessIds).subscribe(sessIds => {
+      let sessId = null;
+      this.sessIds = sessIds;
+      const sessKeys = Object.keys(sessIds);
+      let lastSessTime = 0;
+      for (let i = 0; i < sessKeys.length; i++) {
+        const sessIdLookup = sessKeys[i];
+        // TODO : SessionStoreType is not enouth to transform date extract with current data system... :
+        // Manual setup for now :
+        // const sessionTime = this.sessIds[sessIdLookup];
+        const sessionTime = new Date(this.sessIds[sessIdLookup]);
+        if (sessionTime.getTime() > lastSessTime) {
+          sessId = sessIdLookup;
+          lastSessTime = sessionTime.getTime();
+        }
+      }
+      this.setCurrentSession(sessId ? sessId : this.defaultSessionId).subscribe();
+    });
+  }
+
   public setCurrentSession(sessId: string) {
     this.sessIds[sessId] = new Date();
     return forkJoin(
@@ -516,6 +547,7 @@ export class SecuStorageService implements FormCallable {
         this.i18nService.get(extract('mb.secu-storage.setSession.success')).subscribe(t => {
           this.notif.success(t);
         });
+        this.isSessionFocused = false;
         logReview.debug('Did end session setup : ', [sessIds, freshDefaults]);
         return [sessIds, freshDefaults];
       }),

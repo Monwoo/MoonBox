@@ -204,6 +204,7 @@ export class ParametersComponent implements OnInit {
           // this.storage.checkLock();
           this.msgs.loadMsgsFromStorage(); // Ensure msgs are loaded to avoid empty message overwrites
           this.storage.checkLockScreen();
+          this.storage.reloadLastSession();
 
           this.i18nService
             .get(extract('Succed to import {{file}}'), {

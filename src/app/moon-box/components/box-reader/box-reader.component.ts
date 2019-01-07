@@ -216,25 +216,28 @@ export class BoxReaderComponent implements OnInit {
   loadFormFromStorage() {
     return new Promise<boolean>((resolve, reject) => {
       if (this.loginData.keepFormsInMemory) {
-        this.storage.getItem<FormType>('moon-box-' + this.id, {}).subscribe(
-          loginData => {
-            (async () => {
-              // Called if data is valid or null
-              let freshDefaults = shallowMerge(1, await formDefaults(this), this.loginData);
-              this.loginData = <FormType>shallowMerge(1, freshDefaults, loginData);
-              // transforms... ?
-              // this.loginData.keepFormsInMemory = true;
-              let transforms = this.loginData;
-              this.loginData = <FormType>shallowMerge(1, this.loginData, transforms);
-              await this.updateForm();
-              resolve();
-            })();
-          },
-          error => {
-            reject();
-            logReview.warn('Fail to fetch config for ', this.loginData);
-          }
-        );
+        (async () => {
+          const imutableDefault = await formDefaults(this);
+          this.storage.getItem<FormType>('moon-box-' + this.id, imutableDefault).subscribe(
+            loginData => {
+              (async () => {
+                // Called if data is valid or null
+                let freshDefaults = shallowMerge(1, imutableDefault, this.loginData);
+                this.loginData = <FormType>shallowMerge(1, freshDefaults, loginData);
+                // transforms... ?
+                // this.loginData.keepFormsInMemory = true;
+                let transforms = this.loginData;
+                this.loginData = <FormType>shallowMerge(1, this.loginData, transforms);
+                await this.updateForm();
+                resolve();
+              })();
+            },
+            error => {
+              reject();
+              logReview.warn('Fail to fetch config for ', this.loginData);
+            }
+          );
+        })();
       }
     });
   }
