@@ -25,6 +25,12 @@ export type FormType = {
   };
 };
 
+export type SessionStoreType = {
+  [k: string]: Date;
+};
+
+export const sessionStoreInitialState = {};
+
 export const formDefaults = async (caller: FormCallable) => {
   const translate = caller.i18nService;
   const fetchTrans = (t: string) =>
@@ -65,6 +71,7 @@ export interface FormCallable {
   formService: DynamicFormService;
   // getCurrentSession$: () => Observable<ContextType>;
   getCurrentSession: () => ContextType;
+  getSessionIds: () => Observable<SessionStoreType>;
 }
 
 export const contextDefaults = async (caller: FormCallable, patchData: any = {}) => {
@@ -140,7 +147,8 @@ export const formModel = async (caller: FormCallable) => {
           placeholder: await fetchTrans(extract('Choisir la session')),
           inputType: DYNAMIC_FORM_CONTROL_INPUT_TYPE_TEXT,
           // hint: await fetchTrans(extract('mb.filters.hint.typeEnterToAddChip')),
-          list: ['Session TODO'], // ["Alabama", "Alaska", "Arizona", "Arkansas"]
+          list: Object.keys((await caller.getSessionIds().toPromise()) || {}),
+          autoComplete: 'off',
           value: d.currentSession
         }),
 

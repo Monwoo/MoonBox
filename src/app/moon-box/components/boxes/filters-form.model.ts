@@ -295,6 +295,7 @@ export const formModel = async (caller: any) => {
                         // name: 'key',
                         label: srcLbl,
                         list: srcList, // ["Alabama", "Alaska", "Arizona", "Arkansas"]
+                        autoComplete: 'off',
                         validators: {
                           required: null,
                           minLength: 1
@@ -308,6 +309,7 @@ export const formModel = async (caller: any) => {
                         // name: 'value',
                         label: assLbl,
                         list: assList,
+                        autoComplete: 'off',
                         validators: {
                           required: null,
                           minLength: 1

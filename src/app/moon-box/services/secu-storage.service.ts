@@ -1,6 +1,6 @@
 // Copyright Monwoo 2018-2019, made by Miguel Monwoo, service@monwoo.com
 
-import { Injectable, ViewContainerRef, NgZone } from '@angular/core';
+import { Injectable, ViewContainerRef, NgZone, ElementRef, Renderer2, RendererFactory2 } from '@angular/core';
 import { environment } from '@env/environment';
 import { forkJoin, of, interval } from 'rxjs';
 import { Md5 } from 'ts-md5/dist/md5';
@@ -13,7 +13,14 @@ import { NotificationsService } from 'angular2-notifications';
 import { BackendService } from '@moon-box/services/backend.service';
 import { BehaviorSubject, ReplaySubject, from } from 'rxjs';
 import { map, combineLatest, tap, mergeAll } from 'rxjs/operators';
-import { ContextType, FormType, FormCallable, contextDefaults } from '@moon-box/services/secu-storage.session.model';
+import {
+  ContextType,
+  FormType,
+  SessionStoreType,
+  FormCallable,
+  contextDefaults,
+  sessionStoreInitialState
+} from '@moon-box/services/secu-storage.session.model';
 import { DynamicFormService } from '@ng-dynamic-forms/core';
 
 import { Logger } from '@app/core/logger.service';
@@ -42,6 +49,9 @@ export class SecuStorageService implements FormCallable {
   private pC: string = null;
   private cS: string = null;
   private debugStorage = false;
+
+  private renderer: Renderer2 = null;
+
   constructor(
     private backend: BackendService,
     private dialog: MatDialog,
@@ -49,8 +59,10 @@ export class SecuStorageService implements FormCallable {
     public i18nService: I18nService,
     public formService: DynamicFormService,
     private notif: NotificationsService,
-    private localStorage: LocalStorage
+    private localStorage: LocalStorage,
+    private rendererFactory: RendererFactory2
   ) {
+    this.renderer = this.rendererFactory.createRenderer(null, null);
     this.checkLock();
     this.setCurrentSession('').subscribe();
   }
@@ -410,6 +422,7 @@ export class SecuStorageService implements FormCallable {
   }
 
   private session: ContextType = null;
+  private sessIds: SessionStoreType = sessionStoreInitialState;
   // May return null session if not setted up...
   public getCurrentSession() {
     // TODO : do not return null session, await for it to be setup from constructor...
@@ -422,7 +435,7 @@ export class SecuStorageService implements FormCallable {
   }
 
   public setCurrentSession(sessId: string) {
-    return this.getItem<string[]>('session-ids').pipe(
+    return this.getItem<SessionStoreType>('session-ids').pipe(
       combineLatest(
         from(
           contextDefaults(this, {
@@ -435,11 +448,11 @@ export class SecuStorageService implements FormCallable {
         )
       ),
       map(([sessIds, freshDefaults]) => {
-        sessIds = sessIds || [];
-        sessIds.push(sessId);
+        this.sessIds = sessIds || sessionStoreInitialState;
+        this.sessIds[sessId] = new Date();
         this.session = freshDefaults;
         this.session$.next(this.session);
-        return this.setItem('session-ids', sessIds);
+        return this.setItem('session-ids', this.sessIds);
       }),
       mergeAll(),
       map(didSet => {
@@ -453,11 +466,24 @@ export class SecuStorageService implements FormCallable {
     const data = <FormType>this.session.group.value;
     const sessId = data.currentSession;
     logReview.debug('Will add session : ', sessId, data);
+    this.setCurrentSession(sessId);
   }
 
-  onSessionChange(e: any) {
+  onSessionChange(e: any, formRef: HTMLFormElement) {
     // TODO : check form validity : must not rewrite existing session ids...
     // + regex formats ?
     logReview.debug('Checking Session form validity : ', this.session);
+    if (this.session.group.valid) {
+      const sessData = <FormType>this.session.group.value;
+      const keyExist = !!this.sessIds[sessData.currentSession];
+      if (keyExist) {
+        this.renderer.addClass(formRef, 'condensed');
+      } else {
+        this.renderer.removeClass(formRef, 'condensed');
+      }
+    }
+  }
+  getSessionIds() {
+    return this.getItem<SessionStoreType>('session-ids');
   }
 }

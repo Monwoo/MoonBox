@@ -97,6 +97,7 @@ export const MY_FORMATS = {
 })
 export class BoxesComponent implements OnInit {
   // @ViewChild('filtersForm') filtersForm: ElementRef<NgForm> = null;
+  @ViewChild('sessionFormRef') sessionFormRef: ElementRef<HTMLFormElement> = null;
   @ViewChild('filtersFormRef') filtersFormRef: ElementRef<HTMLFormElement> = null;
   @ViewChild('filtersForm') filtersForm: NgForm = null; // TODO : refactor => ref is already inside this.filters...
   @ViewChild('stickyContainer') stickyContainer: ElementRef<HTMLDivElement> = null;

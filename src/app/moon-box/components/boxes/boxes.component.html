@@ -163,12 +163,12 @@
   <!---->
   <pre>{{ s | json }}</pre>
   <!---->
-  <form class="condensed" [formGroup]="(storage.onCurrentSession$() | async).group">
+  <form class="condensed" #sessionFormRef [formGroup]="(storage.onCurrentSession$() | async).group">
     <dynamic-material-form
       [group]="(storage.onCurrentSession$() | async).group"
       [model]="(storage.onCurrentSession$() | async).model"
       [layout]="(storage.onCurrentSession$() | async).layout"
-      (change)="storage.onSessionChange($event)"
+      (change)="storage.onSessionChange($event, sessionFormRef)"
     >
       <ng-template modelId="copyCurrentSession" let-context="context" let-index="index">
         <button mat-button color="secondary" type="button" (click)="storage.addNewSessionFromForm($event, context)">
