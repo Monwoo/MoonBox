@@ -10,7 +10,7 @@ import {
   HostListener
 } from '@angular/core';
 import { environment } from '@env/environment';
-import { forkJoin, of, interval, Subscription } from 'rxjs';
+import { forkJoin, of, interval, Subscription, throwError } from 'rxjs';
 import { Md5 } from 'ts-md5/dist/md5';
 import { LocalStorage } from '@ngx-pwa/local-storage';
 import { MatDialog, MatDialogRef } from '@angular/material';
@@ -20,7 +20,7 @@ import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
 import { BackendService } from '@moon-box/services/backend.service';
 import { BehaviorSubject, ReplaySubject, from } from 'rxjs';
-import { map, combineLatest, tap, mergeAll, concatMap, debounceTime } from 'rxjs/operators';
+import { map, combineLatest, tap, mergeAll, concatMap, debounceTime, catchError } from 'rxjs/operators';
 import {
   ContextType,
   FormType,
@@ -62,8 +62,8 @@ export class SecuStorageService implements FormCallable {
   // ]
   private notSessionableKeys = {
     'session-ids': true,
-    lvl2: true
-    // 'lvl1':true,
+    lvl2: true,
+    lastEs: true
   };
 
   private eS: string = null;
@@ -433,6 +433,9 @@ export class SecuStorageService implements FormCallable {
       // })();
       this.storage.isLocked = true; // TODO : push lock event instead... bool may not be enough to refresh all
       logReview.warn(error);
+      // We're not in async code yet, will not pop up in RxJs call stack if done as below :
+      // throw error; // Throw back errors on get to avoid next behaviors of setting item as null for wrong passcode
+      return throwError(error);
     }
     return null === i
       ? of<T>(failback)
@@ -463,7 +466,7 @@ export class SecuStorageService implements FormCallable {
     const sessId = this.getSessId(key);
     const i = <ItemStoreType<T>>this.storage.get(key) || {};
     delete i[sessId];
-    if (Object.keys.length) {
+    if (Object.keys(i).length) {
       return of<T>(this.storage.set(key, i));
     } else {
       return of<T>(this.storage.remove(key));
@@ -488,24 +491,36 @@ export class SecuStorageService implements FormCallable {
   }
 
   public reloadLastSession() {
-    this.getItem<SessionStoreType>('session-ids', this.sessIds).subscribe(sessIds => {
-      let sessId = null;
-      this.sessIds = sessIds;
-      const sessKeys = Object.keys(sessIds);
-      let lastSessTime = 0;
-      for (let i = 0; i < sessKeys.length; i++) {
-        const sessIdLookup = sessKeys[i];
-        // TODO : SessionStoreType is not enouth to transform date extract with current data system... :
-        // Manual setup for now :
-        // const sessionTime = this.sessIds[sessIdLookup];
-        const sessionTime = new Date(this.sessIds[sessIdLookup]);
-        if (sessionTime.getTime() > lastSessTime) {
-          sessId = sessIdLookup;
-          lastSessTime = sessionTime.getTime();
-        }
-      }
-      this.setCurrentSession(sessId ? sessId : this.defaultSessionId).subscribe();
-    });
+    this.getItem<SessionStoreType>('session-ids', this.sessIds)
+      .pipe(
+        // catchError((e: any, caugh)=> { return of(-1); }),
+        tap(sessIds => {
+          // if (-1 === sessIds) {
+          //   return;
+          // }
+          sessIds = sessIds;
+          let sessId = null;
+          this.sessIds = <SessionStoreType>sessIds;
+          const sessKeys = Object.keys(sessIds);
+          let lastSessTime = 0;
+          for (let i = 0; i < sessKeys.length; i++) {
+            const sessIdLookup = sessKeys[i];
+            // TODO : SessionStoreType is not enouth to transform date extract with current data system... :
+            // Manual setup for now :
+            // const sessionTime = this.sessIds[sessIdLookup];
+            const sessionTime = new Date(this.sessIds[sessIdLookup]);
+            if (sessionTime.getTime() > lastSessTime) {
+              sessId = sessIdLookup;
+              lastSessTime = sessionTime.getTime();
+            }
+          }
+          this.setCurrentSession(sessId ? sessId : this.defaultSessionId).subscribe();
+        }),
+        catchError((e: any, caugh) => {
+          return of(-1);
+        })
+      )
+      .subscribe();
   }
 
   public setCurrentSession(sessId: string) {
