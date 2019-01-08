@@ -38,6 +38,7 @@ export class MessagesService {
   constructor(private storage: SecuStorageService) {
     this.storage.onUnlock.subscribe(() => {
       this.reloadMsgsFromStorage();
+      this.ensureLocaleMemorySyncForMsgs();
       // if (!this.storage.isSessionGettingSetedUp) {
       //   // Avoid quick session switching claches by ignoring refresh while setup ?
       //   this.reloadMsgsFromStorage();
@@ -126,6 +127,7 @@ export class MessagesService {
     this.numResults = 0;
     this.availability = {};
     this.totalAvailable = 0;
+    // this.shouldKeepMsgsInMemory = false; // Useful ? => buggy...
   }
 
   clearMessages() {
