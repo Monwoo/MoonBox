@@ -619,7 +619,7 @@ export class SecuStorageService implements FormCallable {
   public async getSessionableKeys() {
     let secuKeys: string[] = ['boxesIdxs', 'moon-box-filters', 'boxes', 'moon-box-messages', 'session-ids'];
     const boxesIdxs = (await this.getItem<string[]>('boxesIdxs', []).toPromise()).map(id => 'moon-box-' + id);
-    secuKeys.concat(boxesIdxs);
+    secuKeys = secuKeys.concat(boxesIdxs);
     return secuKeys;
   }
 

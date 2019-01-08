@@ -584,7 +584,18 @@ export class BoxesComponent implements OnInit {
   }
 
   formUpdateSubcriber: Subscription = null; // TODO : better design pattern with task chancelation and re-spawn from start ?
-  isFormUpdating = false; // TODO : better design pattern with task chancelation and re-spawn from start ?
+  _isFormUpdating = false; // TODO : better design pattern with task chancelation and re-spawn from start ?
+
+  public get isFormUpdating(): boolean {
+    logReview.debug('Get form Updating', this._isFormUpdating);
+    return this._isFormUpdating;
+  }
+
+  public set isFormUpdating(v: boolean) {
+    logReview.debug('Set form Updating', v);
+    this._isFormUpdating = v;
+  }
+
   progressiveDelay = 100; // Used to avoid too much back calls on infinit fails...
   updateForm(transforms: any = null): Observable<any> {
     // https://stackblitz.com/edit/angular-kgppaa?file=src%2Fapp%2Fapp.component.html
