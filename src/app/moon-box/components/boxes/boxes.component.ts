@@ -467,7 +467,11 @@ export class BoxesComponent implements OnInit {
       acc[b] = true;
       return acc;
     }, {});
-    this.boxViews.notifyOnChanges();
+    if (this.boxViews) {
+      this.boxViews.notifyOnChanges();
+    } else {
+      logReview.debug('TODO ? : ok to do nothing on empty boxViews ?');
+    }
   }
 
   addBox() {
@@ -596,6 +600,7 @@ export class BoxesComponent implements OnInit {
       // return of(false);
       if (this.formUpdateSubcriber) {
         this.formUpdateSubcriber.unsubscribe();
+        this.formUpdateSubcriber = null;
       }
       logReview.debug('Postponing boxes filters update');
       const delayor = new Promise(resolve => {
@@ -616,7 +621,8 @@ export class BoxesComponent implements OnInit {
               // this.formUpdateSubcriber = this.updateForm(transforms).subscribe();
               const res = this.updateForm(transforms);
               resolve(res);
-              this.formUpdateSubcriber = res.subscribe();
+              // this.formUpdateSubcriber = res.subscribe();
+              this.formUpdateSubcriber = null;
             })
           )
           .subscribe();

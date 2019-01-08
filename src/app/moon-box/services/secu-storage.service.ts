@@ -463,7 +463,7 @@ export class SecuStorageService implements FormCallable {
   protected getSessId(targetKey: string = null) {
     const sessId =
       this.session && !(targetKey in this.notSessionableKeys)
-        ? this.session.group.value.currentSession
+        ? this.currentSession // this.session.group.value.currentSession
         : this.defaultSessionId;
     return sessId;
   }
@@ -536,13 +536,14 @@ export class SecuStorageService implements FormCallable {
       .subscribe();
   }
 
+  private currentSession = this.defaultSessionId;
   private sessionAvailableForSetup$ = new ReplaySubject<void>();
   // TODO : allow readonly only for public expose
   public isSessionGettingSetedUp = false;
   public setCurrentSession(sessId: string): Observable<boolean> {
     if (this.isSessionGettingSetedUp) {
       logReview.debug('Postponing set Current Session');
-      return from([takeUntil(this.sessionAvailableForSetup$), this.setCurrentSession(sessId)]).pipe(
+      return from([debounceTime(2000), takeUntil(this.sessionAvailableForSetup$), this.setCurrentSession(sessId)]).pipe(
         concatMap((input: any, idx: number) => {
           return input; // Only using concatMap to ensure tasks orders...
         }),
@@ -552,7 +553,7 @@ export class SecuStorageService implements FormCallable {
     }
     logReview.debug('Will set Current Session');
     this.isSessionGettingSetedUp = true;
-    this.sessIds[sessId] = new Date();
+    this.sessIds[sessId] = new Date().toISOString();
     return forkJoin(
       from([
         this.getItem<SessionStoreType>('session-ids').pipe(
@@ -590,6 +591,9 @@ export class SecuStorageService implements FormCallable {
           this.notif.success(t);
         });
         this.isSessionFocused = false;
+        this.currentSession = sessId;
+        // set up group value to lose focus on session set OK
+        this.session.group.value.currentSession = sessId;
         logReview.debug('Did end session setup : ', [sessIds, freshDefaults]);
         return [sessIds, freshDefaults];
       }),
@@ -605,12 +609,70 @@ export class SecuStorageService implements FormCallable {
     );
   }
 
+  // public secuKeys: string[] = [
+  //   "boxesIdxs", "moon-box-filters", "boxes", "moon-box-messages"
+  //   , "session-ids", "", "", ""
+  //   , "", "", "", ""
+  //   , "", "", "", ""
+  // ]
+  // TODO : refactor : remove duplications about SessionnableKeys and lvl2 keys ?
+  public async getSessionableKeys() {
+    let secuKeys: string[] = ['boxesIdxs', 'moon-box-filters', 'boxes', 'moon-box-messages', 'session-ids'];
+    const boxesIdxs = (await this.getItem<string[]>('boxesIdxs', []).toPromise()).map(id => 'moon-box-' + id);
+    secuKeys.concat(boxesIdxs);
+    return secuKeys;
+  }
+
+  removeSessionFromForm(e: any, ctx: any, formRef: HTMLFormElement) {
+    (async () => {
+      const data = <FormType>this.session.group.value;
+      const sessId = data.currentSession;
+      logReview.assert(!!this.sessIds[sessId], 'Should not try to remove unknown session : ', sessId, this.sessIds);
+      const secuKeys = await this.getSessionableKeys();
+      // secuKeys.forEach(k => {
+      //   this.removeItem(k); // TODO : need to subscribe ?
+      // });
+      for (let i = 0; i < secuKeys.length; i++) {
+        const k = secuKeys[i];
+        await this.removeItem(k).toPromise();
+      }
+      delete this.sessIds[sessId];
+      this.setItem('session-ids', this.sessIds)
+        .pipe(
+          tap(() => {
+            logReview.debug('Did remove session id : ', sessId, this.sessIds);
+            this.reloadLastSession();
+          })
+        )
+        .subscribe();
+    })();
+  }
+
   addNewSessionFromForm(e: any, ctx: any, formRef: HTMLFormElement) {
-    const data = <FormType>this.session.group.value;
-    const sessId = data.currentSession;
     this.sessionFormRef = formRef;
-    logReview.debug('Will add session : ', sessId, data);
-    this.setCurrentSession(sessId).subscribe(); // TODO : OK or strange to need subscribe ? well, instinctivly i forget it and it take space...
+    (async () => {
+      const data = <FormType>this.session.group.value;
+      const sessId = data.currentSession;
+      logReview.assert(!this.sessIds[sessId], 'Should not try to add existing session : ', sessId, this.sessIds);
+      const currentSession = this.session.group.value.currentSession;
+      if (data.addSession.copyCurrentSession) {
+        // TODO : below is breaking all fixed previous bugs ?
+        const secuKeys = await this.getSessionableKeys();
+        const lastSession = this.currentSession;
+        logReview.debug('Will copy current session : ', lastSession, this.sessIds);
+        for (let i = 0; i < secuKeys.length; i++) {
+          const k = secuKeys[i];
+          this.currentSession = lastSession;
+          const cpy = await this.getItem(k).toPromise();
+          await this.setItem(k, this.sessIds)
+            .pipe(tap(() => {}))
+            .toPromise();
+        }
+      }
+      this.currentSession = currentSession;
+      logReview.debug('Will add session : ', sessId, data);
+      this.setCurrentSession(sessId).subscribe();
+    })();
   }
 
   private sessionSubcriber: Subscription = null;

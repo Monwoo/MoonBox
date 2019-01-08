@@ -197,6 +197,7 @@ export class BoxReaderComponent implements OnInit {
 
       if (this.formUpdateSubcriber) {
         this.formUpdateSubcriber.unsubscribe();
+        this.formUpdateSubcriber = null;
       }
       this.formUpdateSubcriber = of(true)
         .pipe(delay(this.progressiveDelay))

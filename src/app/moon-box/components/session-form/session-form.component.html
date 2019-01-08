@@ -34,15 +34,20 @@
         https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/ui-material/src/input/dynamic-material-input.component.ts
         https://github.com/udos86/ng-dynamic-forms/blob/ae2ee717cc8e1861d02ac38dbe259517d43d91a5/packages/ui-primeng/src/editor/dynamic-primeng-editor.component.html
       -->
-      <ng-template modelId="currentSession" let-context="context" let-index="index">
+      <ng-template modelId="addSession" let-context="context" let-index="index">
         <!--
           <ng-template modelId="currentSession"
           [formControlName]="'model.id'"
           let-context="context" let-index="index">
-              <button mat-button color="secondary" type="button" (click)="storage.addNewSessionFromForm($event, context, sessionFormRef)">
-                {{ 'Définir la session' | translate }}
-              </button>
         -->
+        <button
+          mat-button
+          color="secondary"
+          type="button"
+          (click)="storage.removeSessionFromForm($event, context, sessionFormRef)"
+        >
+          {{ 'Supprimer la session' | translate }}
+        </button>
       </ng-template>
     </dynamic-material-form>
   </form>

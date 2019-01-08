@@ -26,7 +26,8 @@ export type FormType = {
 };
 
 export type SessionStoreType = {
-  [k: string]: Date;
+  // [k: string]: Date;
+  [k: string]: string;
 };
 
 export type ItemStoreType<T> = {
