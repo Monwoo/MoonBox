@@ -146,7 +146,10 @@ export const formModel = async (caller: FormCallable, patchData: any) => {
     (async () => {
       const session = caller.getCurrentSession();
       const d = { ...(session ? session.group.value : await formDefaults(caller)), ...patchData };
-      const suggestions = Object.keys((await caller.getSessionIds$().toPromise()) || {});
+      const sessionIds = (await caller.getSessionIds$().toPromise()) || {};
+      const suggestions = Object.keys(sessionIds).sort((ka, kb) => {
+        return new Date(sessionIds[kb]).getTime() - new Date(sessionIds[ka]).getTime();
+      });
 
       resolve([
         // new DynamicSelectModel({
