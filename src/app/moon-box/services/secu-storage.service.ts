@@ -664,7 +664,8 @@ export class SecuStorageService implements FormCallable {
           const k = secuKeys[i];
           this.currentSession = lastSession;
           const cpy = await this.getItem(k).toPromise();
-          await this.setItem(k, this.sessIds)
+          this.currentSession = currentSession;
+          await this.setItem(k, cpy)
             .pipe(tap(() => {}))
             .toPromise();
         }
