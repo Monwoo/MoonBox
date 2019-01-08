@@ -85,9 +85,12 @@ export class SecuStorageService implements FormCallable {
     private rendererFactory: RendererFactory2
   ) {
     this.renderer = this.rendererFactory.createRenderer(null, null);
-    this.checkLock();
     this.reloadLastSession();
+    // this.onUnlock.subscribe(() => {
+    //   // this.reloadLastSession(); // Infinit loop, since using same event to force view refresh...
+    // });
     // this.setCurrentSession(this.defaultSessionId).subscribe();
+    this.checkLock();
   }
 
   public checkLock() {
@@ -241,6 +244,9 @@ export class SecuStorageService implements FormCallable {
       return; // Lock screen is already displayed, avoid touchy side effect of quick dev algo...
     }
 
+    // Scroll to top to avoid design issue if lock down on scrolled page :
+    window.scrollTo(0, 0);
+
     await this.lockOut();
     // https://material.angular.io/components/dialog/api
     this.lockDialogRef = this.dialog.open(LockScreenComponent, {
@@ -349,7 +355,8 @@ export class SecuStorageService implements FormCallable {
     let isValid = 'ok' === lvl2;
     if (isValid) {
       this.setPassCode(rawCode, false);
-      this.onUnlock.next(null);
+      this.reloadLastSession();
+      // this.onUnlock.next(null); // TODO : refactor : make onUnlock private, will break stuff if called outside of     this.reloadLastSession();
     } else {
       await this.lockOut();
     }

@@ -466,6 +466,7 @@ export class BoxesComponent implements OnInit {
       acc[b] = true;
       return acc;
     }, {});
+    this.boxViews.notifyOnChanges();
   }
 
   addBox() {
