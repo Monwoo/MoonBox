@@ -91,6 +91,18 @@ export const MY_FORMATS = {
   }
 };
 
+export class UpdateSubject extends BehaviorSubject<boolean> {
+  public status = false;
+  constructor(init: boolean) {
+    super(init);
+    this.pipe(
+      tap(status => {
+        this.status = status;
+      })
+    );
+  }
+}
+
 @Component({
   selector: 'moon-boxes',
   templateUrl: './boxes.component.html',
@@ -589,18 +601,9 @@ export class BoxesComponent implements OnInit {
 
   // https://github.com/ReactiveX/rxdart/issues/128
   // https://stackoverflow.com/questions/38739499/anonymous-class-instance-is-it-a-bad-idea
-  isFormUpdating$ = new class extends BehaviorSubject<boolean> {
-    public status = false;
-    constructor(init: boolean) {
-      super(init);
-      this.pipe(
-        tap(status => {
-          this.status = status;
-        }),
-        filter(status => !status) // only keep isFormUpdating false events
-      );
-    }
-  }(false);
+  isFormUpdating$ = <UpdateSubject>new UpdateSubject(false).pipe(
+    filter(status => !status) // only keep isFormUpdating false events
+  );
 
   public get isFormUpdating(): boolean {
     logReview.debug('Get form Updating', this.isFormUpdating$.status);
@@ -618,9 +621,13 @@ export class BoxesComponent implements OnInit {
     public transforms: any = null;
     handle(caller: BoxesComponent, transforms: any) {
       return this.pipe(
+        tap(() => {
+          logReview.debug('Requesting filters form update');
+        }),
         debounce(() => caller.isFormUpdating$), // TODO : debounce until lock released...
         map(() => {
           caller.isFormUpdating$.next(true);
+          logReview.debug('Starting debounced filters form update');
           let resp = of(null);
           const self = caller;
 
@@ -693,11 +700,13 @@ export class BoxesComponent implements OnInit {
               tap(filtersData => {
                 logReview.debug('Finishing filters transforms : ', filtersData);
                 self.filters.data = filtersData; // filtersData need to be set for formDefaults to have right layout
-              }),
-              finalize(() => {
                 logReview.debug('Release form filter update lock');
                 caller.isFormUpdating$.next(false);
               })
+              // finalize(() => { // Why this code is not called ??
+              //   logReview.debug('Release form filter finalize update lock');
+              //   caller.isFormUpdating$.next(false);
+              // })
             );
           } else {
             caller.isFormUpdating$.next(false);
@@ -705,7 +714,12 @@ export class BoxesComponent implements OnInit {
             // caller.filters.group.patchValue(caller.filters.data);
           }
           return resp;
-        })
+        }),
+        mergeAll()
+        // finalize(() => { // Why this code is not called ??
+        //   logReview.debug('Release form filter update lock');
+        //   caller.isFormUpdating$.next(false);
+        // })
       ).subscribe();
     }
   }();
@@ -723,7 +737,7 @@ export class BoxesComponent implements OnInit {
     // TODO ? : rewrite using takeUntil etc ... ?
     // https://medium.com/@benlesh/rxjs-dont-unsubscribe-6753ed4fda87
     // https://medium.com/the-geeks-of-creately/cancelling-observables-rxjs-f4cf28c3b633
-
+    // https://www.learnrxjs.io/operators/filtering/filter.html
     return this.updateFormHandler$;
   }
 
