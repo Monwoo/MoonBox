@@ -615,7 +615,7 @@ export class BoxesComponent implements OnInit {
     this.isFormUpdating$.next(v);
   }
 
-  progressiveDelay = 100; // Used to avoid too much back calls on infinit fails...
+  // progressiveDelay = 100; // Used to avoid too much back calls on infinit fails...
   private updateFormSubcriber: Subscription = null;
   updateFormHandler$ = new class extends ReplaySubject<void> {
     public transforms: any = null;
@@ -625,6 +625,7 @@ export class BoxesComponent implements OnInit {
           logReview.debug('Requesting filters form update');
         }),
         debounce(() => caller.isFormUpdating$), // TODO : debounce until lock released...
+        debounceTime(500), // avoid multiple updates for focus/change/blur on checkmark checked...
         map(() => {
           caller.isFormUpdating$.next(true);
           logReview.debug('Starting debounced filters form update');
@@ -724,9 +725,10 @@ export class BoxesComponent implements OnInit {
     }
   }();
   updateForm(transforms: any = null) {
-    if (!this.updateFormSubcriber) {
-      this.updateFormSubcriber = this.updateFormHandler$.handle(this, transforms);
+    if (this.updateFormSubcriber) {
+      this.updateFormSubcriber.unsubscribe();
     }
+    this.updateFormSubcriber = this.updateFormHandler$.handle(this, transforms);
     this.updateFormHandler$.next();
 
     //formUpdateSubcriber: Subscription = null;
