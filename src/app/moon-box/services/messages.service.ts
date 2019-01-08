@@ -37,8 +37,11 @@ export class MessagesService {
 
   constructor(private storage: SecuStorageService) {
     this.storage.onUnlock.subscribe(() => {
-      this.clearMessages();
-      this.loadMsgsFromStorage();
+      if (!this.storage.isSessionGettingSetedUp) {
+        // Avoid quick session switching claches by ignoring refresh while setup :
+        this.clearMessages();
+        this.loadMsgsFromStorage();
+      }
     });
   }
 
@@ -137,6 +140,9 @@ export class MessagesService {
       //   })
       // );
       this.service.subscribe(msgs => {
+        // TODO: quick hack for now, need to rewrite session did switch ?
+        // => avoid messages wipe out if too fast session switch...
+        // if (shouldRewrite && this._shouldKeepMsgsInMemory) {
         if (this._shouldKeepMsgsInMemory) {
           this.keepMessagesInMemory();
         }

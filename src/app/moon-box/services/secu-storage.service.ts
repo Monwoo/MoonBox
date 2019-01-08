@@ -10,7 +10,7 @@ import {
   HostListener
 } from '@angular/core';
 import { environment } from '@env/environment';
-import { forkJoin, of, interval, Subscription, throwError } from 'rxjs';
+import { forkJoin, of, interval, Subscription, throwError, Observable } from 'rxjs';
 import { Md5 } from 'ts-md5/dist/md5';
 import { LocalStorage } from '@ngx-pwa/local-storage';
 import { MatDialog, MatDialogRef } from '@angular/material';
@@ -20,7 +20,7 @@ import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
 import { BackendService } from '@moon-box/services/backend.service';
 import { BehaviorSubject, ReplaySubject, from } from 'rxjs';
-import { map, combineLatest, tap, mergeAll, concatMap, debounceTime, catchError } from 'rxjs/operators';
+import { map, combineLatest, tap, mergeAll, concatMap, debounceTime, catchError, takeUntil } from 'rxjs/operators';
 import {
   ContextType,
   FormType,
@@ -536,7 +536,22 @@ export class SecuStorageService implements FormCallable {
       .subscribe();
   }
 
-  public setCurrentSession(sessId: string) {
+  private sessionAvailableForSetup$ = new ReplaySubject<void>();
+  // TODO : allow readonly only for public expose
+  public isSessionGettingSetedUp = false;
+  public setCurrentSession(sessId: string): Observable<boolean> {
+    if (this.isSessionGettingSetedUp) {
+      logReview.debug('Postponing set Current Session');
+      return from([takeUntil(this.sessionAvailableForSetup$), this.setCurrentSession(sessId)]).pipe(
+        concatMap((input: any, idx: number) => {
+          return input; // Only using concatMap to ensure tasks orders...
+        }),
+        mergeAll(),
+        map(() => true)
+      );
+    }
+    logReview.debug('Will set Current Session');
+    this.isSessionGettingSetedUp = true;
     this.sessIds[sessId] = new Date();
     return forkJoin(
       from([
@@ -558,8 +573,6 @@ export class SecuStorageService implements FormCallable {
             logReview.debug('Having session defaults : ', freshDefaults);
             this.session = freshDefaults;
             this.session$.next(this.session);
-            // Reset frontend UI by sending a secu onUnlock event.
-            this.onUnlock.next(null);
           })
         )
       ]).pipe(
@@ -583,6 +596,10 @@ export class SecuStorageService implements FormCallable {
       // mergeAll(), // To much ? already ended from fork join ?
       map(didSet => {
         logReview.debug('Did set session Ids : ', didSet);
+        this.isSessionGettingSetedUp = false;
+        // Reset frontend UI by sending a secu onUnlock event.
+        this.onUnlock.next(null);
+        this.sessionAvailableForSetup$.next();
         return true;
       })
     );
