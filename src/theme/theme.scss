@@ -24,28 +24,9 @@ body {
         box-shadow: none !important;
       */
       // outline: 1px auto $scrollThumbColor !important;
-      outline: 1px auto $monwooPrimary !important;
+      outline: 2px auto $monwooPrimary !important;
     }
     &:focus-within {
-    }
-  }
-
-  .mat-card {
-    margin: 15px 0px;
-    border-top: solid 1px $monwooSecondary;
-  }
-
-  .router-content {
-    @include media-breakpoint-down(md) {
-      padding: 1px;
-    }
-  }
-
-  .expand-trigger {
-    &:hover,
-    &:focus {
-      outline: 1px auto $monwooPrimary !important;
-      cursor: pointer;
     }
   }
 

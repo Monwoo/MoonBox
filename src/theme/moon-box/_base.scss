@@ -1,7 +1,41 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 @import "../theme-mixins";
 
+& {
+  color: $colorRegular;
+  background: $backgroundRegular;
+}
+
 .router-content {
+  // * {
+  //   &:focus {
+  //     outline: 2px auto $monwooPrimary !important;
+  //   }
+  //   &:focus-within {
+  //   }
+  // }
+
+  .mat-card {
+    margin: 15px 0px;
+    border-top: solid 2px $monwooSecondary;
+    color: $colorRegular;
+    background: $backgroundRegular;
+  }
+
+  .expand-trigger {
+    &:hover,
+    &:focus {
+      outline: 2px auto $monwooPrimary !important;
+      cursor: pointer;
+    }
+  }
+
+  .box-reader {
+    .expand-trigger {
+      margin-bottom: 14px;
+    }
+  }
+
   @include media-breakpoint-down(md) {
     padding: 0 7px 15px 7px;
   }
@@ -37,7 +71,9 @@
   .mat-expansion-panel {
     box-shadow: $boxShadowRegular;
   }
-
+  .mat-expansion-panel-header-title {
+    color: $colorRegular;
+  }
   .sticky {
     box-shadow: $boxShadowStrong;
     border-top: solid 2px $monwooPrimary;
@@ -61,5 +97,33 @@
     .session-addSession {
       text-align: right;
     }
+  }
+
+  .dz-message {
+    color: $colorRegular;
+    background: $backgroundRegular;
+  }
+
+  .mat-form-field-label {
+    color: $monwooSecondary;
+    &.mat-form-field-empty {
+      color: $colorLightRegular;
+    }
+  }
+  .mat-form-field-infix {
+    border-bottom: 1px solid $colorLightRegular;
+  }
+  .mat-select-value,
+  .mat-datepicker-toggle {
+    color: $colorRegular;
+  }
+  .mat-checkbox-checked .mat-checkbox-checkmark {
+    background: $monwooSecondary;
+  }
+  .mat-progress-bar-buffer {
+    color: $colorRegular;
+  }
+  .mat-checkbox-inner-container {
+    color: $colorRegular;
   }
 }

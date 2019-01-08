@@ -11,6 +11,7 @@ $dark-light-complementary: #777;
   // Ovewrite base theme constants
   $backgroundRegular: $dark-bg;
   $colorRegular: $dark-complementary;
+  $colorLightRegular: rgba(255, 255, 255, 0.26);
   $colorDisabled: rgba(255, 255, 255, 0.26);
   $boxShadowRegular: 0px 0px 3px 0px rgba(255, 255, 255, 0.25);
   $boxShadowStrong: none; // 0px 4px 3px 0px rgba(255, 255, 255, 0.25);
@@ -21,69 +22,8 @@ $dark-light-complementary: #777;
   // https://stackoverflow.com/questions/17741629/invert-color-using-css
   // -webkit-filter: invert(94%);
   // filter: invert(94%);
-  background: $dark-bg;
+  // background: $dark-bg;
 
-  // .mat-form-field-label-wrapper {
-  //   background: none;
-  // }
-  .mat-card {
-    border-top: solid 1px $monwooSecondary;
-    border-left: solid 1px rgba(255, 255, 255, 0.21);
-    border-right: solid 1px rgba(255, 255, 255, 0.21);
-    // box-shadow:
-    // 0 2px 1px -1px transparent,
-    // 0 1px 1px 0 rgba(255,255,255,.14),
-    // 0 1px 3px 0 rgba(255,255,255,.12);
-  }
-  footer {
-    .copyright {
-      a {
-        // TODO : remove !important hack by spliting theme by components
-        // and injecting SCSS mixin at end of each components to load appropriate
-        // availables themes
-        color: $monwooSecondary !important;
-      }
-    }
-  }
-  .router-content {
-    .mat-button.mat-primary,
-    .mat-icon-button.mat-primary,
-    .mat-stroked-button.mat-primary {
-      color: $monwooSecondary;
-    }
-  }
-
-  .dz-message {
-    background-color: $dark-bg !important;
-    color: $dark-complementary;
-  }
-
-  .mat-card {
-    background-color: $dark-bg;
-    color: $dark-complementary;
-  }
-  .mat-form-field-label {
-    color: $monwooSecondary;
-    &.mat-form-field-empty {
-      color: $dark-light-complementary;
-    }
-  }
-  .mat-form-field-infix {
-    border-bottom: 1px solid $dark-light-complementary;
-  }
-  .mat-select-value,
-  .mat-datepicker-toggle {
-    color: $dark-complementary;
-  }
-  .mat-checkbox-checked .mat-checkbox-checkmark {
-    background: $monwooSecondary;
-  }
-  .mat-progress-bar-buffer {
-    background-color: $dark-light-complementary;
-  }
-  .mat-checkbox-inner-container {
-    background-color: $dark-light-complementary;
-  }
   iframe {
     // TODO : may not render all emails right ? would be bette to apply it only if email content do not have body background or some text hidden due to dark background...
     filter: invert(100%);
