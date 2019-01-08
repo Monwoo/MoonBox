@@ -29,7 +29,7 @@ import { NotificationsService } from 'angular2-notifications';
 import { extract } from '@app/core';
 import { FormType as FiltersFormType } from '@moon-box/components/boxes/filters-form.model';
 import { debounceTime, delay, last, map, concatMap, mergeMap, tap, startWith, catchError } from 'rxjs/operators';
-import { fromEvent, of, from, Observable, BehaviorSubject } from 'rxjs';
+import { fromEvent, of, from, Observable, BehaviorSubject, Subscription } from 'rxjs';
 import * as moment from 'moment';
 
 import { Logger } from '@app/core/logger.service';
@@ -184,13 +184,21 @@ export class BoxReaderComponent implements OnInit {
     this.updateForm();
   }
 
+  // TODO ? : rewrite using takeUntil etc ... ?
+  // https://medium.com/@benlesh/rxjs-dont-unsubscribe-6753ed4fda87
+  // https://medium.com/the-geeks-of-creately/cancelling-observables-rxjs-f4cf28c3b633
+  formUpdateSubcriber: Subscription = null; // TODO : better design pattern with task chancelation and re-spawn from start ?
   isFormUpdating = false; // TODO : better design pattern with task chancelation and re-spawn from start ?
   progressiveDelay = 100; // Used to avoid too much back calls on infinit fails...
   async updateForm() {
     if (this.isFormUpdating) {
       this.progressiveDelay *= 2;
       logReview.debug('Postponing box-reader update');
-      of(true)
+
+      if (this.formUpdateSubcriber) {
+        this.formUpdateSubcriber.unsubscribe();
+      }
+      this.formUpdateSubcriber = of(true)
         .pipe(delay(this.progressiveDelay))
         .pipe(
           tap(_ => {
@@ -201,6 +209,11 @@ export class BoxReaderComponent implements OnInit {
       // re-spawn ?
       return;
     }
+    if (this.formUpdateSubcriber) {
+      this.formUpdateSubcriber.unsubscribe();
+      this.formUpdateSubcriber = null;
+    }
+
     this.isFormUpdating = true;
     this.progressiveDelay = 100;
     // Re-generate form : TODO remove code duplication

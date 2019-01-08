@@ -57,7 +57,8 @@ import {
   forkJoin,
   interval,
   Observable,
-  combineLatest as combineLatestFrom
+  combineLatest as combineLatestFrom,
+  Subscription
 } from 'rxjs';
 import { LocalStorage, JSONSchemaBoolean } from '@ngx-pwa/local-storage';
 
@@ -578,6 +579,7 @@ export class BoxesComponent implements OnInit {
     logReview.debug(`Material ${e.type} event on: ${e.model.id}: `, e);
   }
 
+  formUpdateSubcriber: Subscription = null; // TODO : better design pattern with task chancelation and re-spawn from start ?
   isFormUpdating = false; // TODO : better design pattern with task chancelation and re-spawn from start ?
   progressiveDelay = 100; // Used to avoid too much back calls on infinit fails...
   updateForm(transforms: any = null): Observable<any> {
@@ -593,10 +595,20 @@ export class BoxesComponent implements OnInit {
         .pipe(delay(this.progressiveDelay))
         .pipe(
           map(_ => {
-            // return forkJoin(this.updateForm(transforms));
-            return this.updateForm(transforms).subscribe();
+            if (this.formUpdateSubcriber) {
+              this.formUpdateSubcriber.unsubscribe();
+            }
+            this.formUpdateSubcriber = this.updateForm(transforms).subscribe();
+            return this.formUpdateSubcriber;
           })
         );
+    }
+    if (this.formUpdateSubcriber) {
+      // TODO ? : rewrite using takeUntil etc ... ?
+      // https://medium.com/@benlesh/rxjs-dont-unsubscribe-6753ed4fda87
+      // https://medium.com/the-geeks-of-creately/cancelling-observables-rxjs-f4cf28c3b633
+      this.formUpdateSubcriber.unsubscribe();
+      this.formUpdateSubcriber = null;
     }
     this.isFormUpdating = true;
     this.progressiveDelay = 100;
