@@ -58,7 +58,8 @@ import {
   interval,
   Observable,
   combineLatest as combineLatestFrom,
-  Subscription
+  Subscription,
+  ReplaySubject
 } from 'rxjs';
 import { LocalStorage, JSONSchemaBoolean } from '@ngx-pwa/local-storage';
 
@@ -597,7 +598,33 @@ export class BoxesComponent implements OnInit {
   }
 
   progressiveDelay = 100; // Used to avoid too much back calls on infinit fails...
+  private updateFormSubcriber: Subscription = null;
+  private updateFormHandler$ = new ReplaySubject<HTMLFormElement>();
   updateForm(transforms: any = null): Observable<any> {
+    this.updateFormSubcriber = this.updateFormHandler$
+      .pipe(
+        debounceTime(500), // TODO : debounce until lock released...
+        tap((formRef: HTMLFormElement) => {
+          if (this.session.group.valid) {
+            const sessData = <FormType>this.session.group.value;
+            const keyExist = !!this.sessIds[sessData.currentSession];
+            if (keyExist) {
+              this.renderer.addClass(formRef, 'condensed');
+              if (updateSession) {
+                this.setCurrentSession(sessData.currentSession).subscribe();
+              }
+            } else {
+              this.renderer.removeClass(formRef, 'condensed');
+            }
+          }
+        })
+      )
+      .subscribe();
+
+    // TODO : refactor below code as debouncable event system
+
+    return this.updateFormHandler$;
+
     // https://stackblitz.com/edit/angular-kgppaa?file=src%2Fapp%2Fapp.component.html
     // https://github.com/udos86/ng-dynamic-forms/issues/774
     // https://github.com/udos86/ng-dynamic-forms/blob/f9d1da46a2daa687a011f3bd352b00694216b070/sample/app/ui-material/material-sample-form.component.html
