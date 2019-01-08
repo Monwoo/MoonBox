@@ -47,7 +47,10 @@ import {
   combineAll,
   concatAll,
   catchError,
-  share
+  share,
+  debounce,
+  filter,
+  finalize
 } from 'rxjs/operators';
 import {
   fromEvent,
@@ -584,193 +587,144 @@ export class BoxesComponent implements OnInit {
     logReview.debug(`Material ${e.type} event on: ${e.model.id}: `, e);
   }
 
-  formUpdateSubcriber: Subscription = null; // TODO : better design pattern with task chancelation and re-spawn from start ?
-  _isFormUpdating = false; // TODO : better design pattern with task chancelation and re-spawn from start ?
+  // https://github.com/ReactiveX/rxdart/issues/128
+  // https://stackoverflow.com/questions/38739499/anonymous-class-instance-is-it-a-bad-idea
+  isFormUpdating$ = new class extends BehaviorSubject<boolean> {
+    public status = false;
+    constructor(init: boolean) {
+      super(init);
+      this.pipe(
+        tap(status => {
+          this.status = status;
+        }),
+        filter(status => !status) // only keep isFormUpdating false events
+      );
+    }
+  }(false);
 
   public get isFormUpdating(): boolean {
-    logReview.debug('Get form Updating', this._isFormUpdating);
-    return this._isFormUpdating;
+    logReview.debug('Get form Updating', this.isFormUpdating$.status);
+    return this.isFormUpdating$.status;
   }
 
   public set isFormUpdating(v: boolean) {
     logReview.debug('Set form Updating', v);
-    this._isFormUpdating = v;
+    this.isFormUpdating$.next(v);
   }
 
   progressiveDelay = 100; // Used to avoid too much back calls on infinit fails...
   private updateFormSubcriber: Subscription = null;
-  private updateFormHandler$ = new ReplaySubject<HTMLFormElement>();
-  updateForm(transforms: any = null): Observable<any> {
-    this.updateFormSubcriber = this.updateFormHandler$
-      .pipe(
-        debounceTime(500), // TODO : debounce until lock released...
-        tap((formRef: HTMLFormElement) => {
-          if (this.session.group.valid) {
-            const sessData = <FormType>this.session.group.value;
-            const keyExist = !!this.sessIds[sessData.currentSession];
-            if (keyExist) {
-              this.renderer.addClass(formRef, 'condensed');
-              if (updateSession) {
-                this.setCurrentSession(sessData.currentSession).subscribe();
-              }
-            } else {
-              this.renderer.removeClass(formRef, 'condensed');
-            }
+  updateFormHandler$ = new class extends ReplaySubject<void> {
+    public transforms: any = null;
+    handle(caller: BoxesComponent, transforms: any) {
+      return this.pipe(
+        debounce(() => caller.isFormUpdating$), // TODO : debounce until lock released...
+        map(() => {
+          caller.isFormUpdating$.next(true);
+          let resp = of(null);
+          const self = caller;
+
+          if (caller.filters) {
+            resp = caller.storage.getItem<FormType>('moon-box-filters', filtersInitialState(caller)).pipe(
+              tap(filtersData => {
+                logReview.debug('Reading filters from storage : ', filtersData);
+                if (caller.updateFormHandler$.transforms) {
+                  // TODO : all caller code is Quick Run code => possible to clean, have more condensed way than switching with transforms ? Empiricly done for now...
+                  self.filters.data = caller.updateFormHandler$.transforms; // filtersData need to be set for formDefaults to have right layout
+                } else {
+                  self.filters.data = filtersData; // filtersData need to be set for formDefaults to have right layout
+                }
+              }),
+              // map(f => of(f)),
+              // https://github.com/Reactive-Extensions/RxJS/issues/1437
+              // https://stackoverflow.com/questions/47052977/withlatestfrom-does-not-emit-value
+              // https://gist.github.com/whiteinge/9dab34105233871f3d660d9b1056a7ad
+              // https://www.learnrxjs.io/operators/combination/withlatestfrom.html
+              combineLatest(
+                // withLatestFrom(
+                // forkJoin([
+                // interval(1000).pipe(
+                //   tap(defaultF => {
+                //     logReview.debug('LatestFrom OK');
+                //   })
+                // )
+                // ])
+                from(contextDefaults(caller)).pipe(
+                  tap(defaultF => {
+                    logReview.debug('Having filters defaults : ', defaultF);
+                  })
+                )
+                // [from([formDefaults(caller)]).pipe(
+                //   concatMap(p => p),
+                //   // mergeAll(), // concatAll(), //
+                //   tap(defaultF => {
+                //     logReview.debug('Having filters defaults : ', defaultF);
+                //   })
+                // )]
+              ),
+              // mergeAll(),
+              // map(([filtersData, defaultsPromise]) => [filtersData, forkJoin([defaultsPromise])]),
+              map(([filtersData, freshDefaults]) => {
+                self.filters = freshDefaults;
+                // TODO : caller not linked to caller class, why only here ? (when using forkJoin, may be typo of old code ?)
+                self.filters.data = <FormType>shallowMerge(1, freshDefaults.data, filtersData);
+                if (transforms) {
+                  self.filters.data = <FormType>shallowMerge(1, self.filters.data, transforms);
+                }
+                // Done in msgs.service listener of MessagesService on property setter :
+                // caller.msgs.shouldKeepMsgsInMemory(self.filters.data.keepMessagesInMemory);
+                caller.msgs.shouldKeepMsgsInMemory = self.filters.group.value.keepMessagesInMemory;
+                // TODO : need to Await ng Zone if using it ? :
+                self.ngZone.run(() => {
+                  logReview.debug('Patching filters form : ', self.filters.data);
+                  self.filters.group.patchValue(self.filters.data);
+                  // self.filtersForm = self.filtersFormRef.nativeElement;
+                  // TODO : do on filters did change event...
+                  self.mbegKeyTransformerControl = self.filters.group.get(
+                    'params.moonBoxEmailsGrouping.mbegKeyTransformer'
+                  ) as FormArray;
+                  self.mbegKeyTransformerModel = self.formService.findById(
+                    'mbegKeyTransformer',
+                    self.filters.model
+                  ) as DynamicFormArrayModel;
+                });
+                return self.filters.data;
+              }),
+              tap(filtersData => {
+                logReview.debug('Finishing filters transforms : ', filtersData);
+                self.filters.data = filtersData; // filtersData need to be set for formDefaults to have right layout
+              }),
+              finalize(() => {
+                logReview.debug('Release form filter update lock');
+                caller.isFormUpdating$.next(false);
+              })
+            );
+          } else {
+            caller.isFormUpdating$.next(false);
+            logReview.debug('No filters yet defined');
+            // caller.filters.group.patchValue(caller.filters.data);
           }
+          return resp;
         })
-      )
-      .subscribe();
+      ).subscribe();
+    }
+  }();
+  updateForm(transforms: any = null) {
+    if (!this.updateFormSubcriber) {
+      this.updateFormSubcriber = this.updateFormHandler$.handle(this, transforms);
+    }
+    this.updateFormHandler$.next();
 
-    // TODO : refactor below code as debouncable event system
-
-    return this.updateFormHandler$;
-
+    //formUpdateSubcriber: Subscription = null;
     // https://stackblitz.com/edit/angular-kgppaa?file=src%2Fapp%2Fapp.component.html
     // https://github.com/udos86/ng-dynamic-forms/issues/774
     // https://github.com/udos86/ng-dynamic-forms/blob/f9d1da46a2daa687a011f3bd352b00694216b070/sample/app/ui-material/material-sample-form.component.html
     //
-    // TODO: add sentinnel to avoid multi parallel calls ??
-    if (this.isFormUpdating) {
-      this.progressiveDelay *= 2;
-      // setup dummy formUpdateSubcriber to initiate delayed subscription ?
-      // Or : if form already updating : drop other event ?
-      // logReview.debug('Dropping boxes filters update');
-      // return of(false);
-      if (this.formUpdateSubcriber) {
-        this.formUpdateSubcriber.unsubscribe();
-        this.formUpdateSubcriber = null;
-      }
-      logReview.debug('Postponing boxes filters update');
-      const delayor = new Promise(resolve => {
-        this.formUpdateSubcriber = of(true)
-          .pipe(delay(this.progressiveDelay))
-          .pipe(
-            tap(() => {
-              // DONE : better design pattern, unsubscribe
-              // from here will not interupt mapped call after delay,
-              // only interupting update form call...
-              // if (!this.formUpdateSubcriber) {
-              //   logReview.debug('Dummy Hack ?');
-              //   return;
-              // }
-              // if (this.formUpdateSubcriber) {
-              //   this.formUpdateSubcriber.unsubscribe();
-              // }
-              // this.formUpdateSubcriber = this.updateForm(transforms).subscribe();
-              const res = this.updateForm(transforms);
-              resolve(res);
-              // this.formUpdateSubcriber = res.subscribe();
-              this.formUpdateSubcriber = null;
-            })
-          )
-          .subscribe();
-      });
-      return from(delayor); //
-    }
-    if (this.formUpdateSubcriber) {
-      // TODO ? : rewrite using takeUntil etc ... ?
-      // https://medium.com/@benlesh/rxjs-dont-unsubscribe-6753ed4fda87
-      // https://medium.com/the-geeks-of-creately/cancelling-observables-rxjs-f4cf28c3b633
-      this.formUpdateSubcriber.unsubscribe();
-      this.formUpdateSubcriber = null;
-    }
-    this.isFormUpdating = true;
-    this.progressiveDelay = 100;
+    // TODO ? : rewrite using takeUntil etc ... ?
+    // https://medium.com/@benlesh/rxjs-dont-unsubscribe-6753ed4fda87
+    // https://medium.com/the-geeks-of-creately/cancelling-observables-rxjs-f4cf28c3b633
 
-    let resp = of(null);
-    const self = this;
-    // Load from params from local storage ? :
-    if (this.filters) {
-      /*
-      resp = from([// forkJoin( ....... map((juncture:any[]) => { .... const [filtersData, freshDefaults] = juncture;
-        this.storage.getItem<FormType>('moon-box-filters', {}).pipe(tap(filtersData => {
-          logReview.debug('Reading filters from storage : ', filtersData);
-          self.filters.data = filtersData; // filtersData need to be set for formDefaults to have right layout
-        })),
-        from(formDefaults(this)).pipe(tap(defaultF => {
-          logReview.debug('Having filters defaults : ', defaultF);
-        })),
-      ]).pipe(//concatMap((r:FormType, idx)=>r), concatAll(),
-      mergeMap(q => forkJoin(q)), map((juncture:any[]) => {
-        const [filtersData, freshDefaults] = juncture;
-      */
-      resp = this.storage.getItem<FormType>('moon-box-filters', filtersInitialState(this)).pipe(
-        tap(filtersData => {
-          logReview.debug('Reading filters from storage : ', filtersData);
-          if (transforms) {
-            // TODO : all this code is Quick Run code => possible to clean, have more condensed way than switching with transforms ? Empiricly done for now...
-            self.filters.data = transforms; // filtersData need to be set for formDefaults to have right layout
-          } else {
-            self.filters.data = filtersData; // filtersData need to be set for formDefaults to have right layout
-          }
-        }),
-        // map(f => of(f)),
-        // https://github.com/Reactive-Extensions/RxJS/issues/1437
-        // https://stackoverflow.com/questions/47052977/withlatestfrom-does-not-emit-value
-        // https://gist.github.com/whiteinge/9dab34105233871f3d660d9b1056a7ad
-        // https://www.learnrxjs.io/operators/combination/withlatestfrom.html
-        combineLatest(
-          // withLatestFrom(
-          // forkJoin([
-          // interval(1000).pipe(
-          //   tap(defaultF => {
-          //     logReview.debug('LatestFrom OK');
-          //   })
-          // )
-          // ])
-          from(contextDefaults(this)).pipe(
-            tap(defaultF => {
-              logReview.debug('Having filters defaults : ', defaultF);
-            })
-          )
-          // [from([formDefaults(this)]).pipe(
-          //   concatMap(p => p),
-          //   // mergeAll(), // concatAll(), //
-          //   tap(defaultF => {
-          //     logReview.debug('Having filters defaults : ', defaultF);
-          //   })
-          // )]
-        ),
-        // mergeAll(),
-        // map(([filtersData, defaultsPromise]) => [filtersData, forkJoin([defaultsPromise])]),
-        map(([filtersData, freshDefaults]) => {
-          self.filters = freshDefaults;
-          // TODO : this not linked to this class, why only here ? (when using forkJoin, may be typo of old code ?)
-          self.filters.data = <FormType>shallowMerge(1, freshDefaults.data, filtersData);
-          if (transforms) {
-            self.filters.data = <FormType>shallowMerge(1, self.filters.data, transforms);
-          }
-          // Done in msgs.service listener of MessagesService on property setter :
-          // this.msgs.shouldKeepMsgsInMemory(self.filters.data.keepMessagesInMemory);
-          this.msgs.shouldKeepMsgsInMemory = self.filters.group.value.keepMessagesInMemory;
-          // TODO : need to Await ng Zone if using it ? :
-          self.ngZone.run(() => {
-            logReview.debug('Patching filters form : ', self.filters.data);
-            self.filters.group.patchValue(self.filters.data);
-            // self.filtersForm = self.filtersFormRef.nativeElement;
-            // TODO : do on filters did change event...
-            self.mbegKeyTransformerControl = self.filters.group.get(
-              'params.moonBoxEmailsGrouping.mbegKeyTransformer'
-            ) as FormArray;
-            self.mbegKeyTransformerModel = self.formService.findById(
-              'mbegKeyTransformer',
-              self.filters.model
-            ) as DynamicFormArrayModel;
-          });
-          return self.filters.data;
-        }),
-        tap(filtersData => {
-          logReview.debug('Finishing filters transforms : ', filtersData);
-          this.isFormUpdating = false;
-          self.filters.data = filtersData; // filtersData need to be set for formDefaults to have right layout
-        })
-      );
-    } else {
-      this.isFormUpdating = false;
-      logReview.debug('No filters yet defined');
-      // this.filters.group.patchValue(this.filters.data);
-    }
-    return resp;
+    return this.updateFormHandler$;
   }
 
   ngOnInit() {
