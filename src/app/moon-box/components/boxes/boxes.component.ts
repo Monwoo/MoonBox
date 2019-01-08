@@ -590,18 +590,38 @@ export class BoxesComponent implements OnInit {
     // TODO: add sentinnel to avoid multi parallel calls ??
     if (this.isFormUpdating) {
       this.progressiveDelay *= 2;
+      // setup dummy formUpdateSubcriber to initiate delayed subscription ?
+      // Or : if form already updating : drop other event ?
+      // logReview.debug('Dropping boxes filters update');
+      // return of(false);
+      if (this.formUpdateSubcriber) {
+        this.formUpdateSubcriber.unsubscribe();
+      }
       logReview.debug('Postponing boxes filters update');
-      return of(true)
-        .pipe(delay(this.progressiveDelay))
-        .pipe(
-          map(_ => {
-            if (this.formUpdateSubcriber) {
-              this.formUpdateSubcriber.unsubscribe();
-            }
-            this.formUpdateSubcriber = this.updateForm(transforms).subscribe();
-            return this.formUpdateSubcriber;
-          })
-        );
+      const delayor = new Promise(resolve => {
+        this.formUpdateSubcriber = of(true)
+          .pipe(delay(this.progressiveDelay))
+          .pipe(
+            tap(() => {
+              // DONE : better design pattern, unsubscribe
+              // from here will not interupt mapped call after delay,
+              // only interupting update form call...
+              // if (!this.formUpdateSubcriber) {
+              //   logReview.debug('Dummy Hack ?');
+              //   return;
+              // }
+              // if (this.formUpdateSubcriber) {
+              //   this.formUpdateSubcriber.unsubscribe();
+              // }
+              // this.formUpdateSubcriber = this.updateForm(transforms).subscribe();
+              const res = this.updateForm(transforms);
+              resolve(res);
+              this.formUpdateSubcriber = res.subscribe();
+            })
+          )
+          .subscribe();
+      });
+      return from(delayor); //
     }
     if (this.formUpdateSubcriber) {
       // TODO ? : rewrite using takeUntil etc ... ?
