@@ -1,7 +1,7 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, of, ReplaySubject } from 'rxjs';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { pluck, map, tap } from 'rxjs/operators';
 
@@ -26,7 +26,7 @@ export const initialState: MsgsStateType = {};
 })
 export class MessagesService {
   private msgs: MsgsStateType = { ...initialState };
-  public service: BehaviorSubject<MsgsStateType> = new BehaviorSubject(this.msgs);
+  public service = new ReplaySubject<MsgsStateType>();
   public numResults: number = 0;
   public totalCount: number = 0;
   public availability: {} = {};
@@ -37,11 +37,17 @@ export class MessagesService {
 
   constructor(private storage: SecuStorageService) {
     this.storage.onUnlock.subscribe(() => {
-      if (!this.storage.isSessionGettingSetedUp) {
-        // Avoid quick session switching claches by ignoring refresh while setup :
-        this.clearMessages();
-        this.loadMsgsFromStorage();
-      }
+      this.reloadMsgsFromStorage();
+      // if (!this.storage.isSessionGettingSetedUp) {
+      //   // Avoid quick session switching claches by ignoring refresh while setup ?
+      //   this.reloadMsgsFromStorage();
+      //   this.loadMsgsFromStorage();
+      // }
+    });
+
+    this.service.subscribe(msgs => {
+      // <- will subscribe on each service instanciation...
+      this.ensureLocaleMemorySyncForMsgs();
     });
   }
 
@@ -113,14 +119,27 @@ export class MessagesService {
     this.service.next(this.msgs);
   }
 
-  clearMessages() {
+  private clearLocalMessages() {
     this.msgs = { ...initialState };
     this.suggestionDict = {};
     this.totalCount = 0;
     this.numResults = 0;
     this.availability = {};
     this.totalAvailable = 0;
+  }
+
+  clearMessages() {
+    this.clearLocalMessages();
+    // TODO : better design, hard to understand that somewhere
+    // on service listener messages get's save if user did check save
+    // Msgs option on filters form...
+    // => should clear storage ? How many buggy side effect for this fix ?
     this.service.next(this.msgs);
+  }
+
+  reloadMsgsFromStorage() {
+    this.clearLocalMessages();
+    this.loadMsgsFromStorage();
   }
 
   loadMsgsFromStorage() {
@@ -139,14 +158,14 @@ export class MessagesService {
       //     }
       //   })
       // );
-      this.service.subscribe(msgs => {
-        // TODO: quick hack for now, need to rewrite session did switch ?
-        // => avoid messages wipe out if too fast session switch...
-        // if (shouldRewrite && this._shouldKeepMsgsInMemory) {
-        if (this._shouldKeepMsgsInMemory) {
-          this.keepMessagesInMemory();
-        }
-      });
+      // this.service.subscribe(msgs => { // <- will subscribe on each method call...
+      //   // TODO: quick hack for now, need to rewrite session did switch ?
+      //   // => avoid messages wipe out if too fast session switch...
+      //   // if (shouldRewrite && this._shouldKeepMsgsInMemory) {
+      //   // if (this._shouldKeepMsgsInMemory) {
+      //   //   this.keepMessagesInMemory(); // <- will not call since not .subscribe()...
+      //   // }
+      // });
     });
   }
 
@@ -168,10 +187,28 @@ export class MessagesService {
     return of(bundle);
   }
 
-  _shouldKeepMsgsInMemory = false;
-  shouldKeepMsgsInMemory(should: boolean) {
+  // _shouldKeepMsgsInMemory = false;
+  // shouldKeepMsgsInMemory(should: boolean) {
+  //   this._shouldKeepMsgsInMemory = should;
+  //   if (should) {
+  //     this.keepMessagesInMemory().subscribe(); // TODO : better design pattern to avoid subscription... ?
+  //   } else {
+  //     this.removeMessagesFromMemory().subscribe(); // TODO : better design pattern to avoid subscription... ?
+  //   }
+  // }
+  private _shouldKeepMsgsInMemory = false;
+
+  public set shouldKeepMsgsInMemory(should: boolean) {
     this._shouldKeepMsgsInMemory = should;
-    if (should) {
+    this.ensureLocaleMemorySyncForMsgs();
+  }
+
+  public get shouldKeepMsgsInMemory(): boolean {
+    return this._shouldKeepMsgsInMemory;
+  }
+
+  ensureLocaleMemorySyncForMsgs() {
+    if (this.shouldKeepMsgsInMemory) {
       this.keepMessagesInMemory().subscribe(); // TODO : better design pattern to avoid subscription... ?
     } else {
       this.removeMessagesFromMemory().subscribe(); // TODO : better design pattern to avoid subscription... ?

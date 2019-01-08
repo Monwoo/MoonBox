@@ -702,7 +702,9 @@ export class BoxesComponent implements OnInit {
           if (transforms) {
             self.filters.data = <FormType>shallowMerge(1, self.filters.data, transforms);
           }
-          this.msgs.shouldKeepMsgsInMemory(self.filters.data.keepMessagesInMemory);
+          // Done in msgs.service listener of MessagesService on property setter :
+          // this.msgs.shouldKeepMsgsInMemory(self.filters.data.keepMessagesInMemory);
+          this.msgs.shouldKeepMsgsInMemory = self.filters.group.value.keepMessagesInMemory;
           // TODO : need to Await ng Zone if using it ? :
           self.ngZone.run(() => {
             logReview.debug('Patching filters form : ', self.filters.data);
