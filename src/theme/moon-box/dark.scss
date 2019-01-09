@@ -12,6 +12,7 @@ $dark-light-complementary: #777;
   $backgroundRegular: $dark-bg;
   $colorRegular: $dark-complementary;
   $colorLightRegular: rgba(255, 255, 255, 0.26);
+  $colorLightStrong: rgba(255, 255, 255, 0.69) !default;
   $colorDisabled: rgba(255, 255, 255, 0.26);
   $boxShadowRegular: 0px 0px 3px 0px rgba(255, 255, 255, 0.25);
   $boxShadowStrong: none; // 0px 4px 3px 0px rgba(255, 255, 255, 0.25);
