@@ -7,26 +7,41 @@ $dark-bg: #000000;
 $dark-complementary: #ffffff;
 $dark-light-complementary: #777;
 
-.dark-theme {
-  // Ovewrite base theme constants
-  $backgroundRegular: $dark-bg;
-  $colorRegular: $dark-complementary;
-  $colorLightRegular: rgba(255, 255, 255, 0.26);
-  $colorLightStrong: rgba(255, 255, 255, 0.69) !default;
-  $colorDisabled: rgba(255, 255, 255, 0.26);
-  $boxShadowRegular: 0px 0px 3px 0px rgba(255, 255, 255, 0.25);
-  $boxShadowStrong: none; // 0px 4px 3px 0px rgba(255, 255, 255, 0.25);
-  $monwooSecondary: lighten($monwooSecondary, 42%);
-  @import "base";
+// Ovewrite base theme constants
+$backgroundRegular: $dark-bg;
+$colorRegular: $dark-complementary;
+$colorLightRegular: rgba(255, 255, 255, 0.26);
+$colorLightStrong: rgba(255, 255, 255, 0.69);
+$colorDisabled: rgba(255, 255, 255, 0.26);
+$boxShadowRegular: 0px 0px 3px 0px rgba(255, 255, 255, 0.25);
+$boxShadowStrong: none; // 0px 4px 3px 0px rgba(255, 255, 255, 0.25);
+$monwooSecondary: lighten($monwooSecondary, 42%);
 
-  // Inspired from : https://davidwalsh.name/invert-colors-css
-  // https://stackoverflow.com/questions/17741629/invert-color-using-css
-  // -webkit-filter: invert(94%);
-  // filter: invert(94%);
-  // background: $dark-bg;
+$themeClass: "dark-theme";
+$themeHost: "moon-box-#{$themeClass}";
 
-  iframe {
-    // TODO : may not render all emails right ? would be bette to apply it only if email content do not have body background or some text hidden due to dark background...
-    filter: invert(100%);
+// https://stackoverflow.com/questions/16108103/append-the-parent-selector-to-the-end-with-sass
+// :host-context(.#{$themeHost}) ::ng-deep & {
+// https://blog.angular-university.io/angular-host-context/
+// https://stackoverflow.com/questions/46786986/how-and-where-to-use-ng-deep
+
+//   encapsulation: ViewEncapsulation.None, => :host ::ng-deep etc... will not get's interpreted
+// :host-context(.#{$themeHost}) ::ng-deep {
+.#{$themeHost} {
+  @import "base.host";
+
+  .#{$themeClass} {
+    @import "base";
+
+    // Inspired from : https://davidwalsh.name/invert-colors-css
+    // https://stackoverflow.com/questions/17741629/invert-color-using-css
+    // -webkit-filter: invert(94%);
+    // filter: invert(94%);
+    // background: $dark-bg;
+
+    iframe {
+      // TODO : may not render all emails right ? would be bette to apply it only if email content do not have body background or some text hidden due to dark background...
+      filter: invert(100%);
+    }
   }
 }

@@ -1,6 +1,14 @@
 // Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
 @import "../theme-mixins";
 
-.light-theme {
-  @import "base";
+$themeClass: "light-theme";
+$themeHost: "moon-box-#{$themeClass}";
+
+//   encapsulation: ViewEncapsulation.None, => :host ::ng-deep etc... will not get's interpreted
+// :host-context(.#{$themeHost}) ::ng-deep {
+.#{$themeHost} {
+  @import "base.host";
+  .#{$themeClass} {
+    @import "base";
+  }
 }

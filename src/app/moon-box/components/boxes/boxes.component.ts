@@ -327,9 +327,9 @@ export class BoxesComponent implements OnInit, OnChanges {
 
   @HostListener('window:scroll', ['$event'])
   checkScroll() {
-    if (this.innerWidth < this.size.md) {
-      return; // ignoring sticky effect for mobile devices
-    }
+    // if (this.innerWidth < this.size.md) {
+    //   return; // ignoring sticky effect for mobile devices
+    // }
 
     if (!this.stickyContainer) return; // will waith for sticky to be displayed
     const deltaScrollAvailable = document.body.scrollHeight - document.body.clientHeight;

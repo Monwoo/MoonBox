@@ -131,11 +131,25 @@
     background: $backgroundRegular;
   }
 
+  .filters-container {
+    .mat-expansion-panel-header {
+      height: auto !important;
+      min-height: 64px;
+    }
+  }
+
   i {
     font-size: 16pt;
   }
   .legual {
     color: $colorLightStrong;
+
+    h4 {
+      border-bottom: 1px solid $colorLightRegular;
+      color: $colorRegular;
+      font-style: italic;
+      font-style: oblique;
+    }
 
     i {
       font-size: 24pt;

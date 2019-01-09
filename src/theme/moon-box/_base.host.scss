@@ -1,0 +1,29 @@
+// Copyright Monwoo 2018-2019, made by Miguel Monwoo, service@monwoo.com
+@import "../theme-mixins";
+
+// https://blog.angular-university.io/angular-host-context/
+// https://stackoverflow.com/questions/46786986/how-and-where-to-use-ng-deep
+// :host-context(body) { // ::ng-deep { // Not working from here since this file is embed ?
+
+// https://github.com/gdi2290/angular-starter/issues/492
+// https://angular.io/api/core/ViewEncapsulation
+// https://blog.thoughtram.io/angular/2015/06/29/shadow-dom-strategies-in-angular2.html
+// https://angular.io/guide/component-styles#view-encapsulation
+// https://github.com/angular/angular-cli/issues/6898
+
+// encapsulation: ViewEncapsulation.None, => :host ::ng-deep etc... will not get's interpreted
+// :host-context(.#{$themeHost}) .cdk-overlay-container {
+.cdk-overlay-container {
+  .mat-autocomplete-panel,
+  .mat-select-panel {
+    @include applyScrollbarTheming();
+
+    color: $colorRegular;
+    background: $backgroundRegular;
+    border: 1px solid $colorLightRegular;
+  }
+}
+
+.mat-option {
+  color: $colorLightStrong;
+}
