@@ -132,9 +132,56 @@
   }
 
   .filters-container {
+    @include applyScrollbarTheming();
+    border-top: solid 2px $monwooPrimary;
+    border-bottom: solid 2px $monwooPrimary;
+
     .mat-expansion-panel-header {
+      position: relative;
       height: auto !important;
       min-height: 64px;
+      // .mat-expansion-panel-header-title {
+      //   // min-width: 400px; // Giving space for btn to not overlap date fields
+      // }
+      .mat-expansion-panel-header-description {
+        // @include media-breakpoint-down(md) {
+        //   padding-bottom: 69px; // compensate bottom negative margin
+        // }
+        @include media-breakpoint-up(md) {
+          padding-left: 400px; // Giving space for btn to not overlap date fields
+        }
+      }
+    }
+
+    &.mat-expanded {
+      .mat-expansion-panel-content {
+        // margin-top: -69px;
+        @include media-breakpoint-up(md) {
+          margin-top: -69px; // make it up only for MD size screen
+        }
+        // https://stackoverflow.com/questions/16730597/apply-css-properties-when-transition-ends/16731051#16731051
+        // transition: margin 300ms 400ms;
+        transition: margin 0ms 32ms;
+
+        // TODO ? :
+        // https://css-tricks.com/animations-the-angular-way/
+        // https://angular.io/guide/animations
+        // &.ng-animate {
+        //   margin-top: 0px;
+        // }
+      }
+    }
+    .periode {
+      margin-top: 15px;
+    }
+  }
+
+  .boxes-configs-container {
+    &.mat-expanded {
+      .mat-expansion-panel-content {
+        margin-top: -32px;
+        transition: margin 0ms 42ms;
+      }
     }
   }
 

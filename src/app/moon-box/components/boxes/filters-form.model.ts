@@ -210,9 +210,15 @@ export const formModel = async (caller: any) => {
           // https://material.angular.io/components/datepicker/overview#internationalization
           id: 'periode',
           group: [
+            // https://material.angularjs.org/latest/demo/datepicker
+            // https://material.angular.io/components/datepicker/overview
+            // https://blog.angular.io/taking-advantage-of-the-angular-material-datepicker-237e80fa14b3
             new DynamicDatePickerModel({
               id: 'fetchStart',
               inline: false,
+              // additional: {
+              //   autoComplete: 'off',
+              // },
               // validators: { required: null },
               placeholder: await fetchTrans(extract('mb.boxes.filter.start.plhdr'))
             }),
@@ -220,6 +226,9 @@ export const formModel = async (caller: any) => {
             new DynamicDatePickerModel({
               id: 'fetchEnd',
               inline: false,
+              // additional: {
+              //   autoComplete: 'off',
+              // },
               // validators: { required: null },
               placeholder: await fetchTrans(extract('mb.boxes.filter.end.plhdr'))
             })

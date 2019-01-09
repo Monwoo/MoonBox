@@ -129,45 +129,6 @@
     padding: 7px;
   }
 
-  .filters-container {
-    @include applyScrollbarTheming();
-    border-top: solid 2px $monwooPrimary;
-    border-bottom: solid 2px $monwooPrimary;
-
-    .mat-expansion-panel-header {
-      position: relative;
-    }
-
-    &.mat-expanded {
-      .mat-expansion-panel-content {
-        margin-top: -69px;
-        // https://stackoverflow.com/questions/16730597/apply-css-properties-when-transition-ends/16731051#16731051
-        // transition: margin 300ms 400ms;
-        transition: margin 0ms 32ms;
-
-        // TODO ? :
-        // https://css-tricks.com/animations-the-angular-way/
-        // https://angular.io/guide/animations
-        // &.ng-animate {
-        //   margin-top: 0px;
-        // }
-      }
-    }
-
-    .periode {
-      margin-top: 15px;
-    }
-  }
-
-  .boxes-configs-container {
-    &.mat-expanded {
-      .mat-expansion-panel-content {
-        margin-top: -32px;
-        transition: margin 0ms 42ms;
-      }
-    }
-  }
-
   // https://blog.theodo.fr/2018/01/responsive-iframes-css-trick/
   // https://stackoverflow.com/questions/819416/adjust-width-and-height-of-iframe-to-fit-with-content-in-it
   // https://stackoverflow.com/questions/22086722/resize-cross-domain-iframe-height

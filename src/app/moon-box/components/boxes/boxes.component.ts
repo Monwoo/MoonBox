@@ -667,6 +667,12 @@ export class BoxesComponent implements OnInit, OnChanges {
         childList: true,
         characterData: true
       });
+
+      // TODO : quick hack for now since fail to setup autocomplete off on DatePicker Model
+      var inputs = this.filtersFormRef.nativeElement.querySelectorAll('input');
+      inputs.forEach(input => {
+        input.setAttribute('autocomplete', 'off');
+      });
     };
     if (this.storage.isLocked || !this.stickyContainer) {
       this.viewInitProgressiveDelay *= 2;

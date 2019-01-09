@@ -10,10 +10,15 @@ $dark-light-complementary: #777;
 // Ovewrite base theme constants
 $backgroundRegular: $dark-bg;
 $colorRegular: $dark-complementary;
+$colorLightUltraSlim: rgba(255, 255, 255, 0.04);
+$colorLightSlim: rgba(255, 255, 255, 0.12);
 $colorLightRegular: rgba(255, 255, 255, 0.26);
 $colorLightStrong: rgba(255, 255, 255, 0.69);
+$colorLightExtraStrong: rgba(255, 255, 255, 0.94);
 $colorDisabled: rgba(255, 255, 255, 0.26);
+
 $boxShadowRegular: 0px 0px 3px 0px rgba(255, 255, 255, 0.25);
+// $boxShadowStrong: 0px 4px 3px 0px rgba(255, 255, 255, 0.25);
 $boxShadowStrong: none; // 0px 4px 3px 0px rgba(255, 255, 255, 0.25);
 $monwooSecondary: lighten($monwooSecondary, 42%);
 

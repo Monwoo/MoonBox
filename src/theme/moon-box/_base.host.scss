@@ -15,7 +15,8 @@
 // :host-context(.#{$themeHost}) .cdk-overlay-container {
 .cdk-overlay-container {
   .mat-autocomplete-panel,
-  .mat-select-panel {
+  .mat-select-panel,
+  .mat-datepicker-content {
     @include applyScrollbarTheming();
 
     color: $colorRegular;
@@ -26,4 +27,93 @@
 
 .mat-option {
   color: $colorLightStrong;
+}
+
+////////
+// Material Date picker re-design
+// Copy from Chrome web inspector,
+// Past in : https://www.cleancss.com/css-beautify/
+// Then only replace colors by theme color system...
+.mat-calendar-arrow {
+  border-top-color: $colorLightStrong;
+}
+.mat-datepicker-content .mat-calendar-next-button,
+.mat-datepicker-content .mat-calendar-previous-button,
+.mat-datepicker-toggle {
+  color: $colorLightStrong;
+}
+.mat-calendar-table-header {
+  color: $colorLightRegular;
+}
+.mat-calendar-table-header-divider::after {
+  background: $colorLightSlim;
+}
+.mat-calendar-body-label {
+  color: $colorLightStrong;
+}
+.mat-calendar-body-cell-content {
+  color: $colorLightExtraStrong;
+  border-color: transparent;
+}
+.mat-calendar-body-disabled > .mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
+  color: $colorLightRegular;
+}
+.cdk-keyboard-focused .mat-calendar-body-active > .mat-calendar-body-cell-content:not(.mat-calendar-body-selected),
+.cdk-program-focused .mat-calendar-body-active > .mat-calendar-body-cell-content:not(.mat-calendar-body-selected),
+.mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover
+  > .mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
+  background-color: $colorLightUltraSlim;
+}
+.mat-calendar-body-today:not(.mat-calendar-body-selected) {
+  border-color: $colorLightRegular;
+}
+.mat-calendar-body-disabled > .mat-calendar-body-today:not(.mat-calendar-body-selected) {
+  border-color: $colorLightSlim;
+}
+.mat-calendar-body-selected {
+  background-color: $monwooSecondary;
+  color: $backgroundRegular;
+}
+.mat-calendar-body-disabled > .mat-calendar-body-selected {
+  background-color: $monwooPrimary;
+}
+.mat-calendar-body-today.mat-calendar-body-selected {
+  box-shadow: inset 0 0 0 1px $backgroundRegular;
+}
+.mat-datepicker-content {
+  box-shadow: 0 2px 4px -1px $colorLightRegular, 0 4px 5px 0 $colorLightSlim, 0 1px 10px 0 $colorLightSlim;
+  background-color: $backgroundRegular;
+  color: $colorLightExtraStrong;
+}
+.mat-datepicker-content.mat-accent .mat-calendar-body-selected {
+  background-color: $monwooPrimaryAccentRegular;
+  color: $colorLightExtraStrong;
+}
+.mat-datepicker-content.mat-accent .mat-calendar-body-disabled > .mat-calendar-body-selected {
+  background-color: $monwooSecondaryAccentStrong;
+}
+.mat-datepicker-content.mat-accent .mat-calendar-body-today.mat-calendar-body-selected {
+  box-shadow: inset 0 0 0 1px $colorLightExtraStrong;
+}
+.mat-datepicker-content.mat-warn .mat-calendar-body-selected {
+  background-color: $monwooPrimaryAccentStrong;
+  color: $backgroundRegular;
+}
+.mat-datepicker-content.mat-warn .mat-calendar-body-disabled > .mat-calendar-body-selected {
+  background-color: $monwooWarnBg;
+}
+.mat-datepicker-content.mat-warn .mat-calendar-body-today.mat-calendar-body-selected {
+  box-shadow: inset 0 0 0 1px $backgroundRegular;
+}
+.mat-datepicker-content-touch {
+  box-shadow: 0 0 0 0 $colorLightRegular, 0 0 0 0 $colorLightSlim, 0 0 0 0 $colorLightSlim;
+}
+.mat-datepicker-toggle-active {
+  color: $monwooSecondary;
+}
+.mat-datepicker-toggle-active.mat-accent {
+  color: $monwooPrimaryAccentRegular;
+}
+.mat-datepicker-toggle-active.mat-warn {
+  color: $monwooPrimaryAccentStrong;
 }
