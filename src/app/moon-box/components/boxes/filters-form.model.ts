@@ -130,12 +130,12 @@ export const FORM_LAYOUT = {
 
   keywordsSubject: {
     element: {
-      host: 'w-100'
+      host: 'w-100 bsi d-none' // TODO : event system not straight with chips add... did miss something, freature removed for now
     }
   },
   keywordsBody: {
     element: {
-      host: 'w-100'
+      host: 'w-100 bsi d-none' // TODO : event system not straight with chips add... did miss something, freature removed for now
     }
   },
   keepFormsInMemory: {

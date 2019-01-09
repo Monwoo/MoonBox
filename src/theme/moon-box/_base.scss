@@ -126,4 +126,17 @@
   .mat-checkbox-inner-container {
     color: $colorRegular;
   }
+
+  .modal-content {
+    background: $backgroundRegular;
+  }
+
+  i {
+    font-size: 16pt;
+  }
+  .legual {
+    i {
+      font-size: 24pt;
+    }
+  }
 }

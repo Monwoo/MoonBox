@@ -48,15 +48,34 @@
             >
               <i class="fas fa-key"></i>
             </button>
-
+            <!--
+              <button
+                mat-button
+                [disabled]="msgs.shouldSaveAttachments"
+                color="secondary"
+                matTooltip="{{'mb.boxes.btn.saveAttachments.tooltip'|translate}}"
+                (click)="msgs.saveAttachments()"
+              >
+                <i class="fas fa-paperclip"></i>
+              </button>
+            -->
             <button
               mat-button
-              [disabled]="msgs.totalCount > 0"
+              [disabled]="msgs.shouldSaveBody"
+              color="secondary"
+              matTooltip="{{'mb.boxes.btn.saveBody.tooltip'|translate}}"
+              (click)="msgs.saveBody()"
+            >
+              <i class="fas fa-layer-group"></i>
+            </button>
+            <button
+              mat-button
+              [disabled]="msgs.shouldSaveMessages"
               color="secondary"
               matTooltip="{{'mb.boxes.btn.ClearMsgs.tooltip'|translate}}"
-              (click)="msgs.clearMessages()"
+              (click)="msgs.saveMessages()"
             >
-              <i class="fas fa-unlink"></i>
+              <i class="fas fa-link"></i>
             </button>
             <button
               mat-button

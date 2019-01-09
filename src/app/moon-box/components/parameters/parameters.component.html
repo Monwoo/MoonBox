@@ -151,10 +151,146 @@
   </div>
 </mat-card>
 
-<mat-card>
-  <a href="https://github.com/Monwoo/MoonBox">
-    {{ 'Project under M.I.T. Licence. Build by Monwoo.' | translate }}
-    <img src="https://www.monwoo.com/LogoMonwoo-32.png" alt="" />
-  </a>
-  <p>{{ 'mb.param.warningMsg' | translate }}</p>
+<mat-card class="legual bs">
+  <!--
+    TODO : auto-check all view and add  target="_blank" for all to avoid
+    buggy fealings due to webnavigation outside of PWA => need to let user feel he
+    did left PWA to external link...
+  -->
+  <div class="p-2">
+    <a href="https://github.com/Monwoo/MoonBox" target="_blank" class="row">
+      <span class="col-8"> {{ 'Project under M.I.T. Licence. Build by Monwoo.' | translate }} </span>
+      <!--
+        https://getbootstrap.com/docs/4.0/utilities/vertical-align/
+        https://getbootstrap.com/docs/4.0/utilities/flex/
+      -->
+      <span class="col d-flex justify-content-around align-items-center">
+        <img src="https://www.monwoo.com/LogoMonwoo-32.png" alt="" /> <i class="fab fa-angular"></i>
+        <img src="assets/ngx-rocket-logo-32.png" alt="{{'Ngx-rocket logo'|translate}}" /> <i class="fab fa-sass"></i>
+        <i class="fab fa-php"></i>
+        <!-- <i class="fab fa-laravel"></i> -->
+      </span>
+    </a>
+  </div>
+  <div class="p-2">
+    <p>{{ 'mb.param.warningMsg' | translate }}</p>
+  </div>
+  <div id="CGU" class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title px-4">
+        <a href="param/#CGU" class="row"> {{ "Conditions générales d'utilisation" | translate }} </a>
+      </h4>
+    </div>
+    <div class="modal-body">
+      <h4>Moon Box est un outil conçu par Miguel Monwoo, Expert indépendant.</h4>
+      <p>Pour toutes demandes, contactez service@monwoo.com</p>
+
+      <h4>Public</h4>
+      <p>
+        L'usage de la version publique de cette application s'adresse à toutes personne Morale ou physique, majeure,
+        agissant exclusivement à des fins privées ou professionnels.
+      </p>
+
+      <h4>Concernant vos informations personnels</h4>
+      <p>
+        Nous utilisons l'authentification google.
+        <a href="https://privacy.google.com/businesses/compliance/" target="_blank">
+          Ce dernier s'engage au respect de vos données et au GDPR.
+        </a>
+      </p>
+      <p>
+        Il est de votre responsabilité de conserver vos identifiants google pour pouvoir ajuster les propriétés de
+        partage de vos documents. Ceci vous permettra de protéger vos données personnels dans le respect des directives
+        du GDPR.
+      </p>
+      <p>
+        Moon Box demande un accès en lecture à vos emails via Google Api GMAIL ou IMAP pour vous permettre d'afficher
+        ces derniers dans votre application.
+      </p>
+      <p>Vos données sont chiffrées de bout en bout. Monwoo ne conserve pas vos données.</p>
+      <p>La sécuritée des backups est proportionnelle à la complexité du passcode fournit.</p>
+      <p>
+        Si vous partagez vos backups, ne sauvegardez pas les mots de passe dans ces derniers à moins de pouvoir risquer
+        la divulgation des identifiants aux pocesseurs du fichier.
+      </p>
+
+      <h4>Droit à l'image.</h4>
+      <p>
+        Les médias et logos de cet outil sont la propriété exclusive de leurs autheurs. Ci dessous quelques éléments
+        pour essayer de les contacter si vous souhaitez utiliser leurs médias à titre non privé.
+      </p>
+      <div class="d-flex row">
+        <div class="col-12"><hr /></div>
+        <div class="col-4 text-right">Monwoo</div>
+        <div class="col-8 text-left">
+          <div><a href="http://www.monwoo.com">www.monwoo.com</a></div>
+          <div>
+            <a href="mailto:?subject=Medias%20Copyright%20Request%20&amp;body=I%20wanna%20use%20your%20medias%20please"
+              >service@monwoo.com</a
+            >
+          </div>
+        </div>
+      </div>
+      <hr />
+      <h4>Limitation de garantie</h4>
+      <p>
+        Tout contenu, services, produits, matériaux, etc. disponibles dans l'application sont fournis “en l’état” et
+        sans aucune garantie d’aucune sorte.
+      </p>
+      <p>
+        Ni Monwoo ni aucun de nos partenaires garantissent que le Site ou toute fonctionnalité qu’il contient, sera
+        ininterrompu ou exempt d’inexactitude, d’erreur, d’omission, de virus ou autre problème similaire.
+      </p>
+      <p>
+        Tout contenu téléchargé ou autrement obtenu grâce à l’utilisation du Site se fait à votre seul risque et vous
+        serez seul responsable de tout dommage résultant de votre utilisation du Site. Monwoo ne garantit aucun résultat
+        découlant de l’utilisation de tout logiciel disponible sur le Site.
+      </p>
+      <p>Monwoo fait au mieux et met tous ses moyens en œuvre pour la bonne réalisation de la prestation.</p>
+      <p>
+        Nous faisons des devis sur demande si vous avez besoin d'écrire des tests complémentaires. Faite votre demande
+        sur service@monwoo.com
+      </p>
+      <h4>Responsabilité, et force majeur</h4>
+      <p>
+        En cas de force majeure, interruption du travail, grève, accident, maladie, mouvement syndical, guerre, acte de
+        terrorisme, Monwoo ne pourra être tenu responsable de l'annulation d'une prestation complète ou partielle.
+      </p>
+      <h4>Modification des CGU</h4>
+      <p>Les présentes CGU sont applicables à partir du 23/06/2018.</p>
+      <p>Monwoo se réserve la possibilité, à tout moment, de modifier en tout ou partie les CGU.</p>
+      <p>
+        Vous êtes donc invités à consulter régulièrement les CGU afin de prendre connaissance des changements apportés.
+      </p>
+
+      <h4>Dispositions divers</h4>
+      <p>
+        Tout contenu, services, produits, matériaux, etc. disponibles sur le Site sont fournis “en l’état” et sans
+        aucune garantie d’aucune sorte.
+      </p>
+      <p>
+        Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+        on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+      </p>
+
+      <h4>Loi applicable et juridiction compétente</h4>
+      <p>
+        Les Conditions Générales d’Utilisation sont régies par le droit français. Toutes réclamations provenant de ou
+        concernant les Conditions Générales d’Utilisation seront soumises exclusivement au Tribunal de Commerce de
+        Paris.
+      </p>
+
+      <p>
+        Nous développons nos formules. N'hésitez pas à nous faire des dons sur
+        <a href="http://www.monwoo.com" target="_blank">www.monwoo.com</a> pour nous premettre de développer nos offres
+      </p>
+    </div>
+    <div class="modal-footer">
+      <!--
+        <button type="button" class="btn btn-default" data-dismiss="modal">
+          Fermer
+        </button>
+      -->
+    </div>
+  </div>
 </mat-card>
