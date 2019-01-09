@@ -1,4 +1,4 @@
-// Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
+// Copyright Monwoo 2018-2019, made by Miguel Monwoo, service@monwoo.com
 
 import {
   Component,
@@ -11,7 +11,10 @@ import {
   RendererFactory2,
   HostListener,
   QueryList,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy,
+  SimpleChanges,
+  OnChanges
 } from '@angular/core';
 import { NgForm, FormArray, Validators, FormBuilder } from '@angular/forms';
 import {
@@ -53,7 +56,9 @@ import {
   finalize,
   zip,
   auditTime,
-  audit
+  audit,
+  concatMapTo,
+  distinctUntilChanged
 } from 'rxjs/operators';
 import {
   fromEvent,
@@ -106,10 +111,149 @@ export class UpdateSubject extends BehaviorSubject<boolean> {
   }
 }
 
+// export class HandlerSubject extends ReplaySubject<void> {
+export class HandlerSubject extends BehaviorSubject<void> {
+  // public transforms: any = null;
+  public countRequests: number = 0;
+  handle(caller: BoxesComponent, transforms: any) {
+    // return forkJoin([this.pipe(
+    return this.pipe(
+      tap(() => {
+        if (this.countRequests) {
+          logReview.warn('Too many requesting filters form update', 'TODO : try to avoid...');
+        } else {
+          logReview.debug('Requesting filters form update');
+        }
+        this.countRequests++;
+      }),
+      // https://www.learnrxjs.io/operators/transformation/switchmap.html ?
+      // https://www.learnrxjs.io/operators/filtering/skipuntil.html
+      // https://www.learnrxjs.io/operators/filtering/audittime.html
+      // debounceTime(500), // avoid multiple updates for focus/change/blur on checkmark checked...
+      // debounce(() => caller.isFormUpdating$), // TODO : debounce until lock released...
+      // auditTime(500), // avoid multiple updates for focus/change/blur on checkmark checked...
+      audit(() => caller.isFormUpdating$), // TODO : debounce until lock released...
+      map(() => {
+        caller.isFormUpdating$.next(true);
+        logReview.debug('Starting debounced filters form update');
+        const self = caller;
+        const resp = caller.storage.getItem<FormType>('moon-box-filters', filtersInitialState(caller)).pipe(
+          tap(filtersData => {
+            logReview.debug('Reading filters from storage : ', filtersData);
+          }),
+          // map(f => of(f)),
+          // https://github.com/Reactive-Extensions/RxJS/issues/1437
+          // https://stackoverflow.com/questions/47052977/withlatestfrom-does-not-emit-value
+          // https://gist.github.com/whiteinge/9dab34105233871f3d660d9b1056a7ad
+          // https://www.learnrxjs.io/operators/combination/withlatestfrom.html
+          combineLatest(
+            //concatMapTo(
+            // withLatestFrom(
+            // forkJoin([
+            // interval(1000).pipe(
+            //   tap(defaultF => {
+            //     logReview.debug('LatestFrom OK');
+            //   })
+            // )
+            // ])
+            from(contextDefaults(caller)).pipe(
+              tap(defaultF => {
+                logReview.debug('Having filters defaults : ', defaultF);
+              })
+            )
+            // [from([formDefaults(caller)]).pipe(
+            //   concatMap(p => p),
+            //   // mergeAll(), // concatAll(), //
+            //   tap(defaultF => {
+            //     logReview.debug('Having filters defaults : ', defaultF);
+            //   })
+            // )]
+          ),
+          // mergeAll(),
+          // map(([filtersData, defaultsPromise]) => [filtersData, forkJoin([defaultsPromise])]),
+          map(([filtersData, freshDefaults]) => {
+            // TODO : caller not linked to caller class, why only here ? (when using forkJoin, may be typo of old code ?)
+            freshDefaults.data = <FormType>shallowMerge(1, freshDefaults.data, filtersData);
+            if (transforms) {
+              freshDefaults.data = <FormType>shallowMerge(1, freshDefaults.data, transforms);
+            }
+            // Done in msgs.service listener of MessagesService on property setter :
+            // caller.msgs.shouldKeepMsgsInMemory(freshDefaults.data.keepMessagesInMemory);
+            caller.msgs.shouldKeepMsgsInMemory = freshDefaults.group.value.keepMessagesInMemory;
+            // TODO : need to Await ng Zone if using it ? :
+            self.ngZone.run(() => {
+              logReview.debug('Patching filters form : ', freshDefaults.data);
+              freshDefaults.group.patchValue(freshDefaults.data);
+              // freshDefaultsForm = freshDefaultsFormRef.nativeElement;
+              // TODO : do on filters did change event...
+              self.mbegKeyTransformerControl = freshDefaults.group.get(
+                'params.moonBoxEmailsGrouping.mbegKeyTransformer'
+              ) as FormArray;
+              self.mbegKeyTransformerModel = self.formService.findById(
+                'mbegKeyTransformer',
+                freshDefaults.model
+              ) as DynamicFormArrayModel;
+            });
+            self.filters = freshDefaults; // This one will trigger box-reader onFilters change event
+            logReview.debug('Finishing filters transforms : ', self.filters.data);
+            return self.filters.data;
+          }),
+          tap(filtersData => {
+            logReview.debug('Release form filter update lock');
+
+            // TODO : monitor :
+            // self.filters.group.value
+            // => since will change on multiple input text edit, opposit to material (change) HandlerSubject....
+            // https://stackoverflow.com/questions/38571812/how-to-detect-when-an-input-value-changes-in-angular
+            // https://stackoverflow.com/questions/42971865/angular2-zone-run-vs-changedetectorref-detectchanges
+            // https://stackoverflow.com/questions/34796901/angular2-change-detection-ngonchanges-not-firing-for-nested-object
+            // https://angular.io/guide/lifecycle-hooks#docheck
+
+            caller.updateFormHandler$.countRequests = 0;
+            caller.isFormUpdating$.next(false);
+            caller.updateFormHandler$.complete(); // Try to trigger subscriber complet result
+          })
+          // finalize(() => { // Why this code is not called ??
+          //   logReview.debug('Release form filter finalize update lock');
+          //   caller.isFormUpdating$.next(false);
+          // })
+        );
+        return resp;
+      }),
+      mergeMap((input: Observable<FormType>, idx: number) => {
+        logReview.debug('Filters mergeMap call', idx);
+        return input;
+      })
+      // concatMap((input: Observable<FormType>, idx: number) => {
+      //   logReview.debug('Filters concatMap call', idx);
+      //   return input;
+      // })
+      // combineLatest(),
+      // mergeAll(),
+      // https://www.learnrxjs.io/operators/combination/zip.html
+      // zip(),
+      // http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#static-method-combineLatest
+      // http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-combineAll
+      // http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-concatAll
+      // concatMap((in:any, idx:number) => { // forkJoin needed for it ? => too much line of code to write...
+      //   return of(in);
+      // }),
+      // finalize(() => { // Why this code is not called ??
+      //   logReview.debug('Release form filter update lock');
+      //   caller.isFormUpdating$.next(false);
+      // })
+    ); // .subscribe();
+  }
+}
+
 @Component({
   selector: 'moon-boxes',
   templateUrl: './boxes.component.html',
   styleUrls: ['./boxes.component.scss'],
+  // https://dzone.com/articles/how-to-use-change-detection-in-angular
+  // https://www.toptal.com/angular/angular-change-detection
+  // https://blog.angular-university.io/onpush-change-detection-how-it-works/
+  changeDetection: ChangeDetectionStrategy.OnPush, // Not enough to force update on Input Multiple Word add..
   providers: [
     {
       provide: MAT_DATE_LOCALE,
@@ -122,7 +266,7 @@ export class UpdateSubject extends BehaviorSubject<boolean> {
     { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS }
   ]
 })
-export class BoxesComponent implements OnInit {
+export class BoxesComponent implements OnInit, OnChanges {
   // @ViewChild('filtersForm') filtersForm: ElementRef<NgForm> = null;
   @ViewChild('filtersFormRef') filtersFormRef: ElementRef<HTMLFormElement> = null;
   @ViewChild('filtersForm') filtersForm: NgForm = null; // TODO : refactor => ref is already inside this.filters...
@@ -132,6 +276,15 @@ export class BoxesComponent implements OnInit {
   isSticky: boolean = false;
   initialStickyOffset: number = 0;
   initialStickyHeight: number = 0;
+
+  // Export only for HandlerSubject to use it... ? protected for now...
+  protected filtersFormChanges: MutationObserver = null;
+  // https://stackoverflow.com/questions/34796901/angular2-change-detection-ngonchanges-not-firing-for-nested-object
+  // https://angular.io/guide/lifecycle-hooks#docheck
+  ngOnChanges(changes: SimpleChanges) {
+    // { [propName: string]: SimpleChange }) {
+    logReview.debug('ngOnChanges = ', changes);
+  }
 
   @HostListener('document:click', ['$event'])
   clickout(event: any) {
@@ -259,10 +412,10 @@ export class BoxesComponent implements OnInit {
 
   constructor(
     private i18nService: I18nService,
-    private formService: DynamicFormService,
+    public formService: DynamicFormService,
     public storage: SecuStorageService,
     private localStorage: LocalStorage,
-    private ngZone: NgZone,
+    public ngZone: NgZone,
     private notif: NotificationsService,
     public eltRef: ViewContainerRef,
     private rendererFactory: RendererFactory2,
@@ -310,18 +463,23 @@ export class BoxesComponent implements OnInit {
         await this.updateForm().toPromise();
       })();
     });
-
-    this.msgs.service.subscribe(messages => {
-      // need to update form model to update formfields suggestions
-      // TODO : better form design pattern to handle all that in simple form codes...
-      // formModel(this).then(model => {
-      //   this.filters.model = model;
-      // });
-      (async () => {
-        await this.updateForm().toPromise();
-      })();
-    });
-    this.updateForm().subscribe();
+    // Doing form update on messages changes have no meanings
+    // since filters dose not depend on it
+    // + will help avoid multi call issue (debounce is not right opérator => should cancel,
+    // but what if cancel happen in middle of data save ??? => possible data issue
+    // so will need to implement this kind of feature with better software design and unit-testings...)
+    // this.msgs.service.subscribe(messages => {
+    //   // need to update form model to update formfields suggestions
+    //   // TODO : better form design pattern to handle all that in simple form codes...
+    //   // formModel(this).then(model => {
+    //   //   this.filters.model = model;
+    //   // });
+    //   (async () => {
+    //     await this.updateForm().toPromise();
+    //   })();
+    // });
+    // UpdateForm will be done only once on unlock (only reason to reload form since user data or session did change)
+    // this.updateForm().subscribe();
     // https://stackoverflow.com/questions/47034573/ngif-hide-some-content-on-mobile-screen-angular-4
     // https://getbootstrap.com/docs/4.0/layout/grid/#grid-options
     // Checks if screen size is less than 720 pixels
@@ -457,6 +615,33 @@ export class BoxesComponent implements OnInit {
       // this.initialOffset = this.stickyContainer.nativeElement.offsetTop;
       this.boxViews.changes.subscribe((box: BoxReaderComponent) => {
         // Box did changes event (some boxes gets added to the page...)
+      });
+
+      // https://www.bennadel.com/blog/2955-watching-and-responding-to-ngmodel-changes-in-angularjs.htm
+      // https://blog.bitsrc.io/event-binding-mechanism-in-angular-b38f0e46d2ed
+      if (this.filtersFormChanges) {
+        // Disconnect previous observer
+        this.filtersFormChanges.disconnect();
+      }
+      // https://nitayneeman.com/posts/listening-to-dom-changes-using-mutationobserver-in-angular/
+      // https://stackoverflow.com/questions/49552258/how-to-listen-for-value-changes-from-class-property-typescript-angular
+      this.filtersFormChanges = new MutationObserver((mutations: MutationRecord[]) => {
+        mutations.forEach((mutation: MutationRecord) => {
+          // console.debug('Mutation record fired', mutation);
+          logReview.debug('Mutation record fired', mutation);
+          logReview.debug(
+            `Attribute '${mutation.attributeName}' changed to value `,
+            (<any>mutation.target).attributes[mutation.attributeName].value
+          );
+        });
+      });
+      // Here we start observer to work with that element
+      // MutationObserver => only for object of type node... :
+      // self.filtersFormChanges.observe(self.filters.group.value, {
+      this.filtersFormChanges.observe(this.filtersFormRef.nativeElement, {
+        attributes: true,
+        childList: true,
+        characterData: true
       });
     };
     if (this.storage.isLocked || !this.stickyContainer) {
@@ -620,6 +805,7 @@ export class BoxesComponent implements OnInit {
   // https://github.com/ReactiveX/rxdart/issues/128
   // https://stackoverflow.com/questions/38739499/anonymous-class-instance-is-it-a-bad-idea
   isFormUpdating$ = <UpdateSubject>new UpdateSubject(false).pipe(
+    distinctUntilChanged(), // only emit on values changes
     filter(status => !status) // only keep isFormUpdating false events
   );
 
@@ -634,127 +820,26 @@ export class BoxesComponent implements OnInit {
   }
 
   // progressiveDelay = 100; // Used to avoid too much back calls on infinit fails...
-  private updateFormSubcriber: Subscription = null;
-  updateFormHandler$ = new class extends ReplaySubject<void> {
-    // public transforms: any = null;
-    handle(caller: BoxesComponent, transforms: any) {
-      // return forkJoin([this.pipe(
-      return this.pipe(
-        tap(() => {
-          logReview.debug('Requesting filters form update');
-        }),
-        // https://www.learnrxjs.io/operators/transformation/switchmap.html ?
-        // https://www.learnrxjs.io/operators/filtering/skipuntil.html
-        // https://www.learnrxjs.io/operators/filtering/audittime.html
-        // debounceTime(500), // avoid multiple updates for focus/change/blur on checkmark checked...
-        // debounce(() => caller.isFormUpdating$), // TODO : debounce until lock released...
-        auditTime(500), // avoid multiple updates for focus/change/blur on checkmark checked...
-        audit(() => caller.isFormUpdating$), // TODO : debounce until lock released...
-        map(() => {
-          caller.isFormUpdating$.next(true);
-          logReview.debug('Starting debounced filters form update');
-          const self = caller;
-          const resp = caller.storage.getItem<FormType>('moon-box-filters', filtersInitialState(caller)).pipe(
-            tap(filtersData => {
-              logReview.debug('Reading filters from storage : ', filtersData);
-            }),
-            // map(f => of(f)),
-            // https://github.com/Reactive-Extensions/RxJS/issues/1437
-            // https://stackoverflow.com/questions/47052977/withlatestfrom-does-not-emit-value
-            // https://gist.github.com/whiteinge/9dab34105233871f3d660d9b1056a7ad
-            // https://www.learnrxjs.io/operators/combination/withlatestfrom.html
-            combineLatest(
-              // withLatestFrom(
-              // forkJoin([
-              // interval(1000).pipe(
-              //   tap(defaultF => {
-              //     logReview.debug('LatestFrom OK');
-              //   })
-              // )
-              // ])
-              from(contextDefaults(caller)).pipe(
-                tap(defaultF => {
-                  logReview.debug('Having filters defaults : ', defaultF);
-                })
-              )
-              // [from([formDefaults(caller)]).pipe(
-              //   concatMap(p => p),
-              //   // mergeAll(), // concatAll(), //
-              //   tap(defaultF => {
-              //     logReview.debug('Having filters defaults : ', defaultF);
-              //   })
-              // )]
-            ),
-            // mergeAll(),
-            // map(([filtersData, defaultsPromise]) => [filtersData, forkJoin([defaultsPromise])]),
-            map(([filtersData, freshDefaults]) => {
-              // TODO : caller not linked to caller class, why only here ? (when using forkJoin, may be typo of old code ?)
-              freshDefaults.data = <FormType>shallowMerge(1, freshDefaults.data, filtersData);
-              if (transforms) {
-                freshDefaults.data = <FormType>shallowMerge(1, freshDefaults.data, transforms);
-              }
-              // Done in msgs.service listener of MessagesService on property setter :
-              // caller.msgs.shouldKeepMsgsInMemory(freshDefaults.data.keepMessagesInMemory);
-              caller.msgs.shouldKeepMsgsInMemory = freshDefaults.group.value.keepMessagesInMemory;
-              // TODO : need to Await ng Zone if using it ? :
-              self.ngZone.run(() => {
-                logReview.debug('Patching filters form : ', freshDefaults.data);
-                freshDefaults.group.patchValue(freshDefaults.data);
-                // freshDefaultsForm = freshDefaultsFormRef.nativeElement;
-                // TODO : do on filters did change event...
-                self.mbegKeyTransformerControl = freshDefaults.group.get(
-                  'params.moonBoxEmailsGrouping.mbegKeyTransformer'
-                ) as FormArray;
-                self.mbegKeyTransformerModel = self.formService.findById(
-                  'mbegKeyTransformer',
-                  freshDefaults.model
-                ) as DynamicFormArrayModel;
-              });
-              self.filters = freshDefaults; // This one will trigger box-reader onFilters change event
-              logReview.debug('Finishing filters transforms : ', self.filters.data);
-              return self.filters.data;
-            }),
-            tap(filtersData => {
-              logReview.debug('Release form filter update lock');
-              caller.isFormUpdating$.next(false);
-            })
-            // finalize(() => { // Why this code is not called ??
-            //   logReview.debug('Release form filter finalize update lock');
-            //   caller.isFormUpdating$.next(false);
-            // })
-          );
-          return resp;
-        }),
-        // mergeMap((input: Observable<FormType>, idx:number) => {
-        //   return input;
-        // }),
-        concatMap((input: Observable<FormType>, idx: number) => {
-          return input;
-        })
-        // combineLatest(),
-        // mergeAll(),
-        // https://www.learnrxjs.io/operators/combination/zip.html
-        // zip(),
-        // http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#static-method-combineLatest
-        // http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-combineAll
-        // http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-concatAll
-        // concatMap((in:any, idx:number) => { // forkJoin needed for it ? => too much line of code to write...
-        //   return of(in);
-        // }),
-        // finalize(() => { // Why this code is not called ??
-        //   logReview.debug('Release form filter update lock');
-        //   caller.isFormUpdating$.next(false);
-        // })
-      ); // .subscribe();
-    }
-  }();
+  // private updateFormSubcriber: Subscription = null;
+  updateFormHandler$: HandlerSubject = null;
   updateForm(transforms: any = null) {
     // if (this.updateFormSubcriber) {
     //   this.updateFormSubcriber.unsubscribe();
     // }
     // this.updateFormSubcriber = this.updateFormHandler$.handle(this, transforms);
+
+    // const isSettingUpHandler = !this.updateFormHandler$;
+    // if (isSettingUpHandler) {
+    //   this.updateFormHandler$ = new HandlerSubject();
+    // }
+    // Rebuilding subject on each updateForm, to keep only One emitted value for all listeners
+    // To this update form event
+    this.updateFormHandler$ = new HandlerSubject(undefined);
     const updateForm$ = this.updateFormHandler$.handle(this, transforms);
-    this.updateFormHandler$.next();
+    // this.updateFormHandler$.complete(); => all gets postpowned if using complete here
+    // if (!isSettingUpHandler) {
+    //   this.updateFormHandler$.next();
+    // }
 
     //formUpdateSubcriber: Subscription = null;
     // https://stackblitz.com/edit/angular-kgppaa?file=src%2Fapp%2Fapp.component.html

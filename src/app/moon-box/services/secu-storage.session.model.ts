@@ -147,6 +147,7 @@ export const formModel = async (caller: FormCallable, patchData: any) => {
       const session = caller.getCurrentSession();
       const d = { ...(session ? session.group.value : await formDefaults(caller)), ...patchData };
       const sessionIds = (await caller.getSessionIds$().toPromise()) || {};
+      // https://www.learnrxjs.io/recipes/type-ahead.html
       const suggestions = Object.keys(sessionIds).sort((ka, kb) => {
         return new Date(sessionIds[kb]).getTime() - new Date(sessionIds[ka]).getTime();
       });

@@ -45,7 +45,10 @@ export class BoxReaderComponent implements OnInit {
   @Input()
   set filters(filters: FiltersFormType) {
     this.loginData = <FormType>shallowMerge(1, this.loginData, filters);
-    this.updateForm();
+    formDefaults(this).then(defData => {
+      this.loginData = <FormType>shallowMerge(1, defData, this.loginData);
+      this.loadFormFromStorage();
+    });
   }
   @Input()
   extendedActions: TemplateRef<any> = null;
@@ -123,6 +126,15 @@ export class BoxReaderComponent implements OnInit {
   ) {
     this.renderer = this.rendererFactory.createRenderer(null, null);
 
+    // No need to listen to unlock, since filter input will change
+    // and emit the form updates basic codes, cf @input filters of this component....
+    // this.storage.onUnlock.subscribe(() => {
+    //   formDefaults(this).then(defData => {
+    //     this.loginData = defData;
+    //     this.loadFormFromStorage();
+    //   });
+    // });
+
     // https://stackoverflow.com/questions/47034573/ngif-hide-some-content-on-mobile-screen-angular-4
     // https://getbootstrap.com/docs/4.0/layout/grid/#grid-options
     // Checks if screen size is less than 720 pixels
@@ -163,14 +175,6 @@ export class BoxReaderComponent implements OnInit {
 
   ngOnInit() {
     this.ctx = this.msgs.getBoxContext(this.id, this.ctx);
-    formDefaults(this).then(defData => {
-      this.loginData = defData;
-
-      this.loadFormFromStorage();
-      this.storage.onUnlock.subscribe(() => {
-        this.loadFormFromStorage();
-      });
-    });
   }
 
   ngAfterViewChecked() {
@@ -193,7 +197,7 @@ export class BoxReaderComponent implements OnInit {
   async updateForm() {
     if (this.isFormUpdating) {
       this.progressiveDelay *= 2;
-      logReview.debug('Postponing box-reader update');
+      logReview.debug('Postponing box-reader update, TODO : try to avoid');
 
       if (this.formUpdateSubcriber) {
         this.formUpdateSubcriber.unsubscribe();
