@@ -58,16 +58,17 @@
               >
                 <i class="fas fa-paperclip"></i>
               </button>
+              TODO for next version : cache HTML bodies frontend side ?
+              <button
+                mat-button
+                [class.is-actif]="filters.group.value.keepMessagesInMemory"
+                color="secondary"
+                matTooltip="{{'mb.boxes.btn.saveBody.tooltip'|translate}}"
+                (click)="msgs.saveBody(); preventDefault($event)"
+              >
+                <i class="fas fa-layer-group"></i>
+              </button>
             -->
-            <button
-              mat-button
-              [class.is-actif]="filters.group.value.keepMessagesInMemory"
-              color="secondary"
-              matTooltip="{{'mb.boxes.btn.saveBody.tooltip'|translate}}"
-              (click)="msgs.saveBody(); preventDefault($event)"
-            >
-              <i class="fas fa-layer-group"></i>
-            </button>
             <button
               mat-button
               [class.is-actif]="filters.group.value.keepMessagesInMemory"
@@ -131,8 +132,11 @@
           https://github.com/udos86/ng-dynamic-forms#custom-templates
           https://material.angular.io/guide/creating-a-custom-form-field-control
           https://material.angular.io/components/form-field/overview
+
+          No effect for autocomplet :
+           <ng-template modelId="fetchStart" autocomplete="off" aria-autocomplete="none">
         -->
-        <ng-template modelId="fetchStart" autocomplete="off" aria-autocomplete="none">
+        <ng-template modelId="fetchStart">
           <!-- <pre>{{  index  | json }}</pre> -->
           <!-- TODO v1.0.1 : allow all actions in one stickable place : -->
         </ng-template>
