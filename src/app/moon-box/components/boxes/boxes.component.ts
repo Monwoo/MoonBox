@@ -209,6 +209,24 @@ export class HandlerSubject extends BehaviorSubject<void> {
             // https://stackoverflow.com/questions/34796901/angular2-change-detection-ngonchanges-not-firing-for-nested-object
             // https://angular.io/guide/lifecycle-hooks#docheck
 
+            // https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Objets_globaux/Object/observe
+            // https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Objets_globaux/Proxy
+            /* maybe setValue is a copy wiping out Proxy ? well, not in sync with @input of box-reader, having change on list updates
+            var handler = {
+              get: function(obj:any, prop:string){
+                return prop in obj ? obj[prop] : undefined;
+              },
+              set: function(obj:any, prop:string, valeur:any) {
+                logReview.debug('Filters value gets update', prop, valeur);
+                obj[prop] = valeur;
+                return true;
+              },
+            };
+          
+            // self.filters.group.value = new Proxy(self.filters.group.value, handler);
+            self.filters.group.setValue(new Proxy(self.filters.group.value, handler));
+            */
+
             caller.updateFormHandler$.countRequests = 0;
             caller.isFormUpdating$.next(false);
             caller.updateFormHandler$.complete(); // Try to trigger subscriber complet result
