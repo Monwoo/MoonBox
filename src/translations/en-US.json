@@ -229,6 +229,6 @@
   "service.saveMediasToLocalStorage.label": "Keep medias in localStorage",
   "service.saveTimingsToLocalStorage.label": "Keep timings in localStorage",
   "{{ label }} requis.": "{{ label }} required.",
-  "© Copyright Monwoo 2018, service@monwoo.com, données privées": "© Copyright Monwoo 2018, service@monwoo.com, private data",
+  "© Copyright Monwoo 2018, service@monwoo.com, données privées": "© Copyright Monwoo 2018-2019, service@monwoo.com, private data",
   "© Monwoo (Private data)": "© Monwoo (Private data)"
 }

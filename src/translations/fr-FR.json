@@ -229,6 +229,6 @@
   "service.saveMediasToLocalStorage.label": "Conserver les médias en stockage pour import/export",
   "service.saveTimingsToLocalStorage.label": "Conserver les temps en stockage pour import/export",
   "{{ label }} requis.": "{{ label }} requis.",
-  "© Copyright Monwoo 2018, service@monwoo.com, données privées": "© Copyright Monwoo 2018, service@monwoo.com, données privées",
+  "© Copyright Monwoo 2018, service@monwoo.com, données privées": "© Copyright Monwoo 2018-2019, service@monwoo.com, données privées",
   "© Monwoo (Private data)": "© Monwoo (Private data)"
 }
