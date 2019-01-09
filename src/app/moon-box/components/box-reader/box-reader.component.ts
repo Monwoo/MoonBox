@@ -12,7 +12,8 @@ import {
   TemplateRef,
   Output,
   EventEmitter,
-  HostListener
+  HostListener,
+  Host
 } from '@angular/core';
 import { NgForm, FormGroup, Validators, FormBuilder } from '@angular/forms';
 // import { LocalStorage } from '@ngx-pwa/local-storage';
@@ -33,6 +34,7 @@ import { fromEvent, of, from, Observable, BehaviorSubject, Subscription } from '
 import * as moment from 'moment';
 
 import { Logger } from '@app/core/logger.service';
+import { BoxesComponent } from '../boxes/boxes.component';
 const logReview = new Logger('MonwooReview');
 
 @Component({
@@ -41,6 +43,14 @@ const logReview = new Logger('MonwooReview');
   styleUrls: ['./box-reader.component.scss']
 })
 export class BoxReaderComponent implements OnInit {
+  @ViewChild('loginForm') loginForm: NgForm = null;
+  @ViewChild('eltRef') eltRef: ElementRef = null;
+  // https://stackoverflow.com/questions/34201016/angular2-child-component-access-parent-class-variable-function
+  // https://medium.com/frontend-coach/self-or-optional-host-the-visual-guide-to-angular-di-decorators-73fbbb5c8658
+  //
+  // old way : @Inject(forwardRef(() => ParentComponent)) private _parent:ParentComponent
+  // new way : @Host() private _parent:ParentComponent
+
   @Input() id: string;
   @Input()
   set filters(filters: FiltersFormType) {
@@ -55,8 +65,6 @@ export class BoxReaderComponent implements OnInit {
 
   @Output() onIdChange = new EventEmitter<[string, string]>();
 
-  @ViewChild('loginForm') loginForm: NgForm = null;
-  @ViewChild('eltRef') eltRef: ElementRef = null;
   @HostListener('submit', ['$event'])
   onSubmit(e: any) {
     if (!this.loginForm.form.valid) {
@@ -113,6 +121,7 @@ export class BoxReaderComponent implements OnInit {
   isScreenSmall$: any;
 
   constructor(
+    @Host() private _parent: BoxesComponent,
     private fb: FormBuilder,
     public backend: BackendService,
     private i18nService: I18nService,
@@ -491,8 +500,11 @@ export class BoxReaderComponent implements OnInit {
         .subscribe(t => {
           this.notif.error('', t);
         });
+      if (!this._parent.expandBoxesConfigs) {
+        this._parent.toggleBoxesConfigs(event);
+      }
       // resp = error ?
-      throw 'Form not valid';
+      throw new Error('Form not valid');
       // resp = new Observable(function (observer) {
       //   observer.next({
       //     succed: false,

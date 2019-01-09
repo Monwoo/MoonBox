@@ -61,7 +61,7 @@
             -->
             <button
               mat-button
-              [disabled]="msgs.shouldSaveBody"
+              [class.is-actif]="msgs.shouldSaveBody"
               color="secondary"
               matTooltip="{{'mb.boxes.btn.saveBody.tooltip'|translate}}"
               (click)="msgs.saveBody()"
@@ -70,7 +70,7 @@
             </button>
             <button
               mat-button
-              [disabled]="msgs.shouldSaveMessages"
+              [class.is-actif]="msgs.shouldSaveMessages"
               color="secondary"
               matTooltip="{{'mb.boxes.btn.ClearMsgs.tooltip'|translate}}"
               (click)="msgs.saveMessages()"
@@ -79,7 +79,7 @@
             </button>
             <button
               mat-button
-              [disabled]="msgs.totalAvailable"
+              [disabled]="!msgs.totalAvailable"
               color="secondary"
               matTooltip="{{'mb.boxes.btn.LoadMore.tooltip'|translate}}"
               (click)="loadNext($event).subscribe()"
@@ -90,7 +90,7 @@
               mat-button
               color="secondary"
               matTooltip="{{'mb.boxes.btn.Login.tooltip'|translate}}"
-              (click)="login($event).subscribe()"
+              (click)="login($event).subscribe(); preventDefault($event)"
             >
               <i class="fas fa-envelope"></i>
             </button>
@@ -153,8 +153,9 @@
   </mat-expansion-panel>
   <mat-expansion-panel
     class="boxes-configs-container"
-    (opened)="toggleBoxesConfigs($event)"
-    (closed)="toggleBoxesConfigs($event)"
+    (opened)="expandBoxesConfigs = true"
+    (closed)="expandBoxesConfigs = false"
+    [expanded]="expandBoxesConfigs"
   >
     <mat-expansion-panel-header>
       <mat-panel-title> </mat-panel-title>

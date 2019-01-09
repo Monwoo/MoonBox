@@ -304,6 +304,12 @@ export class BoxesComponent implements OnInit, OnChanges {
     logReview.debug('ngOnChanges = ', changes);
   }
 
+  preventDefault(e: any) {
+    if (e.preventDefault) e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
+    return false;
+  }
+
   @HostListener('document:click', ['$event'])
   clickout(event: any) {
     if (!this.isSticky) {
@@ -950,10 +956,18 @@ export class BoxesComponent implements OnInit, OnChanges {
       })
     );
   }
-  expandBoxesConfigs = true;
+  _expandBoxesConfigs = false;
+
+  public set expandBoxesConfigs(v: boolean) {
+    this._expandBoxesConfigs = v;
+    this.localStorage.setItem('expand-boxes-configs', this.expandBoxesConfigs);
+  }
+  public get expandBoxesConfigs() {
+    return this._expandBoxesConfigs;
+  }
+
   toggleBoxesConfigs(e: any) {
     this.expandBoxesConfigs = !this.expandBoxesConfigs;
-    return this.localStorage.setItem('expand-boxes-configs', this.expandBoxesConfigs);
   }
 
   msgsOpenedIdx = {};
