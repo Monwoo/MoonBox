@@ -319,7 +319,7 @@ export class BoxReaderComponent implements OnInit {
     } else {
       logReview.warn('Algo issue, trying to read msg when form is not yet ready');
       // resp = TODO err ?
-      throw 'Algo issue';
+      throw new Error('Algo issue');
     }
     return resp;
   }

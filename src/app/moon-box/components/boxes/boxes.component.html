@@ -41,10 +41,10 @@
             -->
             <button
               mat-button
-              [disabled]="msgs.totalCount > 0"
+              [class.is-actif]="filters.group.value.keepPasswordsInMemory"
               color="secondary"
               matTooltip="{{'mb.boxes.indic.PasswordsAreSaved.tooltip'|translate}}"
-              (click)="('TODO')"
+              (click)="('TODO'); preventDefault($event)"
             >
               <i class="fas fa-key"></i>
             </button>
@@ -61,19 +61,19 @@
             -->
             <button
               mat-button
-              [class.is-actif]="msgs.shouldSaveBody"
+              [class.is-actif]="filters.group.value.keepMessagesInMemory"
               color="secondary"
               matTooltip="{{'mb.boxes.btn.saveBody.tooltip'|translate}}"
-              (click)="msgs.saveBody()"
+              (click)="msgs.saveBody(); preventDefault($event)"
             >
               <i class="fas fa-layer-group"></i>
             </button>
             <button
               mat-button
-              [class.is-actif]="msgs.shouldSaveMessages"
+              [class.is-actif]="filters.group.value.keepMessagesInMemory"
               color="secondary"
               matTooltip="{{'mb.boxes.btn.ClearMsgs.tooltip'|translate}}"
-              (click)="msgs.saveMessages()"
+              (click)="msgs.saveMessages(); preventDefault($event)"
             >
               <i class="fas fa-link"></i>
             </button>
@@ -82,7 +82,7 @@
               [disabled]="!msgs.totalAvailable"
               color="secondary"
               matTooltip="{{'mb.boxes.btn.LoadMore.tooltip'|translate}}"
-              (click)="loadNext($event).subscribe()"
+              (click)="loadNext($event).subscribe(); preventDefault($event)"
             >
               <i class="fas fa-download"></i>
             </button>

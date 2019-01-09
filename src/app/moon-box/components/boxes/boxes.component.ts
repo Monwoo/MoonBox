@@ -179,7 +179,7 @@ export class HandlerSubject extends BehaviorSubject<void> {
             }
             // Done in msgs.service listener of MessagesService on property setter :
             // caller.msgs.shouldKeepMsgsInMemory(freshDefaults.data.keepMessagesInMemory);
-            caller.msgs.shouldKeepMsgsInMemory = freshDefaults.group.value.keepMessagesInMemory;
+            caller.msgs.shouldKeepMsgsInMemory = (<FormType>freshDefaults.group.value).keepMessagesInMemory;
             // TODO : need to Await ng Zone if using it ? :
             self.ngZone.run(() => {
               logReview.debug('Patching filters form : ', freshDefaults.data);
