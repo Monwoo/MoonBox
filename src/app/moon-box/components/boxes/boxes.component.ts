@@ -503,6 +503,9 @@ export class BoxesComponent implements OnInit, OnChanges {
       //   await this.updateForm().toPromise();
       // })();
       this.msgsOpenedIdx = {}; // Collapse all back on new messages
+      this.isMsgsCondensedEmitter.forEach((k: string, v: BehaviorSubject<boolean>) => {
+        v.next(false);
+      });
       this.isMsgsCondensedEmitter = new Map();
     });
     // UpdateForm will be done only once on unlock (only reason to reload form since user data or session did change)
