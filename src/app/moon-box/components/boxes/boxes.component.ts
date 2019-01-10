@@ -14,7 +14,8 @@ import {
   ViewChildren,
   ChangeDetectionStrategy,
   SimpleChanges,
-  OnChanges
+  OnChanges,
+  ChangeDetectorRef
 } from '@angular/core';
 import { NgForm, FormArray, Validators, FormBuilder } from '@angular/forms';
 import {
@@ -129,7 +130,8 @@ export class HandlerSubject extends BehaviorSubject<void> {
       // https://www.learnrxjs.io/operators/transformation/switchmap.html ?
       // https://www.learnrxjs.io/operators/filtering/skipuntil.html
       // https://www.learnrxjs.io/operators/filtering/audittime.html
-      // debounceTime(500), // avoid multiple updates for focus/change/blur on checkmark checked...
+      // TODO : avoid debounceTime => refactor to event driven user interactions without possible doubles call
+      debounceTime(500), // avoid multiple updates for focus/change/blur on checkmark checked...
       // debounce(() => caller.isFormUpdating$), // TODO : debounce until lock released...
       // auditTime(500), // avoid multiple updates for focus/change/blur on checkmark checked...
       audit(() => caller.isFormUpdating$), // TODO : debounce until lock released...
@@ -137,6 +139,11 @@ export class HandlerSubject extends BehaviorSubject<void> {
         caller.isFormUpdating$.next(true);
         logReview.debug('Starting debounced filters form update');
         const self = caller;
+        // ContextDefault will need transformed login data to compute right model in sync with data :
+        if (transforms) {
+          self.filters.data = <FormType>shallowMerge(1, self.filters.data, transforms);
+        }
+
         const resp = caller.storage.getItem<FormType>('moon-box-filters', filtersInitialState(caller)).pipe(
           tap(filtersData => {
             logReview.debug('Reading filters from storage : ', filtersData);
@@ -289,7 +296,10 @@ export class BoxesComponent implements OnInit, OnChanges {
   // @ViewChild('filtersForm') filtersForm: ElementRef<NgForm> = null;
   @ViewChild('filtersFormRef') filtersFormRef: ElementRef<HTMLFormElement> = null;
   @ViewChild('filtersForm') filtersForm: NgForm = null; // TODO : refactor => ref is already inside this.filters...
-  @ViewChild('stickyContainer') stickyContainer: ElementRef<HTMLDivElement> = null;
+  // Reading as ViewContainerRef will get more stuff and you
+  // will need to use this.stickyContainer.element.nativeElement every where...
+  // @ViewChild('stickyContainer', {read: ViewContainerRef}) stickyContainer: ElementRef<HTMLDivElement> = null;
+  @ViewChild('stickyContainer', { read: ElementRef }) stickyContainer: ElementRef<HTMLDivElement> = null;
   @ViewChildren(BoxReaderComponent) boxViews!: QueryList<BoxReaderComponent>;
 
   isSticky: boolean = false;
@@ -444,6 +454,7 @@ export class BoxesComponent implements OnInit, OnChanges {
     private notif: NotificationsService,
     public eltRef: ViewContainerRef,
     private rendererFactory: RendererFactory2,
+    private changeDetector: ChangeDetectorRef,
     public msgs: MessagesService,
     private ll: LoadingLoaderService
   ) {
@@ -503,7 +514,7 @@ export class BoxesComponent implements OnInit, OnChanges {
       //   await this.updateForm().toPromise();
       // })();
       this.msgsOpenedIdx = {}; // Collapse all back on new messages
-      this.isMsgsCondensedEmitter.forEach((k: string, v: BehaviorSubject<boolean>) => {
+      this.isMsgsCondensedEmitter.forEach((v: BehaviorSubject<boolean>, k: string) => {
         v.next(false);
       });
       this.isMsgsCondensedEmitter = new Map();
@@ -682,6 +693,9 @@ export class BoxesComponent implements OnInit, OnChanges {
     };
     if (this.storage.isLocked || !this.stickyContainer) {
       this.viewInitProgressiveDelay *= 2;
+      // https://stackoverflow.com/questions/39366981/angular-2-viewchild-in-ngif
+      // https://github.com/angular/angular/issues/5870
+      this.changeDetector.detectChanges(); // Try to re-bind view childs if some bindings gets lost... TODO : hacky or ok ?
       logReview.debug('Postponing boxes filters update');
       return of(true)
         .pipe(delay(this.viewInitProgressiveDelay))

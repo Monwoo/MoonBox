@@ -782,14 +782,26 @@ class ImapDataProvider extends DataProvider
         $msgsByMoonBoxGroup = [];
         // TODO : optim ? pré-compute to get clean 
         $moonBoxRegExGrouping = [];
+        $moonBoxSubjectRegExGrouping = [];
+        $moonBoxHeadersRegExGrouping = [];
+        $rawGroups = [];
         // var_dump($moonBoxEmailsGrouping); exit('');
         foreach ($moonBoxEmailsGrouping as $g => $dest) {
             // var_dump(preg_match("|^/.*/$|i", $g)); exit('');
             // if (strpos($str, "/") === 0) {
-            if (preg_match("|^/.*/$|i", $g) === 1) {
+            if (preg_match("|^/.*/.?$|i", $g) === 1) {
                 $moonBoxRegExGrouping[$g] = $dest;
+            } else if (preg_match("|^#.*#.?$|i", $g) === 1) {
+                // $g = '/' . trim($g, '#') . '/';
+                $moonBoxSubjectRegExGrouping[$g] = $dest;
+            } else if (preg_match("|^@.*@.?$|i", $g) === 1) {
+                // $g = '/' . trim($g, '@') . '/'; => need to keep /i etc... well => will give php regex doc as enduser doc...
+                $moonBoxHeadersRegExGrouping[$g] = $dest;
+            } else {
+                $rawGroups[$g] = $dest;
             }
         }
+        $moonBoxEmailsGrouping = $rawGroups;
         // var_dump($moonBoxRegExGrouping); exit('');
 
         foreach ($msgsOrderedByDate as &$msg) {
@@ -806,6 +818,34 @@ class ImapDataProvider extends DataProvider
                 foreach ($moonBoxRegExGrouping as $rG => $dest) {
                     // var_dump(preg_match($rG, $msg['expeditorMainAnswerBox'])); exit('');
                     if (preg_match($rG, $msg['expeditorMainAnswerBox']) === 1) {
+                        $didMatch = true;
+                        $moonBoxGroup = $dest;
+                        if (isset($msgsByMoonBoxGroup[$moonBoxGroup])) {
+                            $msgsByMoonBoxGroup[$moonBoxGroup][] = $msg;
+                        } else {
+                            $msgsByMoonBoxGroup[$moonBoxGroup] = [ $msg ];      
+                        }
+                        $msg['moonBoxGroups'] = array_merge(isset($msg['moonBoxGroups']) ?
+                        $msg['moonBoxGroups'] : [], [$moonBoxGroup]);        
+                    }
+                }
+                foreach ($moonBoxSubjectRegExGrouping as $rG => $dest) {
+                    // var_dump(preg_match($rG, $msg['subject'])); exit('');
+                    if (preg_match($rG, $msg['subject']) === 1) {
+                        $didMatch = true;
+                        $moonBoxGroup = $dest;
+                        if (isset($msgsByMoonBoxGroup[$moonBoxGroup])) {
+                            $msgsByMoonBoxGroup[$moonBoxGroup][] = $msg;
+                        } else {
+                            $msgsByMoonBoxGroup[$moonBoxGroup] = [ $msg ];      
+                        }
+                        $msg['moonBoxGroups'] = array_merge(isset($msg['moonBoxGroups']) ?
+                        $msg['moonBoxGroups'] : [], [$moonBoxGroup]);        
+                    }
+                }
+                foreach ($moonBoxHeadersRegExGrouping as $rG => $dest) {
+                    // var_dump(preg_match($rG, $msg['headers'])); exit('');
+                    if (preg_match($rG, $msg['headers']) === 1) {
                         $didMatch = true;
                         $moonBoxGroup = $dest;
                         if (isset($msgsByMoonBoxGroup[$moonBoxGroup])) {
