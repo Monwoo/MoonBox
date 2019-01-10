@@ -13,6 +13,7 @@ import { extract } from '@app/core';
 import { Logger } from '@app/core/logger.service';
 import { DynamicFormModel, DynamicFormLayout, DynamicFormService, validate } from '@ng-dynamic-forms/core';
 import { NgForm, FormGroup, Validators, FormBuilder } from '@angular/forms';
+import { shallowMerge } from '@moon-manager/tools';
 
 const MonwooReview = new Logger('MonwooReview');
 
@@ -95,7 +96,7 @@ export type ContextType = {
   data: FormType;
 };
 
-export const contextDefaults = async (caller: any) => {
+export const contextDefaults = async (caller: any, transforms: any = null) => {
   const translate = caller.i18nService;
   const fetchTrans = (t: string) =>
     new Promise<string>(r =>
@@ -109,7 +110,7 @@ export const contextDefaults = async (caller: any) => {
     });
   return new Promise<ContextType>(function(resolve, reject) {
     (async () => {
-      const model = await formModel(caller);
+      const model = await formModel(caller, transforms);
       resolve({
         model: model,
         layout: FORM_LAYOUT,
@@ -185,7 +186,7 @@ export const FORM_LAYOUT = {
   }
 };
 
-export const formModel = async (caller: any) => {
+export const formModel = async (caller: any, transforms: any) => {
   const translate = caller.i18nService;
   const fetchTrans = (t: string) =>
     new Promise<string>(r =>
@@ -204,7 +205,7 @@ export const formModel = async (caller: any) => {
   }
   return new Promise<DynamicFormControlModel[]>(function(resolve, reject) {
     (async () => {
-      const d = await formDefaults(caller);
+      const d = <FormType>shallowMerge(1, await formDefaults(caller), transforms);
       resolve([
         new DynamicFormGroupModel({
           // https://material.angular.io/components/datepicker/overview#internationalization
@@ -291,10 +292,7 @@ export const formModel = async (caller: any) => {
                 new DynamicFormArrayModel({
                   id: 'mbegKeyTransformer',
                   // TODO : test about caller.filters.data.params should not be done...
-                  initialCount:
-                    caller.filters && caller.filters.data.params
-                      ? caller.filters.data.params.moonBoxEmailsGrouping.mbegKeyTransformer.length
-                      : 0,
+                  initialCount: d.params.moonBoxEmailsGrouping.mbegKeyTransformer.length,
                   groupFactory: await (async () => {
                     const srcLbl = await fetchTrans(extract('Source'));
                     const assLbl = await fetchTrans(extract('Association'));

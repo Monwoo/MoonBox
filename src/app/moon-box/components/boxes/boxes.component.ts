@@ -139,10 +139,6 @@ export class HandlerSubject extends BehaviorSubject<void> {
         caller.isFormUpdating$.next(true);
         logReview.debug('Starting debounced filters form update');
         const self = caller;
-        // ContextDefault will need transformed login data to compute right model in sync with data :
-        if (transforms) {
-          self.filters.data = <FormType>shallowMerge(1, self.filters.data, transforms);
-        }
 
         const resp = caller.storage.getItem<FormType>('moon-box-filters', filtersInitialState(caller)).pipe(
           tap(filtersData => {
@@ -163,7 +159,7 @@ export class HandlerSubject extends BehaviorSubject<void> {
             //   })
             // )
             // ])
-            from(contextDefaults(caller)).pipe(
+            from(contextDefaults(caller, transforms)).pipe(
               tap(defaultF => {
                 logReview.debug('Having filters defaults : ', defaultF);
               })
@@ -496,7 +492,10 @@ export class BoxesComponent implements OnInit, OnChanges {
         */
 
         this.refreshBoxesIdxs();
-        await this.updateForm().toPromise();
+        const formData = await this.storage
+          .getItem<FormType>('moon-box-filters', filtersInitialState(this))
+          .toPromise();
+        await this.updateForm(formData).toPromise();
       })();
     });
     // Doing form update on messages changes have no meanings
@@ -798,6 +797,11 @@ export class BoxesComponent implements OnInit, OnChanges {
     //   this.hackIsGoingDown = false; // consume hacky code
     //   return; // ignore filters expands on going back down
     // }
+
+    if (!this.filtersFormRef) {
+      // view not yet in sync, ignoring end-user actions;
+      return;
+    }
 
     //if (this.filtersForm.classList (this.filtersForm, 'src'))
     this.haveExpandedFilters = !this.haveExpandedFilters;
