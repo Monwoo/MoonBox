@@ -6,7 +6,11 @@
       <mat-panel-title>
         <div class="global-count">{{ msgs.numResults }} / {{ msgs.totalCount }}</div>
       </mat-panel-title>
-      <mat-panel-description #stickyContainer [ngClass]="{ sticky: isSticky }">
+      <mat-panel-description
+        #stickyContainer
+        [ngClass]="{ sticky: isSticky }"
+        (click)="isSticky ? preventDefault($event) : true"
+      >
         <div class="w-100" *ngIf="this.filters">
           <div class="col text-md-right mr-5">
             <button
@@ -197,7 +201,13 @@
     <div *ngIf="filters">
       <ng-container *ngFor="let idx of boxesIdxs">
         <ng-template #extendedActions let-boxId="boxId">
-          <button class="" mat-button color="secondary" type="button" (click)="removeBox($event, idx)">
+          <button
+            class=""
+            mat-button
+            color="secondary"
+            type="button"
+            (click)="preventDefault($event); removeBox($event, idx)"
+          >
             {{ 'Déconnecter la boite' | translate }}
           </button>
         </ng-template>

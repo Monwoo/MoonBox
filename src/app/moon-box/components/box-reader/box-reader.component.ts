@@ -165,6 +165,12 @@ export class BoxReaderComponent implements OnInit {
     this.isScreenSmall$ = screenSizeChanged$.pipe(startWith(checkScreenSize()));
   }
 
+  preventDefault(e: any) {
+    if (e.preventDefault) e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
+    return false;
+  }
+
   toggleConfigs() {
     //if (this.filtersForm.classList (this.filtersForm, 'src'))
     // TODO refactor : do it more angular ways with class directives ... :

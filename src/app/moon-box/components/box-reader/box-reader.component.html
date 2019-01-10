@@ -21,7 +21,7 @@
               mat-button
               color="secondary"
               matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
-              (click)="loadNext($event).subscribe()"
+              (click)="preventDefault($event); loadNext($event).subscribe()"
             >
               <i class="fas fa-download"></i
               ><!-- {{ 'mb.box-reader.btn.LoadMore' | translate }} -->
@@ -30,7 +30,7 @@
               mat-button
               color="secondary"
               matTooltip="{{'mb.box-reader.btn.Login.tooltip'|translate}}"
-              (click)="login($event).subscribe()"
+              (click)="preventDefault($event); login($event).subscribe()"
             >
               <i class="fas fa-envelope"></i
               ><!-- {{ 'mb.box-reader.btn.Login' | translate }} -->
@@ -48,7 +48,7 @@
               mat-button
               color="secondary"
               matTooltip="{{'mb.box-reader.btn.LoadMore.tooltip'|translate}}"
-              (click)="loadNext($event).subscribe()"
+              (click)="preventDefault($event); loadNext($event).subscribe()"
             >
               <i class="fas fa-download"></i
               ><!-- {{ 'mb.box-reader.btn.LoadMore' | translate }} -->
@@ -57,7 +57,7 @@
               mat-button
               color="secondary"
               matTooltip="{{'mb.box-reader.btn.Login.tooltip'|translate}}"
-              (click)="login($event).subscribe()"
+              (click)="preventDefault($event); login($event).subscribe()"
             >
               <i class="fas fa-envelope"></i
               ><!-- {{ 'mb.box-reader.btn.Login' | translate }} -->
