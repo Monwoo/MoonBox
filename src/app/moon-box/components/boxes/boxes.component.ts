@@ -493,16 +493,18 @@ export class BoxesComponent implements OnInit, OnChanges {
     // + will help avoid multi call issue (debounce is not right opérator => should cancel,
     // but what if cancel happen in middle of data save ??? => possible data issue
     // so will need to implement this kind of feature with better software design and unit-testings...)
-    // this.msgs.service.subscribe(messages => {
-    //   // need to update form model to update formfields suggestions
-    //   // TODO : better form design pattern to handle all that in simple form codes...
-    //   // formModel(this).then(model => {
-    //   //   this.filters.model = model;
-    //   // });
-    //   (async () => {
-    //     await this.updateForm().toPromise();
-    //   })();
-    // });
+    this.msgs.service.subscribe(messages => {
+      // need to update form model to update formfields suggestions
+      // TODO : better form design pattern to handle all that in simple form codes...
+      // formModel(this).then(model => {
+      //   this.filters.model = model;
+      // });
+      // (async () => {
+      //   await this.updateForm().toPromise();
+      // })();
+      this.msgsOpenedIdx = {}; // Collapse all back on new messages
+      this.isMsgsCondensedEmitter = new Map();
+    });
     // UpdateForm will be done only once on unlock (only reason to reload form since user data or session did change)
     // this.updateForm().subscribe();
     // https://stackoverflow.com/questions/47034573/ngif-hide-some-content-on-mobile-screen-angular-4
