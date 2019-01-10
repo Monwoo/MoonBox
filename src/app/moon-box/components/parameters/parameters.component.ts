@@ -88,7 +88,7 @@ export class ParametersComponent implements OnInit {
       }
     },
     keepLoading: {
-      Ctrl: new FormControl(''),
+      Ctrl: new FormControl(false),
       // errMatcher: new MyErrorStateMatcher(),
       init: () => {
         // Seem that error do not show on first form load since it wait for data loads...
@@ -100,20 +100,21 @@ export class ParametersComponent implements OnInit {
         const self = this; // Only for chrome debug or other ? did work for all past dev without .bind....
         // of('#angular/angular/issues/12470').pipe(delay(0), tap((() => {
         // this.common.fetchSize.Ctrl.reset();
-        this.common.keepLoading.Ctrl.patchValue(this.backend.keepLoading);
-        // this.common.fetchSize.Ctrl.updateValueAndValidity();
-        this.common.keepLoading.Ctrl.markAsTouched(); // <- this one mark form as dirty ? => not really, but works for form reload, current aim OK
-        this.common.keepLoading.Ctrl.valueChanges
-          .pipe(
-            debounceTime(500),
-            distinctUntilChanged()
-          )
-          .subscribe(event => {
-            if (this.common.keepLoading.Ctrl.valid) {
-              this.backend.keepLoading = this.common.keepLoading.Ctrl.value;
-            }
-          });
-        // }).bind(self))).subscribe();
+        this.backend.keepLoading$().subscribe(keep => {
+          this.common.keepLoading.Ctrl.valueChanges
+            .pipe(
+              debounceTime(500),
+              distinctUntilChanged()
+            )
+            .subscribe(event => {
+              if (this.common.keepLoading.Ctrl.valid) {
+                this.backend.keepLoading = this.common.keepLoading.Ctrl.value;
+              }
+            });
+          this.common.keepLoading.Ctrl.patchValue(keep);
+          this.common.keepLoading.Ctrl.updateValueAndValidity();
+          // this.common.keepLoading.Ctrl.markAsTouched(); // <- this one mark form as dirty ? => not really, but works for form reload, current aim OK
+        });
       }
     },
     logLimit: {
