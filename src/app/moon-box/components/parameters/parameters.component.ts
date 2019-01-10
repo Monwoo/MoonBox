@@ -15,7 +15,6 @@ import { NotificationsService } from 'angular2-notifications';
 import { LoadingLoaderService } from '@moon-manager/services/loading-loader.service';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { ThemingsService } from '@moon-box/services/themings.service';
-import { Logger } from '@app/core/logger.service';
 import { MessagesService } from '@moon-box/services/messages.service';
 import { NotificationsBufferService } from '@moon-box/services/notifications-buffer.service';
 import * as moment from 'moment';
@@ -27,6 +26,7 @@ import { debounceTime, distinctUntilChanged, delay, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 
 import { BackendService } from '@moon-box/services/backend.service';
+import { Logger } from '@app/core/logger.service';
 const logReview = new Logger('MonwooReview');
 
 // https://material.angular.io/components/input/overview

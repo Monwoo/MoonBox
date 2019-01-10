@@ -136,6 +136,11 @@ export class HandlerSubject extends BehaviorSubject<void> {
       // auditTime(500), // avoid multiple updates for focus/change/blur on checkmark checked...
       audit(() => caller.isFormUpdating$), // TODO : debounce until lock released...
       map(() => {
+        if (caller.storage.isLocked) {
+          logReview.debug('Buggy debounce filter => should not be called if locked...');
+          return this.handle(caller, transforms); // loop it back... ok ?
+        }
+
         caller.isFormUpdating$.next(true);
         logReview.debug('Starting debounced filters form update');
         const self = caller;

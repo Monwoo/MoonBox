@@ -5,6 +5,10 @@ import { I18nService } from '@app/core';
 import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
+import { Logger } from '@app/core/logger.service';
+import { ReplaySubject } from 'rxjs';
+import { debounceTime, tap } from 'rxjs/operators';
+const logReview = new Logger('MonwooReview');
 
 export interface DialogData {
   passHash: string;
@@ -33,25 +37,41 @@ export class LockScreenComponent implements OnInit {
     });
   }
 
-  ngOnInit() {}
+  private debouncer = new ReplaySubject();
 
+  ngOnInit() {
+    this.debouncer
+      .pipe(
+        debounceTime(500),
+        tap(async () => {
+          this.hashCode = this.storage.toHex(this.passCode); //<string>Md5.hashStr(this.passCode);
+          // if (!this.data.passHash || '' === this.data.passHash || this.hashCode === this.data.passHash) {
+          if (this.haveEmptyPassCode || (await this.storage.checkPassCodeValidity(this.passCode))) {
+            this.ignoreNewInput = true;
+            this.i18nService.get(extract('mb.lock-screen.unlock.success')).subscribe(t => {
+              this.notif.success(t);
+            });
+            this.dialogRef.close(true);
+          }
+        })
+      )
+      .subscribe();
+  }
+
+  private ignoreNewInput = false;
   async unlockScreen(e: any) {
-    // this.hashCode = this.storage.toHex(this.passCode); //<string>Md5.hashStr(this.passCode);
-    // if (!this.data.passHash || '' === this.data.passHash || this.hashCode === this.data.passHash) {
-    if (this.haveEmptyPassCode || (await this.storage.checkPassCodeValidity(this.passCode))) {
-      this.i18nService.get(extract('mb.lock-screen.unlock.success')).subscribe(t => {
-        this.notif.success(t);
-      });
-      this.dialogRef.close(true);
+    if (this.ignoreNewInput) {
+      logReview.debug('Ignore new input, pass ok getting setup...');
     }
+    this.debouncer.next();
     // this.data.passHash === md5(this.inputCode)
   }
 
   onCorrectPasscode(e: any) {
-    console.log('Passcode correct', e);
+    logReview.debug('Passcode correct', e);
   }
 
   onWrongPasscode(atempts: any) {
-    console.log('Passcode Fail', atempts);
+    logReview.debug('Passcode Fail', atempts);
   }
 }
