@@ -138,7 +138,9 @@ export class HandlerSubject extends BehaviorSubject<void> {
       map(() => {
         if (caller.storage.isLocked) {
           logReview.debug('Buggy debounce filter => should not be called if locked...');
-          return this.handle(caller, transforms); // loop it back... ok ?
+          // return this.handle(caller, transforms); // loop it back... ok ?
+          caller.isFormUpdating$.next(false);
+          return;
         }
 
         caller.isFormUpdating$.next(true);
