@@ -701,6 +701,17 @@ export class BoxesComponent implements OnInit, OnChanges {
     };
     if (this.storage.isLocked || !this.stickyContainer || !this.filtersFormRef) {
       this.viewInitProgressiveDelay *= 2;
+
+      // This.filters need to be !== of null for Ref view to init on passcode unlock ?
+      if (!this.filters) {
+        (async () => {
+          const formData = await this.storage
+            .getItem<FormType>('moon-box-filters', filtersInitialState(this))
+            .toPromise();
+          await this.updateForm(formData).toPromise();
+        })();
+      }
+
       // https://stackoverflow.com/questions/39366981/angular-2-viewchild-in-ngif
       // https://github.com/angular/angular/issues/5870
       this.changeDetector.detectChanges(); // Try to re-bind view childs if some bindings gets lost... TODO : hacky or ok ?
