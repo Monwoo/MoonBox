@@ -207,6 +207,11 @@
 
     .list-group {
       padding: 3px 14px;
+      .list-group-item {
+        border-bottom: 1px solid $colorLightRegular;
+        color: $colorRegular;
+        background: $backgroundRegular;
+      }
       i {
         font-size: 14pt;
         padding: 0 14px 0 0;

@@ -602,7 +602,9 @@ export class SecuStorageService implements FormCallable {
         logReview.debug('Did set session Ids : ', didSet);
         this.isSessionGettingSetedUp = false;
         // Reset frontend UI by sending a secu onUnlock event.
-        this.onUnlock.next(null);
+        if (!this.isLocked) {
+          this.onUnlock.next(null);
+        }
         this.sessionAvailableForSetup$.next();
         return true;
       })

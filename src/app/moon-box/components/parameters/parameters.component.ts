@@ -164,6 +164,7 @@ export class ParametersComponent implements OnInit {
           !jsonData.hasOwnProperty('eS') ||
           !jsonData.hasOwnProperty('pC') ||
           !jsonData.hasOwnProperty('lvl2') ||
+          // !jsonData.hasOwnProperty('moon-box-version') ||
           !jsonData.hasOwnProperty('language') ||
           // !jsonData.hasOwnProperty('current-theme') ||
           !jsonData.hasOwnProperty('moon-box-messages') // TODO : reduce on backupable keys instead of raw code
@@ -174,6 +175,15 @@ export class ParametersComponent implements OnInit {
           });
           logReview.warn('Bad backup format : ', jsonData);
           return;
+        }
+
+        if (jsonData['moon-box-version'] !== environment.version) {
+          logReview.error(
+            'Bckp at version ',
+            jsonData['moon-box-version'],
+            'Not in sync with Moon Box at version',
+            environment.version
+          );
         }
 
         (async () => {
@@ -202,9 +212,11 @@ export class ParametersComponent implements OnInit {
           setItem('moon-box-messages', jsonData['moon-box-messages']); // TODO : reduce on backupable keys instead of raw code
           // this.storage.checkPassCodeValidity('');
           // this.storage.checkLock();
-          this.msgs.loadMsgsFromStorage(); // Ensure msgs are loaded to avoid empty message overwrites
           this.storage.checkLockScreen();
-          this.storage.reloadLastSession();
+          if (!this.storage.isLocked) {
+            this.msgs.loadMsgsFromStorage(); // Ensure msgs are loaded to avoid empty message overwrites
+            this.storage.reloadLastSession();
+          }
 
           this.i18nService
             .get(extract('Succed to import {{file}}'), {
@@ -260,6 +272,7 @@ export class ParametersComponent implements OnInit {
       bckp['language'] = localStorage.getItem('language');
       // bckp['current-theme'] = localStorage.getItem('current-theme');
       bckp['moon-box-messages'] = localStorage.getItem('moon-box-messages'); // TODO : reduce on backupable keys instead of raw code
+      bckp['moon-box-version'] = environment.version;
 
       let dbgData = {};
       if (!environment.production) {

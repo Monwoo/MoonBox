@@ -631,7 +631,8 @@ export class BoxesComponent implements OnInit, OnChanges {
     this.initialStickyOffset = getOffsetTop(this.stickyContainer.nativeElement);
     // TODO : find back in Monwoo CVVideo or Ecole de la Vie how to get real div Height...
     // This height is missing margin/padding and border size....
-    this.initialStickyHeight = this.stickyContainer.nativeElement.getClientRects()[0].height + 15 * 2 + 16 * 2 + 1 * 2;
+    const cRect = this.stickyContainer.nativeElement.getClientRects()[0];
+    this.initialStickyHeight = cRect ? cRect.height + 15 * 2 + 16 * 2 + 1 * 2 : 42;
   }
 
   /*
