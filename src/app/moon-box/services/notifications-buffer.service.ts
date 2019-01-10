@@ -21,13 +21,13 @@ export class NotificationsBufferService {
   private _maxLength: number = 21;
 
   constructor(private notif: NotificationsService, private i18nService: I18nService, private storage: LocalStorage) {
-    // https://github.com/flauc/angular2-notifications/blob/master/src/services/notifications.service.ts
-    notif.emitter.subscribe(e => {
-      if (e.add) {
-        this.addEvent(e.notification);
-      }
-    });
     this.storage.getItem('notif-buffer.logLimit').subscribe((storedSize: number) => {
+      // https://github.com/flauc/angular2-notifications/blob/master/src/services/notifications.service.ts
+      notif.emitter.subscribe(e => {
+        if (e.add) {
+          this.addEvent(e.notification);
+        }
+      });
       this._maxLength = storedSize || this._maxLength; // Keep default size if fail to fetch
     });
   }

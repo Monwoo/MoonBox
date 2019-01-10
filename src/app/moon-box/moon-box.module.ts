@@ -48,6 +48,13 @@ import { CookieService } from 'ngx-cookie-service';
 import { DropzoneModule } from 'ngx-dropzone-wrapper';
 import { SessionFormComponent } from './components/session-form/session-form.component';
 
+// https://www.concretepage.com/angular-2/angular-module-loading-eager-lazy-and-preloading
+// https://alligator.io/angular/preloading/
+// https://www.bennadel.com/blog/3506-preloading-lazy-loaded-feature-modules-in-angular-6-1-9.htm
+// https://angular.io/guide/architecture-services
+// https://stackoverflow.com/questions/48186872/angular-lazy-loading-modules-with-services
+import { NotificationsBufferService } from '@moon-box/services/notifications-buffer.service';
+
 @NgModule({
   declarations: [
     BoxReaderComponent,
@@ -92,6 +99,9 @@ import { SessionFormComponent } from './components/session-form/session-form.com
   ],
   entryComponents: [LockScreenComponent],
   providers: [
+    // https://angular.io/guide/architecture-services
+    // https://stackoverflow.com/questions/48186872/angular-lazy-loading-modules-with-services
+    NotificationsBufferService, // not calling constructor at module level... TODO : done in moon-box component for now (injecting with no use...)
     CookieService,
     // https://material.angular.io/components/datepicker/overview#setting-the-locale-code
     // { provide: MAT_DATE_LOCALE, useValue: 'en-GB'},

@@ -3,6 +3,7 @@ import { Component, OnInit, ComponentFactoryResolver, ViewChild, ViewEncapsulati
 import { LoadingLoaderService } from '@moon-manager/services/loading-loader.service';
 import { ThemingsService } from '@moon-box/services/themings.service';
 // import { LockScreenComponent } from '@moon-box/components/lock-screen/lock-screen.component';
+import { NotificationsBufferService } from '@moon-box/services/notifications-buffer.service';
 
 @Component({
   selector: 'monwoo-moon-box',
@@ -18,7 +19,11 @@ export class MoonBoxComponent implements OnInit {
   constructor(
     private ll: LoadingLoaderService,
     private factoryResolver: ComponentFactoryResolver,
-    public themings: ThemingsService
+    public themings: ThemingsService,
+    // Hack to avoid missing notif listenings since otherwise,
+    // service will be setup only if going to parameters tab, not
+    // registering early events from main page....
+    public hackUntilLoadModuleLevelFail: NotificationsBufferService
   ) {
     ll.hideLoader();
   }
