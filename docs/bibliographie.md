@@ -269,6 +269,8 @@
 * https://robots.thoughtbot.com/sass-default
 
 * https://la-cascade.io/la-premiere-variable-css-currentcolor/
+* http://www.thelin.net/laurent/labo/html/mailto.html
+* https://css-tricks.com/snippets/html/mailto-links/
 
 ```bash
 # Added packages :

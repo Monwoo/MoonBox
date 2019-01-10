@@ -123,6 +123,9 @@ export class BackendService {
     this.storage.getItem('backend.fetchSize').subscribe((storedSize: number) => {
       this.fetchSize = storedSize || this.fetchSize; // Keep default size if fail to fetch
     });
+    this.storage.getItem('keep-loading').subscribe((keep: boolean) => {
+      this._keepLoading = null === keep ? this._keepLoading : keep; // Keep default size if fail to fetch
+    });
   }
 
   generateApiUsername() {
@@ -152,6 +155,17 @@ export class BackendService {
     cookie += ' expires=' + expDate.toUTCString() + '; Max-Age=-99999999;';
     logReview.debug('Removing Cookie with : ', cookie);
     document.cookie = cookie;
+  }
+
+  private _keepLoading = false;
+  public get keepLoading() {
+    return this._keepLoading;
+  }
+
+  public set keepLoading(keep: boolean) {
+    this._keepLoading = keep;
+    this.storage.setItem('keep-loading', this._keepLoading).subscribe();
+    logReview.debug('Should keep loading : ', this._keepLoading);
   }
 
   logout() {

@@ -41,6 +41,8 @@ import {
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 // import { LockScreenModule, LockScreenComponent } from 'ionic-simple-lockscreen';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatListModule } from '@angular/material/list';
+
 import { LockScreenComponent } from './components/lock-screen/lock-screen.component';
 import { I18nService } from '@app/core';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
@@ -80,6 +82,7 @@ import { NotificationsBufferService } from '@moon-box/services/notifications-buf
     MatIconModule,
     MatButtonModule,
     MatCheckboxModule,
+    MatListModule,
     MatTooltipModule,
     MatDatepickerModule,
     // MatNativeDateModule,

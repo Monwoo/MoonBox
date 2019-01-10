@@ -27,6 +27,7 @@ import { of } from 'rxjs';
 
 import { BackendService } from '@moon-box/services/backend.service';
 import { Logger } from '@app/core/logger.service';
+import { DynamicCheckboxModel } from '@ng-dynamic-forms/core';
 const logReview = new Logger('MonwooReview');
 
 // https://material.angular.io/components/input/overview
@@ -81,6 +82,35 @@ export class ParametersComponent implements OnInit {
           .subscribe(event => {
             if (this.common.fetchSize.Ctrl.valid) {
               this.backend.setFetchSize(this.common.fetchSize.Ctrl.value);
+            }
+          });
+        // }).bind(self))).subscribe();
+      }
+    },
+    keepLoading: {
+      Ctrl: new FormControl(''),
+      // errMatcher: new MyErrorStateMatcher(),
+      init: () => {
+        // Seem that error do not show on first form load since it wait for data loads...
+        // otherwise it may show wrong data while it's only a loading delay issue...
+        // + MUST BE Called Async to work ? : with only patchValue, none works...
+        // https://github.com/angular/angular/issues/12470
+        // https://www.devexpress.com/Support/Center/Question/Details/T463337/validation-messages-are-displayed-on-the-first-load-if-dxvalidator-is-used-and-values
+        //
+        const self = this; // Only for chrome debug or other ? did work for all past dev without .bind....
+        // of('#angular/angular/issues/12470').pipe(delay(0), tap((() => {
+        // this.common.fetchSize.Ctrl.reset();
+        this.common.keepLoading.Ctrl.patchValue(this.backend.keepLoading);
+        // this.common.fetchSize.Ctrl.updateValueAndValidity();
+        this.common.keepLoading.Ctrl.markAsTouched(); // <- this one mark form as dirty ? => not really, but works for form reload, current aim OK
+        this.common.keepLoading.Ctrl.valueChanges
+          .pipe(
+            debounceTime(500),
+            distinctUntilChanged()
+          )
+          .subscribe(event => {
+            if (this.common.keepLoading.Ctrl.valid) {
+              this.backend.keepLoading = this.common.keepLoading.Ctrl.value;
             }
           });
         // }).bind(self))).subscribe();
