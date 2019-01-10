@@ -197,6 +197,7 @@ export class BoxReaderComponent implements OnInit {
   }
 
   selectProvider(id: ProviderID) {
+    this.loginData = <FormType>shallowMerge(1, this.loginData, this.loginForm.value);
     this.loginData.selectedProvider = id;
     this.loginData.params.mailhost = this.backend.providers[id].serverUrl;
     this.loginData.params.mailport = this.backend.providers[id].serverPort;

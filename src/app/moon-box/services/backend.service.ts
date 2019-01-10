@@ -37,46 +37,74 @@ export class BackendService {
   private fetchSize = 21;
 
   public providers = {
+    // https://www.materialui.co/icons
+    /*
+    https://www.materialui.co/icon/sentiment-neutral
+    https://www.materialui.co/icon/sentiment-very-dissatisfied
+    https://www.materialui.co/icon/sentiment-dissatisfied
+    https://www.materialui.co/icon/sentiment-very-satisfied
+    https://www.materialui.co/icon/airplanemode-inactive
+    https://www.materialui.co/icon/signal-cellular-connected-no-internet-4-bar
+    https://www.materialui.co/icon/signal-wifi-statusbar-connected-no-internet-1
+    https://www.materialui.co/icon/signal-wifi-statusbar-not-connected
+    https://www.materialui.co/icon/notifications_paused
+    */
     // TODO : all https://accedinfo.com/dns-pop-imap/ ? how to keep simple then ?...
     OVH: {
       name: extract('O.V.H.'),
       serverUrl: 'SSL0.OVH.NET',
-      serverPort: '993'
+      serverPort: '993',
+      usability: 'notifications_paused',
+      extraCmt: extract('Not tested yet')
     },
     GoDaddy: {
       name: extract('GoDaddy'),
       serverUrl: 'imap.secureserver.net',
-      serverPort: '993'
+      serverPort: '993',
+      usability: 'notifications_paused',
+      extraCmt: extract('Not tested yet')
     },
     LWS: {
       name: extract('L.W.S.'),
       serverUrl: 'mail07.lwspanel.com',
-      serverPort: '993'
+      serverPort: '993',
+      usability: 'sentiment_very_satisfied',
+      extraCmt: extract('Seem to work')
     },
     YopMail: {
       name: extract('YopMail'),
       serverUrl: 'http://www.yopmail.com?{username}',
-      serverPort: '80'
+      serverPort: '80',
+      usability: 'signal_cellular_connected_no_internet_4_bar',
+      extraCmt: extract('No IMAP available, connect via : www.yopmail.com')
     },
     Yahoo: {
       name: extract('Yahoo'),
       serverUrl: 'imap.mail.yahoo.com',
-      serverPort: '993'
+      serverPort: '993',
+      usability: 'notifications_paused',
+      extraCmt: extract('Not tested yet')
     },
     Hotmail: {
       name: extract('Hotmail'),
       serverUrl: 'imap-mail.outlook.com',
-      serverPort: '993'
+      serverPort: '993',
+      usability: 'notifications_paused',
+      extraCmt: extract('Not tested yet')
     },
     Unknown: {
       name: extract('Unknown'),
       serverUrl: '',
-      serverPort: ''
+      serverPort: '',
+      usability: 'notifications_paused',
+      extraCmt: extract('Not tested yet')
     },
     GoogleApi: {
       name: extract('Api Google'),
       serverUrl: '<MoonBox backend>',
-      serverPort: ''
+      serverPort: '',
+      usability: 'sentiment_very_satisfied',
+      extraCmt: extract('Seem to work')
     }
   };
 

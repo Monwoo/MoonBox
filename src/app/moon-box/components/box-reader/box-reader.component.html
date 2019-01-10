@@ -65,9 +65,9 @@
           </ng-container>
         </div>
       </div>
-      <div class="col-12 col-md-6 text-md-left height-animable condensable">
+      <div class="col-12 col-md-6 text-md-left height-animable condensable clearfix">
         <mat-form-field class="float-right">
-          <mat-icon matSuffix>sentiment_very_satisfied</mat-icon>
+          <mat-icon matSuffix>{{ backend.providers[loginData.selectedProvider].usability }} </mat-icon>
           <mat-select
             (selectionChange)="selectProvider(loginData.selectedProvider)"
             placeholder="{{'mb.box-reader.provider.plhdr'|translate}}"
@@ -82,6 +82,8 @@
             </mat-option>
           </mat-select>
         </mat-form-field>
+        <br style="clear:both;" />
+        <p class="float-right" [innerHtml]="backend.providers[loginData.selectedProvider].extraCmt"></p>
       </div>
       <div class="col-12 col-md-6 text-md-left height-animable condensable">
         <form *ngIf="formGroup" [formGroup]="formGroup" #loginForm="ngForm">
