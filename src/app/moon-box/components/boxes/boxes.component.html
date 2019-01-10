@@ -230,7 +230,7 @@
         *ngIf="!(isMsgsCondensed(messages.key, animationDelay) | async)"
         [hidden]="!(isMsgsCondensed(messages.key) | async)"
       -->
-      <div class="col-12 text-md-left condensed" [class.condensable]="isMsgsCondensed(messages.key) | async">
+      <div class="col-12 text-md-left condensed" [class.condensable]="isMsgsCondensed(messages.key)">
         <mat-card *ngFor="let msgKey of messages.value.sortedKey; let index = index" class="bs box-reader">
           <ng-template #boxContent let-msg="msg">
             <div class="p-2">
@@ -243,7 +243,7 @@
                 </mat-card-subtitle>
               </mat-card-header>
             </div>
-            <mat-card-content *ngIf="!(isMsgCondensed(messages.key, msg.msgUniqueId) | async)">
+            <mat-card-content *ngIf="!isMsgCondensed(messages.key, msg.msgUniqueId)">
               <span> {{ '[' + msg.expeditor + '] => ' + msg.to + ' | ' + msg.cc + ' | ' + msg.bcc }} </span>
               <ng-template #msgBody>
                 <div class="msg-wrapper height-animable condensable-lvl2" [innerHTML]="msg.iframeBody | safeHtml"></div>

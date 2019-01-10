@@ -513,10 +513,11 @@ export class BoxesComponent implements OnInit, OnChanges {
       //   await this.updateForm().toPromise();
       // })();
       this.msgsOpenedIdx = {}; // Collapse all back on new messages
-      this.isMsgsCondensedEmitter.forEach((v: BehaviorSubject<boolean>, k: string) => {
-        v.next(false);
-      });
-      this.isMsgsCondensedEmitter = new Map();
+      // Object.keys(this.isMsgsCondensedEmitter).forEach((k: string) => {
+      //   this.isMsgsCondensedEmitter[k] = true;
+      // });
+      this.isMsgsCondensedEmitter = {};
+      this.isMsgCondensedEmitter = {};
     });
     // UpdateForm will be done only once on unlock (only reason to reload form since user data or session did change)
     // this.updateForm().subscribe();
@@ -690,7 +691,7 @@ export class BoxesComponent implements OnInit, OnChanges {
         input.setAttribute('autocomplete', 'off');
       });
     };
-    if (this.storage.isLocked || !this.stickyContainer) {
+    if (this.storage.isLocked || !this.stickyContainer || !this.filtersFormRef) {
       this.viewInitProgressiveDelay *= 2;
       // https://stackoverflow.com/questions/39366981/angular-2-viewchild-in-ngif
       // https://github.com/angular/angular/issues/5870
@@ -1006,15 +1007,15 @@ export class BoxesComponent implements OnInit, OnChanges {
   msgsOpenedIdx = {};
   expandMessages(e: any, moonBoxGroup: string) {
     if ((this.msgsOpenedIdx[moonBoxGroup] || { isOpen: false }).isOpen) {
-      this.isMsgsCondensedEmitter.get(moonBoxGroup).next(true);
+      this.isMsgsCondensedEmitter[moonBoxGroup] = true;
       this.msgsOpenedIdx[moonBoxGroup] = { isOpen: false };
-      // clean sub expands on main group click by condensing all sub children:
-      this.isMsgCondensedEmitter[moonBoxGroup].forEach((v: BehaviorSubject<boolean>, k: string) => {
-        v.next(true);
-      });
+      // expands on main group click by expand all sub children ? better add action btn, will load all bodies
+      // this.isMsgCondensedEmitter[moonBoxGroup].forEach((v: boolean, k: string, src) => {
+      //   src[k] = true;
+      // });
       this.msgsOpenedIdx[moonBoxGroup].msgOpenedIdx = {}; // TODO : algo issue ? not set for expandMessage, had to failback...
     } else {
-      this.isMsgsCondensedEmitter.get(moonBoxGroup).next(false);
+      this.isMsgsCondensedEmitter[moonBoxGroup] = false;
       this.msgsOpenedIdx[moonBoxGroup] = { isOpen: true };
     }
     // TODO : give infinit loop, will not use if DOM node wipe out => TODO : do it for OPTIM if needed (it unload component... making page lighter...)
@@ -1025,46 +1026,55 @@ export class BoxesComponent implements OnInit, OnChanges {
         this.animationDelay = endState;
       });
   }
-  animationWorkload = 2000;
+  animationWorkload = 200; // 2000;
   animationDelay = 0;
-  isMsgsCondensedEmitter = new Map(); //  = new BehaviorSubject<boolean>(true); // new Subject<boolean>(); //
+  // refreshCounter = 1;
+  // isMsgsCondensedEmitter = new Map<string, boolean>(); //  = new BehaviorSubject<boolean>(true); // new Subject<boolean>(); //
+  isMsgsCondensedEmitter: { [key: string]: boolean } = {}; //  = new BehaviorSubject<boolean>(true); // new Subject<boolean>(); //
   isMsgsCondensed(moonBoxGroup: string, delayInMs: number = 0) {
     // const _isMsgsCondensed = !(this.msgsOpenedIdx[moonBoxGroup] || { isOpen : false }).isOpen;
-    if (!this.isMsgsCondensedEmitter.has(moonBoxGroup)) {
-      this.isMsgsCondensedEmitter.set(moonBoxGroup, new BehaviorSubject<boolean>(true));
+    if (!this.isMsgsCondensedEmitter.hasOwnProperty(moonBoxGroup)) {
+      this.isMsgsCondensedEmitter[moonBoxGroup] = true;
     }
     // https://coryrylan.com/blog/angular-async-data-binding-with-ng-if-and-ng-else
     // Delay of 2 second, letting css animations ends...
     // => break stuffs, not using If optim for now : delay(delayInMs),
-    return this.isMsgsCondensedEmitter.get(moonBoxGroup).pipe(share());
+    // return of(this.isMsgsCondensedEmitter[moonBoxGroup]).pipe(share());
+    // this.refreshCounter++;
+    return this.isMsgsCondensedEmitter[moonBoxGroup];
   }
   async expandMessage(e: any, moonBoxGroup: string, msgIdx: string) {
     // const msgKey = moonBoxGroup + msgIdx;
     this.msgsOpenedIdx[moonBoxGroup] = { ...{ msgOpenedIdx: {} }, ...this.msgsOpenedIdx[moonBoxGroup] };
     if (this.msgsOpenedIdx[moonBoxGroup].msgOpenedIdx[msgIdx]) {
       this.msgsOpenedIdx[moonBoxGroup].msgOpenedIdx[msgIdx] = false;
-      this.isMsgCondensedEmitter[moonBoxGroup].get(msgIdx).next(true);
+      this.isMsgCondensedEmitter[moonBoxGroup][msgIdx] = true;
     } else {
       this.msgsOpenedIdx[moonBoxGroup].msgOpenedIdx[msgIdx] = true;
-      this.isMsgCondensedEmitter[moonBoxGroup].get(msgIdx).next(false);
+      this.isMsgCondensedEmitter[moonBoxGroup][msgIdx] = false;
       // TODO : refactor to put iframe refresh in backend service; ok for now :
       // this.boxViews.first.updateIFrames();
       this.updateIFrames();
     }
   }
   _isMsgCondensed = true;
-  isMsgCondensedEmitter: Map<string, BehaviorSubject<boolean>>[] = []; // new BehaviorSubject<boolean>(this._isMsgCondensed); // new Subject<boolean>(); //
+  isMsgCondensedEmitter: {
+    // [key:string]: Map<string, boolean>, // no value listener activated if Map used...
+    [key: string]: { [key: string]: boolean };
+  } = {}; // new BehaviorSubject<boolean>(this._isMsgCondensed); // new Subject<boolean>(); //
   isMsgCondensed(moonBoxGroup: string, msgIdx: string) {
     // const msgKey = moonBoxGroup + msgIdx;
     if (!this.isMsgCondensedEmitter[moonBoxGroup]) {
-      this.isMsgCondensedEmitter[moonBoxGroup] = new Map();
+      this.isMsgCondensedEmitter[moonBoxGroup] = {};
     }
     // this._isMsgCondensed = !(this.msgsOpenedIdx[dataUsername] || { msgOpenedIdx : {} }).msgOpenedIdx[msgIdx];
     // https://coryrylan.com/blog/angular-async-data-binding-with-ng-if-and-ng-else
-    if (!this.isMsgCondensedEmitter[moonBoxGroup].has(msgIdx)) {
-      this.isMsgCondensedEmitter[moonBoxGroup].set(msgIdx, new BehaviorSubject<boolean>(true));
+    if (!this.isMsgCondensedEmitter[moonBoxGroup].hasOwnProperty(msgIdx)) {
+      this.isMsgCondensedEmitter[moonBoxGroup][msgIdx] = true;
     }
-    return this.isMsgCondensedEmitter[moonBoxGroup].get(msgIdx).pipe(share());
+    // this.refreshCounter++;
+    return this.isMsgCondensedEmitter[moonBoxGroup][msgIdx];
+    // return of(this.isMsgCondensedEmitter[moonBoxGroup].get(msgIdx)).pipe(share());
     // return of(this._isMsgCondensed);
   }
 
