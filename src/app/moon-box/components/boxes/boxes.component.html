@@ -43,8 +43,19 @@
               mat-button
               [class.is-actif]="filters.group.value.keepPasswordsInMemory"
               color="secondary"
-              matTooltip="{{'mb.boxes.indic.PasswordsAreSaved.tooltip'|translate}}"
-              (click)="('TODO'); preventDefault($event)"
+              matTooltip="{{ filters.group.value.keepPasswordsInMemory
+                ? ('mb.boxes.btn.CleanPassword.tooltip'|translate)
+                : ('mb.boxes.btn.KeepPassword.tooltip'|translate)
+              }}"
+              (click)="
+                preventDefault($event);
+                onFiltersChange($event, {
+                  keepPasswordsInMemory: !filters.group.value.keepPasswordsInMemory
+                })
+                  .toPromise()
+                  .then();
+                (false)
+              "
             >
               <i class="fas fa-key"></i>
             </button>
@@ -83,7 +94,8 @@
                   keepMessagesInMemory: !filters.group.value.keepMessagesInMemory
                 })
                   .toPromise()
-                  .then()
+                  .then();
+                (false)
               "
             >
               <i class="fas fa-link"></i>

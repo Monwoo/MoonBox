@@ -54,11 +54,17 @@ export class BoxReaderComponent implements OnInit {
   @Input() id: string;
   @Input()
   set filters(filters: FiltersFormType) {
+    if (this.loginData && this.loginForm) {
+      // login form was bootstraped, so use as transform
+      // since end user might have input some changes
+      this.loginData = <FormType>shallowMerge(1, this.loginData, this.loginForm.value);
+    }
     this.loginData = <FormType>shallowMerge(1, this.loginData, filters);
-    formDefaults(this).then(defData => {
-      this.loginData = <FormType>shallowMerge(1, defData, this.loginData);
-      this.loadFormFromStorage();
-    });
+    // formDefaults(this).then(defData => { // done in loadFormFromStorage, handling case where this.loginData is null
+    //   this.loginData = <FormType>shallowMerge(1, defData, this.loginData);
+    //   this.loadFormFromStorage();
+    // });
+    this.loadFormFromStorage();
   }
   @Input()
   extendedActions: TemplateRef<any> = null;
@@ -236,25 +242,27 @@ export class BoxReaderComponent implements OnInit {
       this.formGroup = this.formService.createFormGroup(this.formModel);
       logReview.debug('Patching box-reader form : ', this.loginData);
       this.formGroup.patchValue(this.loginData);
+      this.saveLoginForm();
       this.isFormUpdating = false;
     });
   }
 
   loadFormFromStorage() {
     return new Promise<boolean>((resolve, reject) => {
-      if (this.loginData.keepFormsInMemory) {
+      if (!this.loginData || this.loginData.keepFormsInMemory) {
         (async () => {
           const imutableDefault = await formDefaults(this);
           this.storage.getItem<FormType>('moon-box-' + this.id, imutableDefault).subscribe(
             loginData => {
               (async () => {
                 // Called if data is valid or null
-                let freshDefaults = shallowMerge(1, imutableDefault, this.loginData);
-                this.loginData = <FormType>shallowMerge(1, freshDefaults, loginData);
-                // transforms... ?
-                // this.loginData.keepFormsInMemory = true;
-                let transforms = this.loginData;
-                this.loginData = <FormType>shallowMerge(1, this.loginData, transforms);
+                this.loginData = <FormType>shallowMerge(1, loginData, this.loginData);
+                // if (this.loginForm) { // Do not do here, finely done in filters input and login action...
+                //   // transforms
+                //   // this.loginData.keepFormsInMemory = true;
+                //   // let transforms = this.loginData;
+                //   this.loginData = <FormType>shallowMerge(1, this.loginData, this.loginForm.value);
+                // }
                 await this.updateForm();
                 resolve();
               })();
@@ -394,6 +402,31 @@ export class BoxReaderComponent implements OnInit {
     return of(e.message);
   }
 
+  saveLoginForm() {
+    if (!/\*#__hash/.test(this.loginData._password)) {
+      this.loginData._password =
+        '*' + '#__hash' + (Math.random().toString(36) + '777777777').slice(2, 9) + btoa(this.loginData._password);
+    }
+
+    let storeData = this.loginData;
+    if (!this.loginData.keepPasswordsInMemory) {
+      // storeData = <FormType>shallowMerge(1, this.loginData, {
+      //   _password: ''
+      // });
+      storeData._password = '';
+    }
+    if (this.loginData.keepFormsInMemory) {
+      this.storage.setItem('moon-box-' + this.id, storeData).subscribe(() => {
+        // TODO : may be rewrite all in ngx-storage state system ?
+        logReview.debug('Did save moon-box ', this.id, storeData);
+      }, this.errorHandler);
+    } else {
+      this.storage.removeItem('moon-box-' + this.id).subscribe(() => {
+        logReview.debug("'No save required for moon-box-' + this.id");
+      }, this.errorHandler);
+    }
+  }
+
   login(event: any) {
     const val: FormType = this.loginForm.form.value;
     let resp: Observable<any> = null;
@@ -406,39 +439,14 @@ export class BoxReaderComponent implements OnInit {
     this.onSubmit(event);
     if (this.loginForm.form.valid) {
       this.ll.requireLoadingLock(); // TODO : add services to listen to time outed lock ? => cancelling all current tasks if loading lock did time out ?
-      if (!/\*#__hash/.test(val._password)) {
-        val._password = '*' + '#__hash' + (Math.random().toString(36) + '777777777').slice(2, 9) + btoa(val._password);
-      }
-      this.loginData = <FormType>shallowMerge(1, this.loginData, val);
-      let storeData = this.loginData;
 
+      this.loginData = <FormType>shallowMerge(1, this.loginData, this.loginForm.value);
       // https://stackoverflow.com/questions/43553544/how-can-i-manually-set-an-angular-form-field-as-invalid
       // TODO : advanced realtime enduser error feedback (need to click for now to get those)
       // Below for quick hack, better to implement full custom validator for regular case....
       // formData.form.controls['email'].setErrors({'incorrect': true});
+      this.saveLoginForm();
 
-      if (!this.loginData.keepPasswordsInMemory) {
-        storeData = <FormType>shallowMerge(1, this.loginData, {
-          _password: ''
-        });
-      }
-      if (this.loginData.keepFormsInMemory) {
-        this.storage.setItem('moon-box-' + this.id, storeData).subscribe(() => {
-          // TODO : fluent design review : do not show useless msg, if it works, data
-          // showing up is enough...
-
-          // TODO : may be rewrite all in ngx-storage state system ?
-          logReview.warn('Algo issue ? form refresh and storage sync....');
-          // this.i18nService.get(extract('mm.param.notif.saveSucced')).subscribe(t => {
-          //   this.notif.success(t);
-          //   // this.ll.hideLoader();
-          // });
-        }, this.errorHandler);
-      } else {
-        this.storage.removeItem('moon-box-' + this.id).subscribe(() => {
-          logReview.debug("'No save required for moon-box-' + this.id");
-        }, this.errorHandler);
-      }
       // Transforms for login purpose :
       this.loginData.periode.fetchStartStr = this.loginData.periode.fetchStart
         ? moment(this.loginData.periode.fetchStart).format('YYYY/MM/DD')
