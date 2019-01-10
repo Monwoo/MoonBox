@@ -73,8 +73,18 @@
               mat-button
               [class.is-actif]="filters.group.value.keepMessagesInMemory"
               color="secondary"
-              matTooltip="{{'mb.boxes.btn.ClearMsgs.tooltip'|translate}}"
-              (click)="msgs.saveMessages(); preventDefault($event)"
+              matTooltip="{{ filters.group.value.keepMessagesInMemory
+                ? ('mb.boxes.btn.ClearMsgs.tooltip'|translate)
+                : ('mb.boxes.btn.SaveMsgs.tooltip'|translate)
+              }}"
+              (click)="
+                preventDefault($event);
+                onFiltersChange($event, {
+                  keepMessagesInMemory: !filters.group.value.keepMessagesInMemory
+                })
+                  .toPromise()
+                  .then()
+              "
             >
               <i class="fas fa-link"></i>
             </button>

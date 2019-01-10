@@ -3,7 +3,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, of, ReplaySubject } from 'rxjs';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
-import { pluck, map, tap } from 'rxjs/operators';
+import { pluck, map, tap, share } from 'rxjs/operators';
 
 import { Logger } from '@app/core/logger.service';
 const logReview = new Logger('MonwooReview');
@@ -140,7 +140,7 @@ export class MessagesService {
   }
 
   reloadMsgsFromStorage() {
-    this.clearLocalMessages();
+    // this.clearLocalMessages(); // Wrong behavior, better to send initial state on fail load..
     this.loadMsgsFromStorage();
   }
 
@@ -151,6 +151,8 @@ export class MessagesService {
       if (bundle) {
         Object.assign(this, bundle);
         this.service.next(this.msgs); // Emit freshly loaded messages to get UI refreshs
+      } else {
+        this.service.next({ ...initialState });
       }
       // // TODO : why below do not work ?
       // this.service.pipe(
@@ -231,15 +233,26 @@ export class MessagesService {
             logReview.debug('Messages saved to memory', status);
           })
         );
-      })
+      }),
+      // https://www.learnrxjs.io/operators/multicasting/share.html
+      // https://www.learnrxjs.io/operators/multicasting/sharereplay.html
+      share()
     );
   }
 
   removeMessagesFromMemory() {
     return this.storage.removeItem('moon-box-messages').pipe(
       tap(() => {
-        logReview.debug('Did remove messages from memory');
-      })
+        // No local clean needed, since may need to use those to
+        // save last loaded message if user toggle save msgs btn...
+        // if (this.totalCount === 0) {
+        //   logReview.debug('No clean needed for this removal');
+        // } else {
+        //   this.clearMessages();
+        // }
+        logReview.debug('Did ensure messages are removed from memory');
+      }),
+      share()
     );
   }
 

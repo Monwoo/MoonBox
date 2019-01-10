@@ -179,7 +179,8 @@ export class HandlerSubject extends BehaviorSubject<void> {
             }
             // Done in msgs.service listener of MessagesService on property setter :
             // caller.msgs.shouldKeepMsgsInMemory(freshDefaults.data.keepMessagesInMemory);
-            caller.msgs.shouldKeepMsgsInMemory = (<FormType>freshDefaults.group.value).keepMessagesInMemory;
+            // caller.msgs.shouldKeepMsgsInMemory = (<FormType>freshDefaults.group.value).keepMessagesInMemory;
+            caller.msgs.shouldKeepMsgsInMemory = freshDefaults.data.keepMessagesInMemory;
             // TODO : need to Await ng Zone if using it ? :
             self.ngZone.run(() => {
               logReview.debug('Patching filters form : ', freshDefaults.data);
@@ -652,11 +653,11 @@ export class BoxesComponent implements OnInit, OnChanges {
       this.filtersFormChanges = new MutationObserver((mutations: MutationRecord[]) => {
         mutations.forEach((mutation: MutationRecord) => {
           // console.debug('Mutation record fired', mutation);
-          logReview.debug('Mutation record fired', mutation);
-          logReview.debug(
-            `Attribute '${mutation.attributeName}' changed to value `,
-            (<any>mutation.target).attributes[mutation.attributeName].value
-          );
+          // logReview.debug('Mutation record fired', mutation);
+          // logReview.debug(
+          //   `Attribute '${mutation.attributeName}' changed to value `,
+          //   (<any>mutation.target).attributes[mutation.attributeName].value
+          // );
         });
       });
       // Here we start observer to work with that element
@@ -790,7 +791,7 @@ export class BoxesComponent implements OnInit, OnChanges {
     // this.initShadowStickySizes();
   }
 
-  onFiltersChange(e: any) {
+  onFiltersChange(e: any, t: any = null) {
     // Nghost event not already detected ? TODO : avoid quick fix below :
     this.onSubmit(e);
 
@@ -809,8 +810,11 @@ export class BoxesComponent implements OnInit, OnChanges {
         //     });
         //   }, this.errorHandler);
         // }, this.errorHandler);
-        const filtersData = await this.updateForm(this.filtersForm.form.value).toPromise();
+        const filtersData = await this.updateForm(t ? t : this.filtersForm.form.value).toPromise();
         logReview.debug('Having updated form data : ', filtersData);
+        if (!filtersData.keepMessagesInMemory) {
+          this.msgs.clearMessages(); // Need to manually clear msgs since ensure Memory do not contains messages, but keep local front in case user switch back to save Msgs actions after some load
+        }
         await this.storage.setItem('moon-box-filters', filtersData);
         this.i18nService.get(extract('mb.boxes.notif.changeRegistred')).subscribe(t => {
           this.notif.success('', t);
