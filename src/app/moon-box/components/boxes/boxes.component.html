@@ -1,6 +1,6 @@
 <!-- Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com -->
 <!-- In Progress : https://material.angular.io/components/expansion/overview -->
-<mat-accordion *ngIf="!this.storage.isLocked">
+<mat-accordion *ngIf="!storage?.isLocked">
   <mat-expansion-panel
     class="filters-container"
     (opened)="toggleFilters($event)"

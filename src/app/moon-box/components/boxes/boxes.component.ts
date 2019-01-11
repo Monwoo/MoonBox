@@ -118,6 +118,12 @@ export class HandlerSubject extends BehaviorSubject<void> {
   // public transforms: any = null;
   public countRequests: number = 0;
   handle(caller: BoxesComponent, transforms: any) {
+    if (caller.storage.isLocked) {
+      logReview.debug('Buggy Handler subject => should not be called if locked...');
+      // return this.handle(caller, transforms); // loop it back... ok ?
+      return of(null);
+    }
+
     // return forkJoin([this.pipe(
     return this.pipe(
       tap(() => {
@@ -132,7 +138,7 @@ export class HandlerSubject extends BehaviorSubject<void> {
       // https://www.learnrxjs.io/operators/filtering/skipuntil.html
       // https://www.learnrxjs.io/operators/filtering/audittime.html
       // TODO : avoid debounceTime => refactor to event driven user interactions without possible doubles call
-      debounceTime(500), // avoid multiple updates for focus/change/blur on checkmark checked...
+      debounceTime(200), // avoid multiple updates for focus/change/blur on checkmark checked...
       // debounce(() => caller.isFormUpdating$), // TODO : debounce until lock released...
       // auditTime(500), // avoid multiple updates for focus/change/blur on checkmark checked...
       audit(() => caller.isFormUpdating$), // TODO : debounce until lock released...
@@ -477,6 +483,11 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
 
     this.subscribers.push(
       this.storage.onUnlock.subscribe(() => {
+        if (this.hackForceInterupt) {
+          logReview.debug('Having pending subscription while view have been destroy, ignoring...');
+          return;
+        }
+
         // if locked, will try to send form update, but
         // on first load, it will already be in postponing mode, and will need to get
         // 1 next postpone to fetch filters from storage + one more to realy load form ?
@@ -502,7 +513,9 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
 
         // this.haveExpandedFilters = false; // => this one too give infinit loop error ...
 
-        this.changeDetector.detectChanges(); // Try to re-bind view childs if some bindings gets lost... TODO : hacky or ok ?
+        // Below guive error about a storage not found on Null => trying change on pending not removed component ?
+        // Removing call for now... : but wird : happen only once, even if switching multiple between main and param views...
+        // this.changeDetector.detectChanges(); // Try to re-bind view childs if some bindings gets lost... TODO : hacky or ok ?
 
         // Or force form refresh : TODO : code not working yet....
         // // if (this.filters) {
@@ -560,6 +573,10 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
     // so will need to implement this kind of feature with better software design and unit-testings...)
     this.subscribers.push(
       this.msgs.service.subscribe(messages => {
+        if (this.hackForceInterupt) {
+          logReview.debug('Having pending subscription while view have been destroy, ignoring...');
+          return;
+        }
         // need to update form model to update formfields suggestions
         // TODO : better form design pattern to handle all that in simple form codes...
         // formModel(this).then(model => {
@@ -593,6 +610,9 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
     this.isScreenSmall$ = screenSizeChanged$.pipe(startWith(checkScreenSize()));
   }
 
+  // https://stackoverflow.com/questions/34442693/how-to-cancel-a-subscription-in-angular2
+  // https://medium.com/@benlesh/rxjs-dont-unsubscribe-6753ed4fda87
+  hackForceInterupt = false;
   ngOnDestroy() {
     // this.storage.onUnlock.unsubscribe(); => will unsubscribe to What ?
     // this.msgs.service.unsubscribe(); => will unsubscribe to What ?
@@ -601,6 +621,7 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
       s.unsubscribe();
     });
     if (this.filtersFormChanges) this.filtersFormChanges.disconnect();
+    this.hackForceInterupt = true;
   }
 
   lastScrollPos = 0;
@@ -717,7 +738,7 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
   ngAfterViewInit() {
     const initHandler = () => {
       logReview.assert(!!this.stickyContainer, 'Fail to load sticky container');
-      logReview.debug('Will init boxes views');
+      logReview.debug('Will init boxes filters & views');
       this.initShadowStickySizes();
 
       // filtersFormRef might be null if lockscreen activated...
@@ -758,6 +779,7 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
       inputs.forEach(input => {
         input.setAttribute('autocomplete', 'off');
       });
+      logReview.debug('Did init boxes filters & views');
     };
     // TODO : below quick patch to avoid buggy locked stuff, need to be done for any
     // services/callback that use storage... since secu throwings should not be catched,
@@ -785,7 +807,9 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
       // https://stackoverflow.com/questions/39366981/angular-2-viewchild-in-ngif
       // https://github.com/angular/angular/issues/5870
       // https://stackoverflow.com/questions/35105374/how-to-force-a-components-re-rendering-in-angular-2
-      this.changeDetector.detectChanges(); // Try to re-bind view childs if some bindings gets lost... TODO : hacky or ok ?
+      // Below guive error about a storage not found on Null => trying change on pending not removed component ?
+      // Removing call for now... : but wird : happen only once, even if switching multiple between main and param views...
+      // this.changeDetector.detectChanges(); // Try to re-bind view childs if some bindings gets lost... TODO : hacky or ok ?
       logReview.debug('Postponing boxes filters update');
       return of(true)
         .pipe(delay(this.viewInitProgressiveDelay))
@@ -968,6 +992,9 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
   // https://stackoverflow.com/questions/38739499/anonymous-class-instance-is-it-a-bad-idea
   isFormUpdating$ = <UpdateSubject>new UpdateSubject(false).pipe(
     distinctUntilChanged(), // only emit on values changes
+    tap(status => {
+      logReview.debug('Having form update : ', status);
+    }),
     filter(status => !status) // only keep isFormUpdating false events
   );
 
@@ -977,7 +1004,7 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public set isFormUpdating(v: boolean) {
-    logReview.debug('Set form Updating', v);
+    logReview.debug('Set form Updating', v); // TODO : refactor ? do not seem to be called for now...
     this.isFormUpdating$.next(v);
   }
 
