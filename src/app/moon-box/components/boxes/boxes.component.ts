@@ -498,6 +498,7 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
         //   this.toggleFilters();
         //   // Have to solve infinit loop if here ? improving syncFiltersCondensables needed ?
         // }
+        // TODO next version : solve this bug ?
 
         // this.haveExpandedFilters = false; // => this one too give infinit loop error ...
 
