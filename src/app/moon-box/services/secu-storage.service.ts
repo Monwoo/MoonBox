@@ -20,7 +20,17 @@ import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
 import { BackendService } from '@moon-box/services/backend.service';
 import { BehaviorSubject, ReplaySubject, from } from 'rxjs';
-import { map, combineLatest, tap, mergeAll, concatMap, debounceTime, catchError, takeUntil } from 'rxjs/operators';
+import {
+  map,
+  combineLatest,
+  tap,
+  mergeAll,
+  concatMap,
+  debounceTime,
+  catchError,
+  takeUntil,
+  delay
+} from 'rxjs/operators';
 import {
   ContextType,
   FormType,
@@ -54,9 +64,32 @@ export class SecuStorageService implements FormCallable {
     return this._isLocked;
   }
   public set isLocked(should: boolean) {
-    this._isLocked = should;
-    if (!should) {
-      this.onUnlock.next(null);
+    const asyncSetup = () => {
+      this._isLocked = should;
+      if (!should) {
+        this.onUnlock.next(null);
+      }
+    };
+    if (should) {
+      // Do not wait to lockout
+      asyncSetup();
+    } else {
+      asyncSetup(); // TODO : fix below error...
+      return;
+      // May wait for UI rendering for lock release :
+      // using delay and ngZone.run to try to avoid :
+      // ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked.
+      // Previous value: 'ngIf: true'. Current value: 'ngIf: false'.
+      // for first-page.component.html:7 ?
+      // => below have no effect : ...
+      of().pipe(
+        delay(0),
+        tap(() => {
+          this.ngZone.run(() => {
+            asyncSetup();
+          });
+        })
+      );
     }
   }
 
@@ -615,9 +648,8 @@ export class SecuStorageService implements FormCallable {
         logReview.debug('Did set session Ids : ', didSet);
         this.isSessionGettingSetedUp = false;
         // Reset frontend UI by sending a secu onUnlock event.
-        if (!this.isLocked) {
-          this.onUnlock.next(null);
-        }
+        // if (!this.isLocked)
+        this.onUnlock.next(null);
         this.sessionAvailableForSetup$.next();
         return true;
       })

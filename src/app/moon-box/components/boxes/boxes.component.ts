@@ -15,7 +15,8 @@ import {
   ChangeDetectionStrategy,
   SimpleChanges,
   OnChanges,
-  ChangeDetectorRef
+  ChangeDetectorRef,
+  OnDestroy
 } from '@angular/core';
 import { NgForm, FormArray, Validators, FormBuilder } from '@angular/forms';
 import {
@@ -295,7 +296,7 @@ export class HandlerSubject extends BehaviorSubject<void> {
     { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS }
   ]
 })
-export class BoxesComponent implements OnInit, OnChanges {
+export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
   // @ViewChild('filtersForm') filtersForm: ElementRef<NgForm> = null;
   @ViewChild('filtersFormRef') filtersFormRef: ElementRef<HTMLFormElement> = null;
   @ViewChild('filtersForm') filtersForm: NgForm = null; // TODO : refactor => ref is already inside this.filters...
@@ -309,6 +310,7 @@ export class BoxesComponent implements OnInit, OnChanges {
   initialStickyOffset: number = 0;
   initialStickyHeight: number = 0;
 
+  protected subscribers: Subscription[] = [];
   // Export only for HandlerSubject to use it... ? protected for now...
   protected filtersFormChanges: MutationObserver = null;
   // https://stackoverflow.com/questions/34796901/angular2-change-detection-ngonchanges-not-firing-for-nested-object
@@ -413,9 +415,10 @@ export class BoxesComponent implements OnInit, OnChanges {
         // $('html,body').animate({scrollTop: $(target.nativeElement).offset().top}, 'slow');
         // logReview.debug(target);
         target.markAsTouched(); // TODO : unlike in box-reader login form, markAsTouched have no effet when injecting items in form...
-        if (!this.haveExpandedFilters) {
-          this.toggleFilters();
-        }
+        // if (!this.haveExpandedFilters) {
+        //   this.toggleFilters(); // TODO : may infinit loop for now...
+        // }
+        this.haveExpandedFilters = true;
         if (e.preventDefault) e.preventDefault();
         if (e.stopPropagation) e.stopPropagation();
         // this.clickOnRemoveAgregationQuickHack = true; // TODO : dose above stopPropagation have no effect ?
@@ -471,36 +474,65 @@ export class BoxesComponent implements OnInit, OnChanges {
 
     this.renderer = this.rendererFactory.createRenderer(null, null);
     this.storage.setLockContainer(this.eltRef);
-    this.storage.onUnlock.subscribe(() => {
-      // if locked, will try to send form update, but
-      // on first load, it will already be in postponing mode, and will need to get
-      // 1 next postpone to fetch filters from storage + one more to realy load form ?
-      // => well, look like a strange behavior, will try to avoid the postponing in locked mode instead...
-      this.viewInitProgressiveDelay = 100;
-      // https://stackoverflow.com/questions/39366981/angular-2-viewchild-in-ngif
-      // https://github.com/angular/angular/issues/5870
-      // https://stackoverflow.com/questions/35105374/how-to-force-a-components-re-rendering-in-angular-2
-      this.changeDetector.detectChanges(); // Try to re-bind view childs if some bindings gets lost... TODO : hacky or ok ?
-      // TODO : below quick patch to avoid buggy locked stuff, need to be done for any
-      // services/callback that use storage... since secu throwings should not be catched,
-      // but avoided by end user interfaces...
-      this.ngAfterViewInit();
 
-      (async () => {
-        // http://json-schema.org/latest/json-schema-validation.html
-        //
-        const storageExpandBoxesConfigs = <boolean>await this.localStorage
-          .getItem<boolean>('expand-boxes-configs', <JSONSchemaBoolean>{
-            type: 'boolean',
-            default: this.expandBoxesConfigs // TODO : why not using default if storage not found ??
-          })
-          .toPromise();
-        this.expandBoxesConfigs =
-          null === storageExpandBoxesConfigs ? this.expandBoxesConfigs : storageExpandBoxesConfigs;
+    this.subscribers.push(
+      this.storage.onUnlock.subscribe(() => {
+        // if locked, will try to send form update, but
+        // on first load, it will already be in postponing mode, and will need to get
+        // 1 next postpone to fetch filters from storage + one more to realy load form ?
+        // => well, look like a strange behavior, will try to avoid the postponing in locked mode instead...
+        this.viewInitProgressiveDelay = 100;
+        // https://stackoverflow.com/questions/39366981/angular-2-viewchild-in-ngif
+        // https://github.com/angular/angular/issues/5870
+        // https://stackoverflow.com/questions/35105374/how-to-force-a-components-re-rendering-in-angular-2
+        // this.changeDetector.detectChanges(); // Try to re-bind view childs if some bindings gets lost... TODO : hacky or ok ?
+        // TODO : below quick patch to avoid buggy locked stuff, need to be done for any
+        // services/callback that use storage... since secu throwings should not be catched,
+        // but avoided by end user interfaces...
+        this.ngAfterViewInit();
 
-        // No need to start with fresh default since 'UpdateForm' will ovewrite it
-        // this.filters = await contextDefaults(this); // This one will trigger box-reader onFilters change event
-        /*
+        // TODO : having issue if keeping haveExpandedFilters expanded on session switching
+        // => form do not get refresh if user do not click somewhere on the page after session switching...
+        // Could remove effect :
+        // if (this.haveExpandedFilters) {
+        //   this.toggleFilters();
+        //   // Have to solve infinit loop if here ? improving syncFiltersCondensables needed ?
+        // }
+
+        // this.haveExpandedFilters = false; // => this one too give infinit loop error ...
+
+        this.changeDetector.detectChanges(); // Try to re-bind view childs if some bindings gets lost... TODO : hacky or ok ?
+
+        // Or force form refresh : TODO : code not working yet....
+        // // if (this.filters) {
+        // //   this.filters.group.markAsTouched(); // Still need end user to click somewhere on interface for effect to work
+        // of().pipe(
+        //   delay(100), // delay(0) or delay(100) not working, UI still need end user click on page to gets reloads...
+        //   tap(() => {
+        //     this.ngZone.run(() => {
+        //       if (this.filters) {
+        //         this.filters.group.markAsTouched();
+        //         this.changeDetector.detectChanges(); // Try to re-bind view childs if some bindings gets lost... TODO : hacky or ok ?
+        //       }
+        //     })
+        //   })
+        // );
+
+        (async () => {
+          // http://json-schema.org/latest/json-schema-validation.html
+          //
+          const storageExpandBoxesConfigs = <boolean>await this.localStorage
+            .getItem<boolean>('expand-boxes-configs', <JSONSchemaBoolean>{
+              type: 'boolean',
+              default: this.expandBoxesConfigs // TODO : why not using default if storage not found ??
+            })
+            .toPromise();
+          this.expandBoxesConfigs =
+            null === storageExpandBoxesConfigs ? this.expandBoxesConfigs : storageExpandBoxesConfigs;
+
+          // No need to start with fresh default since 'UpdateForm' will ovewrite it
+          // this.filters = await contextDefaults(this); // This one will trigger box-reader onFilters change event
+          /*
         Object.keys(this.inputWithMultiples).forEach(k => {
           let m = <DynamicInputModel>
           (<DynamicFormGroupModel>this.filters.model.find(m => m.id === 'params'))
@@ -512,34 +544,37 @@ export class BoxesComponent implements OnInit, OnChanges {
         });
         */
 
-        this.refreshBoxesIdxs();
-        const formData = await this.storage
-          .getItem<FormType>('moon-box-filters', filtersInitialState(this))
-          .toPromise();
-        await this.updateForm(formData).toPromise();
-      })();
-    });
+          this.refreshBoxesIdxs();
+          const formData = await this.storage
+            .getItem<FormType>('moon-box-filters', filtersInitialState(this))
+            .toPromise();
+          await this.updateForm(formData).toPromise();
+        })();
+      })
+    );
     // Doing form update on messages changes have no meanings
     // since filters dose not depend on it
     // + will help avoid multi call issue (debounce is not right opérator => should cancel,
     // but what if cancel happen in middle of data save ??? => possible data issue
     // so will need to implement this kind of feature with better software design and unit-testings...)
-    this.msgs.service.subscribe(messages => {
-      // need to update form model to update formfields suggestions
-      // TODO : better form design pattern to handle all that in simple form codes...
-      // formModel(this).then(model => {
-      //   this.filters.model = model;
-      // });
-      // (async () => {
-      //   await this.updateForm().toPromise();
-      // })();
-      this.msgsOpenedIdx = {}; // Collapse all back on new messages
-      // Object.keys(this.isMsgsCondensedEmitter).forEach((k: string) => {
-      //   this.isMsgsCondensedEmitter[k] = true;
-      // });
-      this.isMsgsCondensedEmitter = {};
-      this.isMsgCondensedEmitter = {};
-    });
+    this.subscribers.push(
+      this.msgs.service.subscribe(messages => {
+        // need to update form model to update formfields suggestions
+        // TODO : better form design pattern to handle all that in simple form codes...
+        // formModel(this).then(model => {
+        //   this.filters.model = model;
+        // });
+        // (async () => {
+        //   await this.updateForm().toPromise();
+        // })();
+        this.msgsOpenedIdx = {}; // Collapse all back on new messages
+        // Object.keys(this.isMsgsCondensedEmitter).forEach((k: string) => {
+        //   this.isMsgsCondensedEmitter[k] = true;
+        // });
+        this.isMsgsCondensedEmitter = {};
+        this.isMsgCondensedEmitter = {};
+      })
+    );
     // UpdateForm will be done only once on unlock (only reason to reload form since user data or session did change)
     // this.updateForm().subscribe();
     // https://stackoverflow.com/questions/47034573/ngif-hide-some-content-on-mobile-screen-angular-4
@@ -555,6 +590,16 @@ export class BoxesComponent implements OnInit, OnChanges {
     // Start off with the initial value use the isScreenSmall$ | async in the
     // view to get both the original value and the new value after resize.
     this.isScreenSmall$ = screenSizeChanged$.pipe(startWith(checkScreenSize()));
+  }
+
+  ngOnDestroy() {
+    // this.storage.onUnlock.unsubscribe(); => will unsubscribe to What ?
+    // this.msgs.service.unsubscribe(); => will unsubscribe to What ?
+    // using this.subscribers instead...
+    this.subscribers.forEach(s => {
+      s.unsubscribe();
+    });
+    if (this.filtersFormChanges) this.filtersFormChanges.disconnect();
   }
 
   lastScrollPos = 0;
@@ -833,6 +878,12 @@ export class BoxesComponent implements OnInit, OnChanges {
   haveExpandedFilters = false;
   // DONE : refactor design... remove hack
   // hackIsGoingDown = false;
+  // TODO : re-design or keep Private/preventedFunc,
+  // since for now, MUST NOT USE toggleFilters directly
+  // since will infinit loop with events binded from view
+  // => for now, only do this.haveExpandedFilters = false
+  // to force close toggleFilters.... trying to solve issue with
+  // syncFiltersCondensables, but haveExpandedFilters do not gets updated anymore...
   toggleFilters() {
     // Below hack solved by using JS PreventDefault event :
     // if (this.isSticky) {
@@ -850,6 +901,14 @@ export class BoxesComponent implements OnInit, OnChanges {
 
     //if (this.filtersForm.classList (this.filtersForm, 'src'))
     this.haveExpandedFilters = !this.haveExpandedFilters;
+    this.syncFiltersCondensables();
+  }
+
+  syncFiltersCondensables() {
+    if (!this.filtersFormRef) {
+      // view not yet in sync, ignoring end-user actions;
+      return;
+    }
     // this.filtersFormRef.nativeElement.classList.contains('condensed')
     if (this.haveExpandedFilters) {
       this.renderer.removeClass(this.filtersFormRef.nativeElement, 'condensed');

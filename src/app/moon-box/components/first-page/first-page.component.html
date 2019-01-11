@@ -3,5 +3,10 @@
 <!--
   TODO : better global design when V1 is stable : no effect for now, will only drop form postpowned events
   if storage is locked for now...
+
+  but give error :
+        // ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked.
+
+  => put back this view at top level in routings to debug ?
 -->
 <moon-boxes *ngIf="!this.storage.isLocked"></moon-boxes>
