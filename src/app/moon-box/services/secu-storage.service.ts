@@ -48,7 +48,18 @@ export class SecuStorageService implements FormCallable {
   public lockDownTimeInMs: number = 12 * 60 * 1000; // 12 minutes en millisecondes
   private lastLockCheckDate: Date = null;
   public lockTargetContainer: ViewContainerRef = null;
-  public isLocked: boolean = false;
+
+  private _isLocked: boolean = false;
+  public get isLocked(): boolean {
+    return this._isLocked;
+  }
+  public set isLocked(should: boolean) {
+    this._isLocked = should;
+    if (!should) {
+      this.onUnlock.next(null);
+    }
+  }
+
   private lockDialogRef: MatDialogRef<LockScreenComponent> = null;
   private rawCode: string = '';
   private lastRawCode: string = '';
@@ -275,14 +286,16 @@ export class SecuStorageService implements FormCallable {
   public checkLockScreen() {
     this.checkLock();
 
-    this.isLocked = false;
     if (!this.pC || this.pC === '') {
+      this.isLocked = false;
       return; // No need of lock screen since no PassCode defined
     }
     const currentDate = new Date();
     if (!this.lastLockCheckDate || currentDate.getTime() - this.lastLockCheckDate.getTime() > this.lockDownTimeInMs) {
       this.isLocked = true;
       this.showLockScreen();
+    } else {
+      this.isLocked = false;
     }
   }
 

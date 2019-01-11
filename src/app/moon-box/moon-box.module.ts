@@ -56,6 +56,7 @@ import { SessionFormComponent } from './components/session-form/session-form.com
 // https://angular.io/guide/architecture-services
 // https://stackoverflow.com/questions/48186872/angular-lazy-loading-modules-with-services
 import { NotificationsBufferService } from '@moon-box/services/notifications-buffer.service';
+import { FirstPageComponent } from './components/first-page/first-page.component';
 
 @NgModule({
   declarations: [
@@ -64,7 +65,8 @@ import { NotificationsBufferService } from '@moon-box/services/notifications-buf
     BoxesComponent,
     LockScreenComponent,
     SafeHtmlPipe,
-    SessionFormComponent
+    SessionFormComponent,
+    FirstPageComponent
   ],
   imports: [
     CommonModule,

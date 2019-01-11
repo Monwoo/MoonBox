@@ -4,6 +4,10 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, of, ReplaySubject } from 'rxjs';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
 import { pluck, map, tap, share } from 'rxjs/operators';
+import { I18nService } from '@app/core';
+import { extract } from '@app/core';
+import { NotificationsService } from 'angular2-notifications';
+import * as moment from 'moment';
 
 import { Logger } from '@app/core/logger.service';
 const logReview = new Logger('MonwooReview');
@@ -35,7 +39,11 @@ export class MessagesService {
   private ctxByBox = {};
   // public _srcSuggestions: BehaviorSubject<string[]> = new BehaviorSubject(Object.keys(this.suggestionDict));
 
-  constructor(private storage: SecuStorageService) {
+  constructor(
+    private storage: SecuStorageService,
+    private i18nService: I18nService,
+    private notif: NotificationsService
+  ) {
     this.storage.onUnlock.subscribe(() => {
       this.reloadMsgsFromStorage();
       this.ensureLocaleMemorySyncForMsgs();
@@ -259,4 +267,58 @@ export class MessagesService {
   // errorHandler(err: any) {
   //   logReview.error('Message service error ', err);
   // }
+
+  exportAsMoonManagerTimings() {
+    const exportData = (src: any) => {
+      const str = JSON.stringify(src);
+      const blob = new Blob([str], { type: 'text/json' });
+      const url = window.URL.createObjectURL(blob);
+      const element = document.createElement('a');
+      const prefix = 'moon-box-';
+      element.href = url;
+      element.download = prefix + moment().format('YYYYMMDDHHmmss') + '.bckp';
+      document.body.appendChild(element);
+      element.click();
+      this.i18nService
+        .get(extract('mb.msgs.notif.exportAsMoonManagerTimingsSucced'), {
+          dest: element.download
+        })
+        .subscribe(t => {
+          this.notif.success(t);
+        });
+    };
+    const mmTimings = [];
+    mmTimings.push({
+      Author: 'Jean Untel - TODO',
+      Comment: '',
+      Date: '2019/01/11',
+      DateTime: '2019-01-11T12:43:05.000Z',
+      EventSource: 'capture',
+      ExpertiseLevel: 'RemoteEasyDev',
+      LinearWorkloadAmount: 0.2,
+      MediaUrl: '/cache/moon-manager/dataUrl/4588742f080a5aaf1d773549d528c836',
+      Month: '',
+      Objectif: 'Non classé',
+      OverrideReduction: '',
+      OverrideSequence: '',
+      Price: 16,
+      Project: 'Non classé',
+      ReviewedComment: '',
+      SegmentDeltaHr: 0.2,
+      SegmentMax: '2019-01-11T12:43:05.000Z',
+      SegmentMin: '2019-01-11T12:43:05.000Z',
+      SegmentOverride: 68,
+      SkillsId: 'RemoteEasyDev',
+      SubProject: 'Non classé',
+      TJM: 400,
+      TJMWorkloadByDay: 5,
+      Time: '13:43:05',
+      Title: 'Capture d’écran 2019-01-11 à 13.43.05.png',
+      WorkloadAmount: 0.2,
+      Year: '',
+      id: 1,
+      isHidden: false
+    });
+    exportData(mmTimings);
+  }
 }

@@ -180,6 +180,7 @@
   "mb.boxes.btn.SaveMsgs.tooltip": "Enregistrer les messages",
   "mb.boxes.btn.saveAttachments.tooltip": "Sauvegarder les pièces jointes",
   "mb.boxes.btn.saveBody.tooltip": "Sauvegarder les contenu des messages",
+  "mb.boxes.exportMManagerTimings": "Export des temps pour Moon Manager",
   "mb.boxes.filter.end.plhdr": "Date de fin",
   "mb.boxes.filter.invalidPeriodErr": "La date de début doit précéder la date de fin",
   "mb.boxes.filter.start.plhdr": "Date de début",

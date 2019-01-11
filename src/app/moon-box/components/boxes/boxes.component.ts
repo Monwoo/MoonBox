@@ -472,6 +472,20 @@ export class BoxesComponent implements OnInit, OnChanges {
     this.renderer = this.rendererFactory.createRenderer(null, null);
     this.storage.setLockContainer(this.eltRef);
     this.storage.onUnlock.subscribe(() => {
+      // if locked, will try to send form update, but
+      // on first load, it will already be in postponing mode, and will need to get
+      // 1 next postpone to fetch filters from storage + one more to realy load form ?
+      // => well, look like a strange behavior, will try to avoid the postponing in locked mode instead...
+      this.viewInitProgressiveDelay = 100;
+      // https://stackoverflow.com/questions/39366981/angular-2-viewchild-in-ngif
+      // https://github.com/angular/angular/issues/5870
+      // https://stackoverflow.com/questions/35105374/how-to-force-a-components-re-rendering-in-angular-2
+      this.changeDetector.detectChanges(); // Try to re-bind view childs if some bindings gets lost... TODO : hacky or ok ?
+      // TODO : below quick patch to avoid buggy locked stuff, need to be done for any
+      // services/callback that use storage... since secu throwings should not be catched,
+      // but avoided by end user interfaces...
+      this.ngAfterViewInit();
+
       (async () => {
         // http://json-schema.org/latest/json-schema-validation.html
         //
@@ -699,11 +713,21 @@ export class BoxesComponent implements OnInit, OnChanges {
         input.setAttribute('autocomplete', 'off');
       });
     };
+    // TODO : below quick patch to avoid buggy locked stuff, need to be done for any
+    // services/callback that use storage... since secu throwings should not be catched,
+    // but avoided by end user interfaces...
+    if (this.storage.isLocked) {
+      // TODO : what if component unload ? => should stop all propagations events...
+      logReview.debug('Storage is locked, stop Postponing boxes filters update');
+      return;
+    }
+
     if (this.storage.isLocked || !this.stickyContainer || !this.filtersFormRef) {
       this.viewInitProgressiveDelay *= 2;
 
       // This.filters need to be !== of null for Ref view to init on passcode unlock ?
-      if (!this.filters) {
+      // + storage need to be unlocked to avoid errors when trying to fetch outside of opened lock
+      if (!this.filters && !this.storage.isLocked) {
         (async () => {
           const formData = await this.storage
             .getItem<FormType>('moon-box-filters', filtersInitialState(this))
@@ -714,6 +738,7 @@ export class BoxesComponent implements OnInit, OnChanges {
 
       // https://stackoverflow.com/questions/39366981/angular-2-viewchild-in-ngif
       // https://github.com/angular/angular/issues/5870
+      // https://stackoverflow.com/questions/35105374/how-to-force-a-components-re-rendering-in-angular-2
       this.changeDetector.detectChanges(); // Try to re-bind view childs if some bindings gets lost... TODO : hacky or ok ?
       logReview.debug('Postponing boxes filters update');
       return of(true)

@@ -1,0 +1,7 @@
+<!-- Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com -->
+<!-- Simple wrapper to avoid buggy stuff when trying to use suffs while sorage is locked... -->
+<!--
+  TODO : better global design when V1 is stable : no effect for now, will only drop form postpowned events
+  if storage is locked for now...
+-->
+<moon-boxes *ngIf="!this.storage.isLocked"></moon-boxes>
