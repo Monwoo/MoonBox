@@ -355,6 +355,10 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
 
     if (!this.stickyContainer) return; // will waith for sticky to be displayed
     const deltaScrollAvailable = document.body.scrollHeight - document.body.clientHeight;
+    if (0 === this.initialStickyOffset) {
+      logReview.warn('TODO : having not initialized sticky offset, algo bug... quick hack for now');
+      this.initialStickyOffset = 98;
+    }
 
     this.isSticky = window.pageYOffset >= this.initialStickyOffset && deltaScrollAvailable > 200;
 
