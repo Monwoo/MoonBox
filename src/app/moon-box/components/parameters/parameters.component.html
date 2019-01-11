@@ -83,29 +83,34 @@
     </mat-form-field>
 
     <!--
-        https://github.com/angular/material2/issues/7891
-        https://github.com/angular/material2/issues/8349
-        https://material.angular.io/components/list/overview
+          https://github.com/angular/material2/issues/7891
+          https://github.com/angular/material2/issues/8349
+          https://material.angular.io/components/list/overview
 
-      <mat-selection-list #keepLoadingRef
-      role="listbox"
-      checkboxPosition="before"
-      name="keepLoadingCtrl"
-          formControlName="keepLoadingCtrl"
-      [formControl]="common.keepLoading.Ctrl">
-        <strong mat-subheader>{{'mb.common.keepLoading.title' | translate}}</strong>
-        <mat-list-option
-        [value]="common.keepLoading.Ctrl.value"
+        <mat-selection-list #keepLoadingRef
+        role="listbox"
         checkboxPosition="before"
-        >{{'mb.common.keepLoading.lbl' | translate}}</mat-list-option>
-      </mat-selection-list>
+        name="keepLoadingCtrl"
+            formControlName="keepLoadingCtrl"
+        [formControl]="common.keepLoading.Ctrl">
+          <strong mat-subheader>{{'mb.common.keepLoading.title' | translate}}</strong>
+          <mat-list-option
+          [value]="common.keepLoading.Ctrl.value"
+          checkboxPosition="before"
+          >{{'mb.common.keepLoading.lbl' | translate}}</mat-list-option>
+        </mat-selection-list>
+
+      TODO: is setted up, will avoid us to click on load more btn on each loads ends...
+      + do not loop back from begining on login => keep back on last loaded page token
+      (since previous msgs have already been imported and user want to continous past
+      interupted loadings...)
+      <mat-form-field class="full-width">
+        <mat-checkbox matInput type="checkbox" name="keepLoading" ngModel [formControl]="common.keepLoading.Ctrl">
+        </mat-checkbox>
+        <strong mat-subheader>{{ 'mb.common.keepLoading.plhdr' | translate }}</strong>
+        <input matInput placeholder="" style="display: none" />
+      </mat-form-field>
     -->
-    <mat-form-field class="full-width">
-      <mat-checkbox matInput type="checkbox" name="keepLoading" ngModel [formControl]="common.keepLoading.Ctrl">
-      </mat-checkbox>
-      <strong mat-subheader>{{ 'mb.common.keepLoading.plhdr' | translate }}</strong>
-      <input matInput placeholder="" style="display: none" />
-    </mat-form-field>
 
     <mat-form-field class="full-width">
       <input
