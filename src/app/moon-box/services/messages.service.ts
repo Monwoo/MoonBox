@@ -274,9 +274,9 @@ export class MessagesService {
       const blob = new Blob([str], { type: 'text/json' });
       const url = window.URL.createObjectURL(blob);
       const element = document.createElement('a');
-      const prefix = 'moon-box-';
+      const prefix = 'moon-box-timings-';
       element.href = url;
-      element.download = prefix + moment().format('YYYYMMDDHHmmss') + '.bckp';
+      element.download = prefix + moment().format('YYYYMMDDHHmmss') + '.json';
       document.body.appendChild(element);
       element.click();
       this.i18nService
@@ -287,38 +287,48 @@ export class MessagesService {
           this.notif.success(t);
         });
     };
-    const mmTimings = [];
-    mmTimings.push({
-      Author: 'Jean Untel - TODO',
-      Comment: '',
-      Date: '2019/01/11',
-      DateTime: '2019-01-11T12:43:05.000Z',
-      EventSource: 'capture',
-      ExpertiseLevel: 'RemoteEasyDev',
-      LinearWorkloadAmount: 0.2,
-      MediaUrl: '/cache/moon-manager/dataUrl/4588742f080a5aaf1d773549d528c836',
-      Month: '',
-      Objectif: 'Non classé',
-      OverrideReduction: '',
-      OverrideSequence: '',
-      Price: 16,
-      Project: 'Non classé',
-      ReviewedComment: '',
-      SegmentDeltaHr: 0.2,
-      SegmentMax: '2019-01-11T12:43:05.000Z',
-      SegmentMin: '2019-01-11T12:43:05.000Z',
-      SegmentOverride: 68,
-      SkillsId: 'RemoteEasyDev',
-      SubProject: 'Non classé',
-      TJM: 400,
-      TJMWorkloadByDay: 5,
-      Time: '13:43:05',
-      Title: 'Capture d’écran 2019-01-11 à 13.43.05.png',
-      WorkloadAmount: 0.2,
-      Year: '',
-      id: 1,
-      isHidden: false
+    let mmTimings: any[] = [];
+
+    Object.keys(this.msgs).forEach((k: string) => {
+      const msgBox = this.msgs[k];
+      Object.keys(msgBox.data).forEach(msgK => {
+        const msg = msgBox.data[msgK];
+        // multiplied by 1000 so that the argument is in milliseconds, not seconds.
+        const msgDate = new Date(msg['timestamp'] * 1000);
+        mmTimings.push({
+          Author: 'Moon Box ', //  + this.storage.getCurrentSessionId(),
+          Comment: 'From ' + msg['expeditor'] + ' to ' + msg['to'],
+          Date: msg['localTime'].split(' ')[0], // '2019/01/15'
+          DateTime: msgDate.toISOString(),
+          EventSource: 'moon-box',
+          ExpertiseLevel: 'RemoteEasyDev',
+          LinearWorkloadAmount: 1,
+          MediaUrl: msgK,
+          Month: '',
+          Objectif: msg['to'],
+          OverrideReduction: '',
+          OverrideSequence: '',
+          Price: 80,
+          Project: k,
+          ReviewedComment: '',
+          SegmentDeltaHr: 1,
+          SegmentMax: '',
+          SegmentMin: '',
+          SegmentOverride: 0,
+          SkillsId: 'RemoteEasyDev',
+          SubProject: msg['expeditor'],
+          TJM: 400,
+          TJMWorkloadByDay: 5,
+          Time: msg['localTime'].split(' ')[1],
+          Title: msg['expeditor'] + ' : ' + msg['subject'],
+          WorkloadAmount: 1,
+          Year: '',
+          id: 1,
+          isHidden: false
+        });
+      });
     });
+
     exportData(mmTimings);
   }
 }

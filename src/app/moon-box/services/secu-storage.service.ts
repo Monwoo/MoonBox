@@ -538,6 +538,11 @@ export class SecuStorageService implements FormCallable {
 
   private session: ContextType = null;
   private sessIds: SessionStoreType = sessionStoreInitialState;
+
+  // public getSessIds() {
+  //   return this.sessIds;
+  // }
+
   // May return null session if not setted up...
   public getCurrentSession() {
     // TODO : do not return null session, await for it to be setup from constructor...
@@ -583,6 +588,10 @@ export class SecuStorageService implements FormCallable {
   }
 
   private currentSession = this.defaultSessionId;
+  public getCurrentSessionId() {
+    return this.currentSession;
+  }
+
   private sessionAvailableForSetup$ = new ReplaySubject<void>();
   // TODO : allow readonly only for public expose
   public isSessionGettingSetedUp = false;
