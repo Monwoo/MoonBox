@@ -272,6 +272,8 @@
 * http://www.thelin.net/laurent/labo/html/mailto.html
 * https://css-tricks.com/snippets/html/mailto-links/
 
+- https://github.com/angular/angular-cli/issues/10612
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

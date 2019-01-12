@@ -99,8 +99,9 @@ php -d phar.readonly=0 backend/Monwoo/bin/console -vvv moon-box:install -c false
 
 # For quality over version release, need to use preprod env to checks all tests are OK
 # under similar domaine names configuration as real prod :
+# https://github.com/angular/angular-cli/issues/10612
 # Buid frontend as dev to keep debug in preprod :
-ng build
+rm -rf dist; ng build --configuration=preprod
 # clean backend build folder, to avoid cmd old path issue or too fast copy/past cmds :
 rm -rf backend/build/*
 # Install deps by copy of dev src to keep debug in preprod + ask for preprod configuration :
@@ -108,11 +109,14 @@ rm -rf backend/build/*
 # same as above, with optimized vendors files :
 php -d phar.readonly=0 backend/Monwoo/bin/console -vvv moon-box:install -c false -d true -e 'preprod'
 # Link builded preprod
-rm dist/backend; (cd dist && ln -s ../backend/build/MoonBox-20190112_190159 backend)
+rm dist/backend; cd dist
+ln -s ../backend/build/MoonBox-20190112_190159 backend
+cd -
 # start webserver for front and back at same time :
 php -eS localhost:6901
 
-# or simply check without phar building :
+# or simply check without frontend prod optim and phar building :
+rm -rf dist; ng build --configuration=devpreprod
 (cd dist && ln -s ../backend backend)
 php -eS localhost:6901
 
