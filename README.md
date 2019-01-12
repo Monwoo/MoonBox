@@ -97,10 +97,10 @@ export PATH=/Applications/MAMP/bin/php/php7.1.8/bin:$PATH
 # build production zip archive in build folder :
 php -d phar.readonly=0 backend/Monwoo/bin/console -vvv moon-box:install -c false
 
-# For quality over version release, need to use preprod env to checks all tests are OK
+# For quality over versions release, need to use preprod env to checks all tests are OK
 # under similar domaine names configuration as real prod :
 # https://github.com/angular/angular-cli/issues/10612
-# Buid frontend as dev to keep debug in preprod :
+# Buid frontend as prod with dev configs to keep debug in transpiled preprod :
 rm -rf dist; ng build --configuration=preprod --base-href '/dist/'
 # clean backend build folder, to avoid cmd old path issue or too fast copy/past cmds :
 rm -rf backend/build/*
@@ -109,13 +109,15 @@ rm -rf backend/build/*
 # same as above, with optimized vendors files :
 php -d phar.readonly=0 backend/Monwoo/bin/console -vvv moon-box:install -c false -d true -e 'preprod'
 # Link builded preprod
-rm dist/backend; cd dist
-ln -s ../backend/build/MoonBox-20190112_190159 backend
-cd -
+(cd dist && ln -s ../backend/build/lastBuild backend)
+(cd dist && cp ../backend/client_secret.dev.json backend)
+
 # start webserver for front and back at same time :
 php -eS localhost:6901
 
 # or simply check without frontend prod optim and phar building :
+# => PS : compiler.js:2427 Uncaught Error: Can't resolve all parameters for LockScreenComponent:
+# => you're the dev, be strong and solve this bug before using it, or use preprod version :
 rm -rf dist; ng build --configuration=devpreprod --base-href '/dist/'
 (cd dist && ln -s ../backend backend)
 php -eS localhost:6901

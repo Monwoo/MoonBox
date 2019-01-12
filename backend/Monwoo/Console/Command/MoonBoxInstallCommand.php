@@ -422,6 +422,19 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
         // $fs->copy(($self->depsCopySrc ?? '.') . '/tools/installer.php', $buildFolder . '/installer.php');
         // $fs->copy(($self->depsCopySrc ?? '.') . '/tools/.htaccess', $buildFolder . '/.htaccess');
         $output->writeln("<info>Saved to $installArchivePath </info>");
+
+        // Clear last build symlink :
+        // https://stackoverflow.com/questions/11717451/php-unlink-symlink
+        $lastBuildPath = dirname($installFolder) . '/lastBuild';
+        if(file_exists($lastBuildPath)) {
+            assert(is_link($lastBuildPath), "Fail to symlink lastBuild path...");
+            unlink($lastBuildPath);
+            // $target = readlink($linkfile)
+            // unlink($target)      
+        }
+        // rebuild last build symlink :
+        symlink($installFolder, $lastBuildPath);
+        $output->writeln("<info>Did symlink $lastBuildPath</info>");
     }
 
     public function initArchivePassword($pass) {
