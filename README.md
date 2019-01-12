@@ -101,7 +101,7 @@ php -d phar.readonly=0 backend/Monwoo/bin/console -vvv moon-box:install -c false
 # under similar domaine names configuration as real prod :
 # https://github.com/angular/angular-cli/issues/10612
 # Buid frontend as dev to keep debug in preprod :
-rm -rf dist; ng build --configuration=preprod
+rm -rf dist; ng build --configuration=preprod --base-href '/dist/'
 # clean backend build folder, to avoid cmd old path issue or too fast copy/past cmds :
 rm -rf backend/build/*
 # Install deps by copy of dev src to keep debug in preprod + ask for preprod configuration :
@@ -116,7 +116,7 @@ cd -
 php -eS localhost:6901
 
 # or simply check without frontend prod optim and phar building :
-rm -rf dist; ng build --configuration=devpreprod
+rm -rf dist; ng build --configuration=devpreprod --base-href '/dist/'
 (cd dist && ln -s ../backend backend)
 php -eS localhost:6901
 
