@@ -101,17 +101,21 @@ php -d phar.readonly=0 backend/Monwoo/bin/console -vvv moon-box:install -c false
 # under similar domaine names configuration as real prod :
 # Buid frontend as dev to keep debug in preprod :
 ng build
+# clean backend build folder, to avoid cmd old path issue or too fast copy/past cmds :
+rm -rf backend/build/*
 # Install deps by copy of dev src to keep debug in preprod + ask for preprod configuration :
 # php -d phar.readonly=0 backend/Monwoo/bin/console -vvv moon-box:install -c '' -d true -e 'preprod'
 # same as above, with optimized vendors files :
 php -d phar.readonly=0 backend/Monwoo/bin/console -vvv moon-box:install -c false -d true -e 'preprod'
 # Link builded preprod
-ln -s backend/build/(Last build folder)/ dist/backend
+rm dist/backend; (cd dist && ln -s ../backend/build/MoonBox-20190112_190159 backend)
 # start webserver for front and back at same time :
 php -eS localhost:6901
 
 # or simply check without phar building :
-ln -s backend dist/backend
+(cd dist && ln -s ../backend backend)
+php -eS localhost:6901
+
 
 
 ```

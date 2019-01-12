@@ -240,7 +240,9 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
                 'index.php',
                 'iframe.js',
                 'config.php',
-                ($self->isDev ? 'config.dev.php' : 'config.prod.php'),
+                ($self->isDev ?
+                ($self->env ==='preprod' ? 'config.preprod.php' : 'config.dev.php')
+                : 'config.prod.php'),
             ];
             // On définit le container (Phar stub)
             $stub = '<?php' . PHP_EOL
@@ -310,6 +312,7 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
                 "$installFolder/vendor",
                 "$installFolder/config.dev.php",
                 "$installFolder/config.php",
+                "$installFolder/config.preprod.php",
                 "$installFolder/config.prod.php",
                 "$installFolder/index.php",
                 "$installFolder/composer.lock",

@@ -463,7 +463,7 @@ if ($app['debug']) {
     $app['profiler.cache_dir'] = $app['cache_dir'] . '/profiler';
     $app->register(new Silex\Provider\VarDumperServiceProvider());
     $app->register(new Silex\Provider\ServiceControllerServiceProvider());
-    if (!$prodDebug) {
+    if (!isset($pharPath)) { // TODO refactor : $prodDebug no need anymore ? ) {
         // $prodDebug means it's runing without vendors folder ref
         // Due to current integration of .phar building process...
         // Avoiding possible un-solved issue by avoiding twig for now...
@@ -508,7 +508,7 @@ if ($app['debug']) {
         //     // return $ctrler;
         // });
 
-        $app->before(function($request, $app) use ($collector, $logC) {
+        $app->before(function($request, $app) use ($collector) {
             $app['profiler']->add($collector($app));
             // $app['profiler']->add($logC($app));
         });        
