@@ -97,6 +97,23 @@ export PATH=/Applications/MAMP/bin/php/php7.1.8/bin:$PATH
 # build production zip archive in build folder :
 php -d phar.readonly=0 backend/Monwoo/bin/console -vvv moon-box:install -c false
 
+# For quality over version release, need to use preprod env to checks all tests are OK
+# under similar domaine names configuration as real prod :
+# Buid frontend as dev to keep debug in preprod :
+ng build
+# Install deps by copy of dev src to keep debug in preprod + ask for preprod configuration :
+# php -d phar.readonly=0 backend/Monwoo/bin/console -vvv moon-box:install -c '' -d true -e 'preprod'
+# same as above, with optimized vendors files :
+php -d phar.readonly=0 backend/Monwoo/bin/console -vvv moon-box:install -c false -d true -e 'preprod'
+# Link builded preprod
+ln -s backend/build/(Last build folder)/ dist/backend
+# start webserver for front and back at same time :
+php -eS localhost:6901
+
+# or simply check without phar building :
+ln -s backend dist/backend
+
+
 ```
 
 ## For advanced documentation :

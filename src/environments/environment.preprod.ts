@@ -1,4 +1,4 @@
-// Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com
+// Copyright Monwoo 2018-2019, made by Miguel Monwoo, service@monwoo.com
 // This file can be replaced during build by using the `fileReplacements` array.
 // `ng build --prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
@@ -7,18 +7,17 @@ import env from './.env';
 //import { extract } from '@app/core'; <- give circular dependencies warning....
 // export let extract = (x:any) => (x);
 export const environment = {
-  production: false,
-  version: env.npm_package_version + '-dev',
-  // serverUrl: '/api',
-  serverUrl: '/',
-  moonBoxFrontendUrl: 'http://localhost:4200',
-  moonBoxFrontendDomain: 'localhost',
-  moonBoxBackendUrl: 'http://localhost:6901',
-  moonBoxBackendDomain: 'localhost',
-  moonBoxBackendBasePath: '/',
+  production: true,
+  version: env.npm_package_version,
+  serverUrl: '',
+  moonBoxFrontendUrl: 'http://localhost:6901/dist',
+  moonBoxFrontendDomain: 'www.monwoo.com',
+  moonBoxBackendUrl: 'http://localhost:6901/dist/backend',
+  moonBoxBackendDomain: 'www.monwoo.com',
+  moonBoxBackendBasePath: 'backend/',
   defaultLanguage: 'fr-FR',
   supportedLanguages: ['fr-FR', 'en-US'],
-  clientSecret: 'altgxsdcjny8d2c',
+  clientSecret: '8wa9s04o55og91a',
   jwtAllowedDomains: ['localhost:6901', '127.0.0.1:6901', '[::1]:6901']
 };
 /*

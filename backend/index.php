@@ -40,7 +40,11 @@ $prodDebug = $prodDebug ?? false;
 $prodDebug = false; // Un-comment this line to disallow prodDebug feature showing sensitive datas
 
 if ($config['debug']) {
-    require_once __DIR__ . '/config.dev.php';
+    if ($config['preprod']) {
+        require_once __DIR__ . '/config.preprod.php';
+    } else {
+        require_once __DIR__ . '/config.dev.php';
+    }
 } else {
     require_once __DIR__ . '/config.prod.php';
 }

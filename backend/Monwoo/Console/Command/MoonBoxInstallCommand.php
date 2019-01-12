@@ -163,7 +163,8 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
             'iframe.js',
             'index.php',
             // 'config.php',
-            $self->isDev ? 'config.dev.php' : 'config.prod.php',
+            $self->isDev ? ( // TODO : factorize, 2 place to setup dev status : inside php file + as param... 
+                $self->env ==='preprod' ? 'config.preprod.php' : 'config.dev.php') : 'config.prod.php',
         ];
 
         if ('false' === $self->depsCopySrc) {
@@ -186,6 +187,9 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
         if ('prod' === $self->env) {
             $output->writeln("<info> Ajusting with Prod config from config.build.php</info>");
             $fs->copy("$srcFolder/config.build.php", "$installFolder/config.php");
+        } else {
+            $output->writeln("<info> Keeping config from config.php</info>");
+            $fs->copy("$srcFolder/config.php", "$installFolder/config.php");
         }
 
         $progressBar->finish();
