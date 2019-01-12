@@ -79,6 +79,17 @@ emacs src/index.html
 
 # build productions file in dist folder with correct base-href for deploy :
 yarn run build --base-href '/MoonBox/Demo/'
+
+# + : if you deploy frontent and backend on same server, and backend is injectable in
+# your source build, then you can ajust accordingly :
+#    "src/backend"
+# for file : angular.json
+# => in assets path config, to let backend's routes goes up to the backend in PWA navigations ?
+# Well, not fully our backend model style, having subrouting on only one real asset file...
+# So Did try to add transparent routings for it in :
+# src/app/moon-box/moon-box-routing.module.ts
+
+
 # avoid commit productions files to dev repo by reverting them :
 git checkout HEAD src/environments/environment.ts
 # zip result for Production Software delivery :

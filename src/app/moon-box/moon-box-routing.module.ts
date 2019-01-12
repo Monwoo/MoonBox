@@ -9,6 +9,7 @@ import { Shell } from '@app/shell/shell.service';
 // https://www.concretepage.com/angular-2/angular-2-4-route-guards-canactivate-and-canactivatechild-example
 import { RoutingSentinelService } from '@moon-manager/services/routing-sentinel.service';
 // import { PreventRefreshGuard } from './guards/prevent-refresh.guard';
+import { BackendCanActivateService } from '@moon-box/services/backend-can-activate.service';
 import { FirstPageComponent } from '@moon-box/components/first-page/first-page.component';
 import { BoxesComponent } from '@moon-box/components/boxes/boxes.component';
 import { ParametersComponent } from '@moon-box/components/parameters/parameters.component';
@@ -31,6 +32,14 @@ const routes: Routes = [
     //   canActivate: [RoutingSentinelService],
     // },
     // Catching all routes for V1. TODO : Arrange as you like...
+    {
+      path: 'backend**',
+      // https://stackoverflow.com/questions/36277506/prevent-routing-in-angular-when-user-manually-changes-url-in-browser-tab
+      redirectTo: '#fakeRedirectHack',
+      pathMatch: 'full',
+      canActivate: [BackendCanActivateService]
+      // canDeactivate: [PreventRefreshGuard],
+    },
     {
       path: '**',
       component: BoxesComponent, // TODO : debug using : FirstPageComponent ?,

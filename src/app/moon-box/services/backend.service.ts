@@ -398,6 +398,16 @@ export class BackendService {
     return new Promise<any>((resolve, reject) => {
       (async () => {
         await this.rejectLastApiAuth();
+
+        // TODO refactor ? => use
+        // const remote = require('electron').remote;
+        // const BrowserWindow = remote.BrowserWindow;
+        // https://github.com/maximegris/angular-electron/issues/58
+
+        // TODO : ?
+        // https://dev.to/bobnadler/embedding-angular-components-into-a-legacy-web-app-2ff5
+        // http://www.processinginfinity.com/weblog/2016/08/18/MessageBus-Pattern-in-Angular2-TypeScript
+
         // http://embed.plnkr.co/dz1A1h/
         // http://stackoverflow.com/questions/18064543/compile-angular-on-an-element-after-angular-compilation-has-already-happened
         // https://medium.com/@adrianfaciu/using-the-angular-router-to-navigate-to-external-links-15cc585b7b88
