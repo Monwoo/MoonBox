@@ -5,6 +5,7 @@
 /tmp
 /out-tsc
 /build
+/es-docs
 
 # Dependencies
 /node_modules

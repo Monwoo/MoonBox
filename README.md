@@ -60,6 +60,15 @@ yarn run generate class moon-box/services/MyService --project=monwoo-moon-box --
 
 # Display project documentation :
 yarn run docs
+
+# Run another doc generator tool :
+# echo '{
+#   "source": "./src",
+#   "destination": "./es-docs",
+#   "plugins": [{"name": "esdoc-standard-plugin"}]
+# }' > .esdoc.json
+./node_modules/.bin/esdoc
+
 # Running tests via Karma in watch mode for it to launch on each change you do to the code
 # Nice to be run with dev server if you wanna do some tests driven developpments in real time :
 yarn test

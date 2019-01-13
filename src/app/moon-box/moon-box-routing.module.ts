@@ -49,7 +49,8 @@ const routes: Routes = [
       // https://stackoverflow.com/questions/43488480/exclude-specific-path-from-routing-in-angular-2
       // path: '**', // => TODO : find solution for transparent routes or missing some expected design pattern ?
       path: '',
-      component: BoxesComponent, // TODO : debug using : FirstPageComponent ?,
+      // component: BoxesComponent,
+      component: FirstPageComponent,
       pathMatch: 'full',
       canActivate: [RoutingSentinelService]
       // canDeactivate: [PreventRefreshGuard],

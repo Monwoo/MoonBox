@@ -283,6 +283,9 @@ yarn add ngx-cookie-service material-design-icons
 # experimental : try to combine with ionic :
 yarn add ionic-simple-lockscreen ionic-angular rxjs-compat
 
+# Add another documentation system :
+yarn add --dev esdoc esdoc-standard-plugin
+
 # Backend side (Warning : will need Internet to connect to your client...)
 mkdir backend && cd backend
 # alias php=/Applications/MAMP/bin/php/php5.6.7/bin/php => use php > 7.1

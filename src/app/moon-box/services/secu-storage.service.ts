@@ -609,29 +609,42 @@ export class SecuStorageService implements FormCallable {
     logReview.debug('Will set Current Session');
     this.isSessionGettingSetedUp = true;
     this.sessIds[sessId] = new Date().toISOString();
-    return forkJoin(
-      from([
-        this.getItem<SessionStoreType>('session-ids').pipe(
-          map(sessIds => {
-            sessIds = sessIds || sessionStoreInitialState;
-            sessIds[sessId] = this.sessIds[sessId];
-            this.sessIds = sessIds;
-            logReview.debug('Did set session ids to : ', this.sessIds);
-            return this.setItem('session-ids', this.sessIds);
-          })
-        ),
-        from(
-          contextDefaults(this, {
-            currentSession: sessId
-          })
-        ).pipe(
-          tap(freshDefaults => {
-            logReview.debug('Having session defaults : ', freshDefaults);
-            this.session = freshDefaults;
-            this.session$.next(this.session);
-          })
-        )
-      ]).pipe(
+    // return forkJoin(
+    // https://github.com/ReactiveX/rxjs
+    // https://rxjs.dev/api
+    // http://reactivex.io/rxjs/manual/index.html
+    return from([
+      this.getItem<SessionStoreType>('session-ids').pipe(
+        map(sessIds => {
+          sessIds = sessIds || sessionStoreInitialState;
+          sessIds[sessId] = this.sessIds[sessId];
+          this.sessIds = sessIds;
+          logReview.debug('Did set session ids to : ', this.sessIds);
+          return this.setItem('session-ids', this.sessIds).pipe(
+            map(() => {
+              return of(this.sessIds);
+            })
+          );
+        })
+      ),
+      from(
+        contextDefaults(this, {
+          currentSession: sessId
+        })
+      ).pipe(
+        tap(freshDefaults => {
+          logReview.debug('Having session Form defaults : ', freshDefaults);
+          this.session = freshDefaults;
+          // Refresh current session by emitting a onUnlock event
+          // if app is already unlocked only :
+          if (!this.isLocked) {
+            this.isLocked = false; // already false, yhea, but having setter emmiting the unlock event ;)
+          }
+          this.session$.next(this.session);
+        })
+      )
+    ])
+      .pipe(
         concatMap((input: any, idx: number) => {
           return input; // Only using concatMap to ensure tasks orders...
         })
@@ -639,30 +652,30 @@ export class SecuStorageService implements FormCallable {
         //   logReview.debug('Sync login from filters : ', defaultF);
         // })
       )
-    ).pipe(
-      debounceTime(500),
-      map(([sessIds, freshDefaults]) => {
-        this.i18nService.get(extract('mb.secu-storage.setSession.success')).subscribe(t => {
-          this.notif.success(t);
-        });
-        this.isSessionFocused = false;
-        this.currentSession = sessId;
-        // set up group value to lose focus on session set OK
-        this.session.group.value.currentSession = sessId;
-        logReview.debug('Did end session setup : ', [sessIds, freshDefaults]);
-        return [sessIds, freshDefaults];
-      }),
-      // mergeAll(), // To much ? already ended from fork join ?
-      map(didSet => {
-        logReview.debug('Did set session Ids : ', didSet);
-        this.isSessionGettingSetedUp = false;
-        // Reset frontend UI by sending a secu onUnlock event.
-        // if (!this.isLocked)
-        this.onUnlock.next(null);
-        this.sessionAvailableForSetup$.next();
-        return true;
-      })
-    );
+      .pipe(
+        debounceTime(500),
+        map(([sessIds, freshDefaults]) => {
+          this.i18nService.get(extract('mb.secu-storage.setSession.success')).subscribe(t => {
+            this.notif.success(t);
+          });
+          this.isSessionFocused = false;
+          this.currentSession = sessId;
+          // set up group value to lose focus on session set OK
+          this.session.group.value.currentSession = sessId;
+          logReview.debug('Did end session setup : ', [sessIds, freshDefaults]);
+          return [sessIds, freshDefaults];
+        }),
+        // mergeAll(), // To much ? already ended from fork join ?
+        map(didSet => {
+          logReview.debug('Did set session Ids : ', didSet);
+          this.isSessionGettingSetedUp = false;
+          // Reset frontend UI by sending a secu onUnlock event.
+          // if (!this.isLocked)
+          this.onUnlock.next(null);
+          this.sessionAvailableForSetup$.next();
+          return true;
+        })
+      );
   }
 
   // public secuKeys: string[] = [

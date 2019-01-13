@@ -46,7 +46,10 @@ export class MessagesService {
   ) {
     this.storage.onUnlock.subscribe(() => {
       this.reloadMsgsFromStorage();
-      this.ensureLocaleMemorySyncForMsgs();
+      // Trying to avoid duplicat calls, already done when new messages gets inputs,
+      // => so below is already called by this.reloadMsgsFromStorage();
+      // this.ensureLocaleMemorySyncForMsgs();
+
       // if (!this.storage.isSessionGettingSetedUp) {
       //   // Avoid quick session switching claches by ignoring refresh while setup ?
       //   this.reloadMsgsFromStorage();
