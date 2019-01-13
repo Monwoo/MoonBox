@@ -15,6 +15,10 @@ import { BoxesComponent } from '@moon-box/components/boxes/boxes.component';
 import { ParametersComponent } from '@moon-box/components/parameters/parameters.component';
 // import { AFrameTutorialComponent } from './components/aframe-tutorial/aframe-tutorial.component';
 
+// https://www.bennadel.com/blog/3400-wildcard-routes-can-be-scoped-to-route-sub-trees-in-angular-5-1-3.htm
+// https://dzone.com/articles/angular-router-empty-paths-componentless-routes-an
+// https://stackoverflow.com/questions/43488480/exclude-specific-path-from-routing-in-angular-2
+
 const routes: Routes = [
   Shell.childRoutes([
     // Catching all routes for V1. TODO : Arrange as you like...
@@ -32,14 +36,15 @@ const routes: Routes = [
     //   canActivate: [RoutingSentinelService],
     // },
     // Catching all routes for V1. TODO : Arrange as you like...
-    {
-      path: 'backend**',
-      // https://stackoverflow.com/questions/36277506/prevent-routing-in-angular-when-user-manually-changes-url-in-browser-tab
-      redirectTo: '#fakeRedirectHack',
-      pathMatch: 'full',
-      canActivate: [BackendCanActivateService]
-      // canDeactivate: [PreventRefreshGuard],
-    },
+    // {
+    //   path: 'backend**', // No luck => only work in embed routes, alone : only '**' works...
+    //   // cf : https://stackoverflow.com/questions/43488480/exclude-specific-path-from-routing-in-angular-2
+    //   // https://stackoverflow.com/questions/36277506/prevent-routing-in-angular-when-user-manually-changes-url-in-browser-tab
+    //   redirectTo: '#fakeRedirectHack',
+    //   pathMatch: 'full',
+    //   canActivate: [BackendCanActivateService]
+    //   // canDeactivate: [PreventRefreshGuard],
+    // },
     {
       path: '**',
       component: BoxesComponent, // TODO : debug using : FirstPageComponent ?,
