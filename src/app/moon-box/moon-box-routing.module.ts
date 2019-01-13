@@ -48,6 +48,9 @@ const routes: Routes = [
     {
       // https://stackoverflow.com/questions/43488480/exclude-specific-path-from-routing-in-angular-2
       // path: '**', // => TODO : find solution for transparent routes or missing some expected design pattern ?
+      // TODO : removing '**' will work in dev, not in PROD => throw error about missing route
+      // instead of fluent redirect, so may try to fix it with avoiding back inside front ?
+      // TODO : must be able to avoid err in prod... will move backend api folder pos for now
       path: '',
       // component: BoxesComponent,
       component: FirstPageComponent,

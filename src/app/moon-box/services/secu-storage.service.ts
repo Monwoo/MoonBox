@@ -53,6 +53,8 @@ const logReview = new Logger('MonwooReview');
 declare const require: any; // To avoid typeScript error about require that don't exist since it's webpack level
 const SecureLS = require('secure-ls');
 
+const hackyDebounceFactor = 200;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -101,7 +103,8 @@ export class SecuStorageService implements FormCallable {
 
   public get onUnlock(): Observable<boolean> {
     return this.onUnlock$.pipe(
-      distinctUntilChanged(),
+      // distinctUntilChanged(), => pb : will not trigger unlock for session if changing session....
+      debounceTime(hackyDebounceFactor),
       filter(success => success) // only keep sucessfull unlocks
     );
   }
@@ -611,7 +614,11 @@ export class SecuStorageService implements FormCallable {
   public setCurrentSession(sessId: string): Observable<boolean> {
     if (this.isSessionGettingSetedUp) {
       logReview.debug('Postponing set Current Session');
-      return from([debounceTime(2000), takeUntil(this.sessionAvailableForSetup$), this.setCurrentSession(sessId)]).pipe(
+      return from([
+        debounceTime(hackyDebounceFactor),
+        takeUntil(this.sessionAvailableForSetup$),
+        this.setCurrentSession(sessId)
+      ]).pipe(
         concatMap((input: any, idx: number) => {
           return input; // Only using concatMap to ensure tasks orders...
         }),
@@ -633,7 +640,7 @@ export class SecuStorageService implements FormCallable {
       // return zip(
       // from([
       this.getItem<SessionStoreType>('session-ids').pipe(
-        debounceTime(500),
+        debounceTime(hackyDebounceFactor),
         map(sessIds => {
           sessIds = sessIds || sessionStoreInitialState;
           sessIds[sessId] = this.sessIds[sessId];
@@ -806,7 +813,7 @@ export class SecuStorageService implements FormCallable {
     }
     this.sessionSubcriber = this.sessionChangeHandler$
       .pipe(
-        debounceTime(500),
+        debounceTime(hackyDebounceFactor),
         tap((formRef: HTMLFormElement) => {
           if (this.session.group.valid) {
             const sessData = <FormType>this.session.group.value;
