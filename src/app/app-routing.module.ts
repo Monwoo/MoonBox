@@ -4,7 +4,9 @@ import { environment } from '@env/environment';
 
 const routes: Routes = [
   // Fallback when no prior route is matched
-  { path: '**', redirectTo: '', pathMatch: 'full' }
+  // https://stackoverflow.com/questions/43488480/exclude-specific-path-from-routing-in-angular-2
+  // path: '**', // => TODO : find solution for transparent routes or missing some expected design pattern ?
+  // { path: '**', redirectTo: '', pathMatch: 'full' }
 ];
 
 @NgModule({

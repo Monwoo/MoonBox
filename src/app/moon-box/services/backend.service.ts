@@ -462,4 +462,11 @@ export class BackendService {
         });
     });
   }
+
+  // TODO ?
+  // => https://github.com/abacritt/angularx-social-login#readme
+  // https://developers.facebook.com/
+  // https://www.npmjs.com/package/angular-6-social-login
+  // https://developers.facebook.com/docs/graph-api/reference/v3.2/message
+  // https://developers.facebook.com/docs/graph-api/reference/v3.2/user/feed
 }

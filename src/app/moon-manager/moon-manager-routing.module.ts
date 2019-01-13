@@ -31,7 +31,9 @@ const routes: Routes = [
     // },
     // Catching all routes for V1. TODO : Arrange as you like...
     {
-      path: '**',
+      // https://stackoverflow.com/questions/43488480/exclude-specific-path-from-routing-in-angular-2
+      // path: '**', // => TODO : find solution for transparent routes or missing some expected design pattern ?
+      path: '',
       component: BodyComponent,
       pathMatch: 'full',
       canActivate: [RoutingSentinelService]
