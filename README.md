@@ -89,6 +89,11 @@ yarn run build --base-href '/MoonBox/Demo/'
 # So Did try to add transparent routings for it in :
 # src/app/moon-box/moon-box-routing.module.ts
 
+# You may also need to configure your redirects URIs for all your social Auth accounts :
+# Google Api => https://console.developers.google.com
+# => Don't forget to re-download json credential file on any change,
+# since json will need to duplicate your change to fully work...
+# Facebook Api => https://developers.facebook.com
 
 # avoid commit productions files to dev repo by reverting them :
 git checkout HEAD src/environments/environment.ts

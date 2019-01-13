@@ -275,6 +275,13 @@ class GApiDataProvider extends ImapDataProvider
             $app['session']->set('apiDataByAuthStates', $dataByAuthStates);
             $client->setState("$statePayload");
             $authUrl = $client->createAuthUrl();
+            // * DEBUG
+            $app['log.review']->debug('Will ask Google Api Auth Token', [
+                'authUrl' => $authUrl,
+                'statePayload' => $statePayload,
+                'redirectBackUri' => $client->getRedirectUri(),
+            ]);
+            // */
 
             // $statePayload = rawurlencode($localUser['username']); // TODO : real generated token state ?
             // Well username do not need to be Gid, so payload ok for now...
