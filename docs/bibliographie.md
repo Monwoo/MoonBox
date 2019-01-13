@@ -274,6 +274,12 @@
 
 - https://github.com/angular/angular-cli/issues/10612
 
+  https://github.com/ReactiveX/rxjs
+  https://rxjs.dev/api
+  http://reactivex.io/rxjs/manual/index.html
+  http://reactivex.io/rxjs/identifiers.html
+  https://www.learnrxjs.io/
+
 ```bash
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify

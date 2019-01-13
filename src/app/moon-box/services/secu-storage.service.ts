@@ -10,7 +10,7 @@ import {
   HostListener
 } from '@angular/core';
 import { environment } from '@env/environment';
-import { forkJoin, of, interval, Subscription, throwError, Observable } from 'rxjs';
+import { forkJoin, of, interval, Subscription, throwError, Observable, zip } from 'rxjs';
 import { Md5 } from 'ts-md5/dist/md5';
 import { LocalStorage } from '@ngx-pwa/local-storage';
 import { MatDialog, MatDialogRef } from '@angular/material';
@@ -19,7 +19,7 @@ import { I18nService } from '@app/core';
 import { extract } from '@app/core';
 import { NotificationsService } from 'angular2-notifications';
 import { BackendService } from '@moon-box/services/backend.service';
-import { BehaviorSubject, ReplaySubject, from } from 'rxjs';
+import { BehaviorSubject, ReplaySubject, from, combineLatest as combineLatestStatic } from 'rxjs';
 import {
   map,
   combineLatest,
@@ -29,7 +29,8 @@ import {
   debounceTime,
   catchError,
   takeUntil,
-  delay
+  delay,
+  concatAll
 } from 'rxjs/operators';
 import {
   ContextType,
@@ -613,16 +614,23 @@ export class SecuStorageService implements FormCallable {
     // https://github.com/ReactiveX/rxjs
     // https://rxjs.dev/api
     // http://reactivex.io/rxjs/manual/index.html
-    return from([
+    // http://reactivex.io/rxjs/identifiers.html
+    // https://www.learnrxjs.io/
+    return combineLatestStatic(
+      // return from([
+      // return zip(
+      // from([
       this.getItem<SessionStoreType>('session-ids').pipe(
+        debounceTime(500),
         map(sessIds => {
           sessIds = sessIds || sessionStoreInitialState;
           sessIds[sessId] = this.sessIds[sessId];
           this.sessIds = sessIds;
-          logReview.debug('Did set session ids to : ', this.sessIds);
+          logReview.debug('Did get session ids from storage : ', this.sessIds);
           return this.setItem('session-ids', this.sessIds).pipe(
             map(() => {
-              return of(this.sessIds);
+              // return of(this.sessIds);
+              return this.sessIds;
             })
           );
         })
@@ -641,19 +649,36 @@ export class SecuStorageService implements FormCallable {
             this.isLocked = false; // already false, yhea, but having setter emmiting the unlock event ;)
           }
           this.session$.next(this.session);
-        })
+        }),
+        map(data => of(data))
       )
-    ])
+      // ]).pipe(
+      //   concatMap((input: any, idx: number) => {
+      //   return input; // Only using concatMap to ensure tasks orders...
+      // })
+      // tap(defaultF => {
+      //   logReview.debug('Sync login from filters : ', defaultF);
+      // })
+      // )
+    )
       .pipe(
-        concatMap((input: any, idx: number) => {
-          return input; // Only using concatMap to ensure tasks orders...
-        })
-        // tap(defaultF => {
-        //   logReview.debug('Sync login from filters : ', defaultF);
-        // })
+        // concatMap((input: any, idx: number) => {
+        //   return input; // Only using concatMap to ensure tasks orders...
+        // }),
+        concatMap(([sessIds$, freshDefaults$]) => combineLatestStatic(sessIds$, freshDefaults$))
       )
       .pipe(
-        debounceTime(500),
+        // concatAll(),
+        // concatAll(),
+        // concatMap((input: any, idx: number) => {
+        //   return input; // Only using concatMap to ensure tasks orders...
+        // }),
+        // concatMap((input: any, idx: number) => {
+        //   return input; // Only using concatMap to ensure tasks orders...
+        // }),
+        tap(data => {
+          logReview.debug('Having Data', data);
+        }),
         map(([sessIds, freshDefaults]) => {
           this.i18nService.get(extract('mb.secu-storage.setSession.success')).subscribe(t => {
             this.notif.success(t);
