@@ -57,6 +57,9 @@ import { SessionFormComponent } from './components/session-form/session-form.com
 // https://stackoverflow.com/questions/48186872/angular-lazy-loading-modules-with-services
 import { NotificationsBufferService } from '@moon-box/services/notifications-buffer.service';
 import { FirstPageComponent } from './components/first-page/first-page.component';
+import { NtkmeButtonModule } from '@ctrl/ngx-github-buttons';
+import { GithubBtnComponent } from '@moon-box/components/github-btn/github-btn.component';
+import { GithubCounterComponent } from '@moon-box/components/github-counter/github-counter.component';
 
 @NgModule({
   declarations: [
@@ -66,7 +69,9 @@ import { FirstPageComponent } from './components/first-page/first-page.component
     LockScreenComponent,
     SafeHtmlPipe,
     SessionFormComponent,
-    FirstPageComponent
+    FirstPageComponent,
+    GithubCounterComponent,
+    GithubBtnComponent
   ],
   imports: [
     CommonModule,
@@ -78,6 +83,7 @@ import { FirstPageComponent } from './components/first-page/first-page.component
       useFactory: adapterFactory
     }),
     // ShowHidePasswordModule.forRoot(),
+    NtkmeButtonModule,
     DropzoneModule,
     FormsModule,
     ReactiveFormsModule,

@@ -211,16 +211,33 @@
     <div class="row">
       <strong class="col-8 text-right"> {{ 'mb.param.giveItAStar' | translate }} : </strong>
       <span class="col d-flex justify-content-around align-items-center social-stars">
-        <a
-          class="github-button"
-          href="https://github.com/Monwoo/MoonBox"
-          data-icon="octicon-star"
-          data-size="large"
-          data-show-count="true"
+        <moon-box-github-btn
+          user="Monwoo"
+          repo="MoonBox"
+          [count]="true"
+          size="large"
+          [standardIcon]="false"
           target="_blank"
-          attr.aria-label="{{ 'mb.param.gitHubStar.aria' | translate }}"
-          >{{ 'mb.param.gitHubStar.lbl' | translate }}
-        </a>
+        >
+        </moon-box-github-btn>
+        <!--
+          Since need reload on nav switchs : Place this tag in your head or just before your close body tag.
+          TODO: ajax side ?
+          https://stackoverflow.com/questions/7135752/can-i-call-document-ready-to-re-activate-all-on-load-event-handlers
+          => Already done by community : use repo @ctrl/ngx-github-buttons instead of :
+          <script async defer src="https://buttons.github.io/buttons.js"></script>
+          <a
+            class="github-button"
+            href="https://github.com/Monwoo/MoonBox"
+            data-icon="octicon-star"
+            data-size="large"
+            data-show-count="true"
+            target="_blank"
+            attr.aria-label="{{ 'mb.param.gitHubStar.aria' | translate }}"
+            >{{ 'mb.param.gitHubStar.lbl' | translate }}
+          </a>
+        -->
+
         <!--
           TODO : add 'addAStar' feature to backend => allow all un-reseted app to get a star....
           => Do it by versions => in case of multiples moon boxes installed

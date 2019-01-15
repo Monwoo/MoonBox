@@ -17,7 +17,7 @@ export const environment = {
   moonBoxBackendBasePath: '../_Demo/backend/',
   defaultLanguage: 'fr-FR',
   supportedLanguages: ['fr-FR', 'en-US'],
-  clientSecret: '50xs08ks8w95d2p',
+  clientSecret: 'sl8u85wiqrk9lon',
   jwtAllowedDomains: ['www.monwoo.com', 'www.monwoo.fr', 'monwoo.com', 'monwoo.fr']
 };
 /*

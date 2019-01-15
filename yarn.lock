@@ -359,6 +359,12 @@
     typescript "2.4.1"
     yargs "8.0.2"
 
+"@ctrl/ngx-github-buttons@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@ctrl/ngx-github-buttons/-/ngx-github-buttons-2.1.0.tgz#0fd05bfcf5f0054d2472966750093f45b4c9b15e"
+  dependencies:
+    tslib "^1.9.0"
+
 "@fortawesome/fontawesome-free@^5.6.3":
   version "5.6.3"
   resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-5.6.3.tgz#61c122c420d7a91613f393d6a06e5a4c6ae6abf3"

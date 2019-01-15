@@ -128,7 +128,12 @@
 //   background: $monwooPrimaryAccentRegular !important;
 // }
 .social-stars {
-  background: $monwooPrimaryAccentRegular !important;
+  // background: $monwooPrimaryAccentRegular !important;
+  border: solid 2px $monwooPrimaryAccentRegular;
   padding: 10px 0px 5px 0px;
   border-radius: 10px;
+
+  .gh-octicon {
+    color: $monwooPrimaryAccentRegular !important;
+  }
 }

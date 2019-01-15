@@ -284,7 +284,7 @@
 # Added packages :
 yarn add emailjs-imap-client imports-loader net-browserify tls-browserify
 yarn add @auth0/angular-jwt secure-ls ionic-simple-lockscreen
-yarn add ngx-cookie-service material-design-icons
+yarn add ngx-cookie-service material-design-icons @ctrl/ngx-github-buttons
 
 # experimental : try to combine with ionic :
 yarn add ionic-simple-lockscreen ionic-angular rxjs-compat

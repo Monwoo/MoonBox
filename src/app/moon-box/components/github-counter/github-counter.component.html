@@ -1,0 +1,8 @@
+<a
+  class="social-count"
+  [class.gh-large]="large"
+  [href]="counterHref"
+  [attr.aria-label]="(count | number) + counterLabel + ' on GitHub'"
+>
+  <b></b> <i></i> <span>{{ count | number }}</span>
+</a>
