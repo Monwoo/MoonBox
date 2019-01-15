@@ -12,12 +12,12 @@ export const environment = {
   serverUrl: '',
   moonBoxFrontendUrl: 'https://www.monwoo.com/MoonBox/Demo',
   moonBoxFrontendDomain: 'www.monwoo.com',
-  moonBoxBackendUrl: 'https://www.monwoo.com/MoonBox/Demo/backend',
+  moonBoxBackendUrl: 'https://www.monwoo.com/MoonBox/_Demo/backend',
   moonBoxBackendDomain: 'www.monwoo.com',
-  moonBoxBackendBasePath: 'backend/',
+  moonBoxBackendBasePath: '../_Demo/backend/',
   defaultLanguage: 'fr-FR',
   supportedLanguages: ['fr-FR', 'en-US'],
-  clientSecret: '7r37k27o0lc7160',
+  clientSecret: 'edx1q8feghs03t1',
   jwtAllowedDomains: ['www.monwoo.com', 'www.monwoo.fr', 'monwoo.com', 'monwoo.fr']
 };
 /*

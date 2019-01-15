@@ -16,7 +16,8 @@ import {
   SimpleChanges,
   OnChanges,
   ChangeDetectorRef,
-  OnDestroy
+  OnDestroy,
+  AfterContentInit
 } from '@angular/core';
 import { NgForm, FormArray, Validators, FormBuilder } from '@angular/forms';
 import {
@@ -302,7 +303,8 @@ export class HandlerSubject extends BehaviorSubject<void> {
     { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS }
   ]
 })
-export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
+// https://angular.io/guide/lifecycle-hooks#aftercontent
+export class BoxesComponent implements OnInit, OnChanges, OnDestroy, AfterContentInit {
   // @ViewChild('filtersForm') filtersForm: ElementRef<NgForm> = null;
   @ViewChild('filtersFormRef') filtersFormRef: ElementRef<HTMLFormElement> = null;
   @ViewChild('filtersForm') filtersForm: NgForm = null; // TODO : refactor => ref is already inside this.filters...
@@ -504,7 +506,7 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
         // TODO : below quick patch to avoid buggy locked stuff, need to be done for any
         // services/callback that use storage... since secu throwings should not be catched,
         // but avoided by end user interfaces...
-        this.ngAfterViewInit();
+        this.ngAfterContentInit();
 
         // TODO : having issue if keeping haveExpandedFilters expanded on session switching
         // => form do not get refresh if user do not click somewhere on the page after session switching...
@@ -739,7 +741,7 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private viewInitProgressiveDelay = 100;
-  ngAfterViewInit() {
+  ngAfterContentInit() {
     const initHandler = () => {
       logReview.assert(!!this.stickyContainer, 'Fail to load sticky container');
       logReview.debug('Will init boxes filters & views');
@@ -820,7 +822,7 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy {
         .pipe(
           // map(_ => (initHandler())),
           tap(() => {
-            this.ngAfterViewInit();
+            this.ngAfterContentInit();
           })
         )
         .subscribe();

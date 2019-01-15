@@ -8,5 +8,9 @@
         // ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked.
 
   => put back this view at top level in routings to debug ?
+  https://blog.angularindepth.com/everything-you-need-to-know-about-the-expressionchangedafterithasbeencheckederror-error-e3fd9ce7dbb4
+  https://stackoverflow.com/questions/43375532/expressionchangedafterithasbeencheckederror-explained
+  I had a similar issue. Looking at the lifecycle hooks documentation, I changed ngAfterViewInit to ngAfterContentInit and it worked.
+  https://angular.io/guide/lifecycle-hooks
 -->
 <moon-boxes *ngIf="!storage.isLocked"></moon-boxes>

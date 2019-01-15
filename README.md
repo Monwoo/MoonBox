@@ -43,6 +43,9 @@ It may work under others, but we did not get time to try to ensure all polyfill 
 yarn install
 # start dev server :
 yarn start
+# start dev server in production mode (for prod debug only)
+# use 'yarn run build' for real production builds in /dist folder, cf below
+yarn start --prod
 
 # Extract strings from code and templates to src/app/translations/template.json :
 yarn run translations:extract # Generate template.json
