@@ -204,6 +204,36 @@
     </a>
   </div>
   <div class="p-2">
+    <!--
+      Place this tag where you want the button to render.
+      => transpile issue : aria-label unknown
+    -->
+    <div class="row">
+      <strong class="col-8 text-right"> {{ 'mb.param.giveItAStar' | translate }} : </strong>
+      <span class="col d-flex justify-content-around align-items-center social-stars">
+        <a
+          class="github-button"
+          href="https://github.com/Monwoo/MoonBox"
+          data-icon="octicon-star"
+          data-size="large"
+          data-show-count="true"
+          target="_blank"
+          attr.aria-label="{{ 'mb.param.gitHubStar.aria' | translate }}"
+          >{{ 'mb.param.gitHubStar.lbl' | translate }}
+        </a>
+        <!--
+          TODO : add 'addAStar' feature to backend => allow all un-reseted app to get a star....
+          => Do it by versions => in case of multiples moon boxes installed
+          => do it more like : "give a Star" / "give Moon" ? => crasy useless indicator ? (Crazy theme)
+          => or like this : "Did enjoy" / "Did piss me off" ? (Pro theme)
+          <i class="fas fa-star"></i>
+        -->
+        <!-- <i class="fab fa-laravel"></i> -->
+      </span>
+    </div>
+  </div>
+
+  <div class="p-2">
     <p>{{ 'mb.param.warningMsg' | translate }}</p>
   </div>
   <div id="CGU" class="modal-content">

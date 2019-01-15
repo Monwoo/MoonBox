@@ -117,3 +117,18 @@
 .mat-datepicker-toggle-active.mat-warn {
   color: $monwooPrimaryAccentStrong;
 }
+
+// TODO: No effect :
+// // github star :
+// .octicon-star {
+//   color: $monwooPrimaryAccentRegular !important;
+// }
+// TODO: No effect :
+// .social-stars .btn {
+//   background: $monwooPrimaryAccentRegular !important;
+// }
+.social-stars {
+  background: $monwooPrimaryAccentRegular !important;
+  padding: 10px 0px 5px 0px;
+  border-radius: 10px;
+}
