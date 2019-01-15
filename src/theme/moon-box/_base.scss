@@ -102,6 +102,8 @@
 
     .session-addSession {
       text-align: right;
+      margin-top: -21px;
+      margin-bottom: 7px;
     }
   }
 
@@ -186,7 +188,7 @@
   .boxes-configs-container {
     &.mat-expanded {
       .mat-expansion-panel-content {
-        margin-top: -32px;
+        margin-top: -21px;
         transition: margin 0ms 42ms;
       }
     }

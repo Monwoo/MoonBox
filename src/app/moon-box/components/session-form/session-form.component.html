@@ -48,6 +48,16 @@
         >
           {{ 'Supprimer la session' | translate }}
         </button>
+
+        <button
+          class="timings-export"
+          mat-button
+          color="primary"
+          type="button"
+          (click)="msgs.exportAsMoonManagerTimings()"
+        >
+          {{ 'mb.boxes.exportMManagerTimings' | translate }}
+        </button>
       </ng-template>
     </dynamic-material-form>
   </form>

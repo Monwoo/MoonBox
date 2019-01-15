@@ -11,6 +11,7 @@ import {
   QueryList
 } from '@angular/core';
 import { SecuStorageService } from '@moon-box/services/secu-storage.service';
+import { MessagesService } from '@moon-box/services/messages.service';
 import { MatAutocomplete, MatAutocompleteTrigger } from '@angular/material';
 import { Logger } from '@app/core/logger.service';
 const logReview = new Logger('MonwooReview');
@@ -35,7 +36,7 @@ export class SessionFormComponent implements OnInit {
     this.storage.onSessionKeyUp(e);
   }
 
-  constructor(public storage: SecuStorageService) {}
+  constructor(public storage: SecuStorageService, public msgs: MessagesService) {}
 
   ngOnInit() {}
 

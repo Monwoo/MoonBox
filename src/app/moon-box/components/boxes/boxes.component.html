@@ -1,4 +1,7 @@
 <!-- Copyright Monwoo 2018, made by Miguel Monwoo, service@monwoo.com -->
+
+<moon-box-session-form></moon-box-session-form>
+
 <!-- In Progress : https://material.angular.io/components/expansion/overview -->
 <mat-accordion *ngIf="!storage?.isLocked">
   <mat-expansion-panel
@@ -189,7 +192,11 @@
     [expanded]="expandBoxesConfigs"
   >
     <mat-expansion-panel-header>
-      <mat-panel-title> </mat-panel-title>
+      <mat-panel-title>
+        <button class="" mat-button color="secondary" type="button" (click)="addBox()">
+          {{ 'Ajouter une boite' | translate }}
+        </button>
+      </mat-panel-title>
       <mat-panel-description> </mat-panel-description>
     </mat-expansion-panel-header>
     <!-- <div [class.d-none]="expandBoxesConfigs"> -->
@@ -209,18 +216,9 @@
         <moon-box-reader [id]="idx" [filters]="filters.group.value" [extendedActions]="extendedActions">
         </moon-box-reader>
       </ng-container>
-      <button class="" mat-button color="secondary" type="button" (click)="addBox()">
-        {{ 'Ajouter une boite' | translate }}
-      </button>
     </div>
   </mat-expansion-panel>
 </mat-accordion>
-
-<button class="timings-export" mat-button color="primary" type="button" (click)="msgs.exportAsMoonManagerTimings()">
-  {{ 'mb.boxes.exportMManagerTimings' | translate }}
-</button>
-
-<moon-box-session-form></moon-box-session-form>
 
 <div>
   <div
