@@ -32,7 +32,8 @@ import {
   delay,
   concatAll,
   distinctUntilChanged,
-  filter
+  filter,
+  share
 } from 'rxjs/operators';
 import {
   ContextType,
@@ -71,7 +72,7 @@ export class SecuStorageService implements FormCallable {
   public set isLocked(should: boolean) {
     const asyncSetup = () => {
       this._isLocked = should;
-      this.onUnlock$.next(!this.isLocked);
+      this.lockDidChange$.next(!this.isLocked);
     };
     if (should) {
       // Do not wait to lockout
@@ -99,13 +100,26 @@ export class SecuStorageService implements FormCallable {
   private lockDialogRef: MatDialogRef<LockScreenComponent> = null;
   private rawCode: string = '';
   private lastRawCode: string = '';
-  public onUnlock$: ReplaySubject<boolean> = new ReplaySubject();
+  // Replay subject will not send value on new subscription...
+  // Need behavior subject for that or having other patterns ?
+  // public lockDidChange$: ReplaySubject<boolean> = new ReplaySubject();
+  public lockDidChange$: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
   public get onUnlock(): Observable<boolean> {
-    return this.onUnlock$.pipe(
+    return this.lockDidChange$.pipe(
       // distinctUntilChanged(), => pb : will not trigger unlock for session if changing session....
       debounceTime(hackyDebounceFactor),
-      filter(success => success) // only keep sucessfull unlocks
+      filter(lockIsOpen => lockIsOpen), // only keep sucessfull unlocks
+      share()
+    );
+  }
+
+  public get onLock(): Observable<boolean> {
+    return this.lockDidChange$.pipe(
+      // distinctUntilChanged(), => pb : will not trigger unlock for session if changing session....
+      debounceTime(hackyDebounceFactor),
+      filter(lockIsOpen => !lockIsOpen), // only keep sucessfull locks
+      share()
     );
   }
 
@@ -145,7 +159,7 @@ export class SecuStorageService implements FormCallable {
     // so ok to call multiple time + this handle case where No passcode is defined
     this.reloadLastSession();
 
-    // this.onUnlock$.subscribe(() => {
+    // this.lockDidChange$.subscribe(() => {
     //   // this.reloadLastSession(); // Infinit loop, since using same event to force view refresh...
     // });
     // this.setCurrentSession(this.defaultSessionId).subscribe();
@@ -418,7 +432,7 @@ export class SecuStorageService implements FormCallable {
     if (isValid) {
       this.setPassCode(rawCode, false);
       this.reloadLastSession();
-      // this.onUnlock$.next(null); // TODO : refactor : make onUnlock$ private, will break stuff if called outside of     this.reloadLastSession();
+      // this.lockDidChange$.next(null); // TODO : refactor : make lockDidChange$ private, will break stuff if called outside of     this.reloadLastSession();
     } else {
       await this.lockOut();
     }
@@ -662,7 +676,7 @@ export class SecuStorageService implements FormCallable {
         tap(freshDefaults => {
           logReview.debug('Having session Form defaults : ', freshDefaults);
           this.session = freshDefaults;
-          // Refresh current session by emitting a onUnlock$ event
+          // Refresh current session by emitting a lockDidChange$ event
           // if app is already unlocked only :
           if (!this.isLocked) {
             this.isLocked = false; // already false, yhea, but having setter emmiting the unlock event ;)
@@ -713,9 +727,9 @@ export class SecuStorageService implements FormCallable {
         map(didSet => {
           logReview.debug('Did set session Ids : ', didSet);
           this.isSessionGettingSetedUp = false;
-          // Reset frontend UI by sending a secu onUnlock$ event.
+          // Reset frontend UI by sending a secu lockDidChange$ event.
           // if (!this.isLocked)
-          this.onUnlock$.next(!this.isLocked);
+          this.lockDidChange$.next(!this.isLocked);
           this.sessionAvailableForSetup$.next();
           return true;
         })

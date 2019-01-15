@@ -13,4 +13,4 @@
   I had a similar issue. Looking at the lifecycle hooks documentation, I changed ngAfterViewInit to ngAfterContentInit and it worked.
   https://angular.io/guide/lifecycle-hooks
 -->
-<moon-boxes *ngIf="!storage.isLocked"></moon-boxes>
+<moon-boxes *ngIf="!isStorageLocked"></moon-boxes>
