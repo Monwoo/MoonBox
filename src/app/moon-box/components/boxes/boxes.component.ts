@@ -697,7 +697,7 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy, AfterConten
         this.boxesIdxs = bIdxs;
       } else {
         this.boxesIdxs = [];
-        this.addBox();
+        // this.addBox(); // Now that add button is in title bar, adding empty box is strange end user behavior...
       }
     }, this.errorHandler);
     return this;
