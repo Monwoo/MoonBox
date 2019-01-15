@@ -62,7 +62,7 @@ export class BackendService {
       serverUrl: 'imap.secureserver.net',
       serverPort: '993',
       usability: 'notifications_paused',
-      extraCmt: extract('Not tested yet')
+      extraCmt: extract('mb.backend.goDaddy.extraCmt')
     },
     LWS: {
       name: extract('L.W.S.'),

@@ -83,7 +83,7 @@
           </mat-select>
         </mat-form-field>
         <br style="clear:both;" />
-        <p class="float-right" [innerHtml]="backend.providers[loginData.selectedProvider]?.extraCmt"></p>
+        <p class="float-right" [innerHtml]="backend.providers[loginData.selectedProvider]?.extraCmt | translate"></p>
       </div>
       <div class="col-12 col-md-6 text-md-left height-animable condensable">
         <form *ngIf="formGroup" [formGroup]="formGroup" #loginForm="ngForm">

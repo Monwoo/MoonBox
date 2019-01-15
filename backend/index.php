@@ -599,6 +599,8 @@ $ctlrs->match('/api/messages', function(Request $request) use ($app){
     $stableConnectors = new Vector(array_keys($providersRoutes));
 
     if ($stableConnectors->contains($provider)) {
+        ini_set('max_execution_time', 10*60); // move PHP max time limite up to 10 minutes
+
         // https://silex.symfony.com/doc/2.0/cookbook/sub_requests.html
         // from MoonShop : Core/Provider/MoonShopBackupProvider.php
         // https://stackoverflow.com/questions/11227285/getting-all-request-parameters-in-symfony-2
