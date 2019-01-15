@@ -30,16 +30,34 @@ function authListener(e) {
       // + ')));'
       // + 'document.close();';
       // document.open();
-      document.open(mimeType);
+      // window.onload = function () {
+      var container = document.open(mimeType);
+      var lastSize = 0;
+      // container.onload = function () {
+      var sendScrollHeight = function() {
+        var newSize = container.body.scrollHeight;
+        if (newSize !== lastSize) {
+          window.parent.postMessage(
+            {
+              from: 'IFrameLoading', // TODO : better id system, ok since no // loads....
+              to: data.index,
+              height: newSize
+              // height: document.body.scrollHeight
+            },
+            data.url
+          );
+          lastSize = newSize;
+        }
+      };
+
+      $(container).ready(function() {
+        sendScrollHeight(); // Send current heigh
+        // Below hack not usable : putting new size is what's makes email content bigger...
+        // => seem like <pre> tag enclose 'html' body type => Need backend checks...
+        // setTimeout(sendScrollHeight, 2000); // quick fix hack, seem resize or innersize do not fit perfectly...
+      });
+      $(container).resize(sendScrollHeight);
       document.write(result);
-      window.parent.postMessage(
-        {
-          from: 'IFrameLoading',
-          to: data.index,
-          height: document.body.scrollHeight
-        },
-        data.url
-      );
     }
   }).fail(function(err) {
     $('body').html(JSON.stringify(err));

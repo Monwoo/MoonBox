@@ -874,13 +874,13 @@ class ImapDataProvider extends DataProvider
     protected function getBodyFromMimeMsg($msg) {
         $bodyText = null;
         $bodyHTML = null;
-        $isTxtFormat = false;
+        $haveTxtFormat = false;
         foreach (new \RecursiveIteratorIterator($msg) as $part) {
             try {
                 if (strtok($part->contentType, ';') == 'text/plain') {
                     $txt = $part->getContent();
                     if ($txt && $txt != '' && !$bodyText) {
-                        $isTxtFormat = true;
+                        $haveTxtFormat = true;
                         $bodyText = $txt;
                     }
                 }
@@ -894,7 +894,7 @@ class ImapDataProvider extends DataProvider
             }
         }
         $body = $bodyHTML ?? $bodyText ?? '';
-        if ($isTxtFormat) {
+        if (!$bodyHTML) {
             $body = "<pre>$body</pre>";
         }
 
@@ -904,7 +904,7 @@ class ImapDataProvider extends DataProvider
     protected function getBodyFromZendMsg($msg) {
         $bodyText = null;
         $bodyHTML = null;
-        $isTxtFormat = false;
+        $haveTxtFormat = false;
         if ($msg->isMultipart()) {
             // TODO : body part is part 0 or partId (eq to msg id ?)
             foreach (new \RecursiveIteratorIterator($msg) as $part) {
@@ -912,7 +912,7 @@ class ImapDataProvider extends DataProvider
                     if (strtok($part->contentType, ';') == 'text/plain') {
                         $txt = $part->getContent();
                         if ($txt && $txt != '' && !$bodyText) {
-                            $isTxtFormat = true;
+                            $haveTxtFormat = true;
                             $bodyText = $txt;
                         }
                     }
@@ -926,7 +926,7 @@ class ImapDataProvider extends DataProvider
                 }
             }
             $body = $bodyHTML ?? $bodyText ?? '';
-            if ($isTxtFormat) {
+            if (!$bodyHTML) {
                 $body = "<pre>$body</pre>";
             }
         } else {
