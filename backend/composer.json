@@ -13,7 +13,10 @@
   "autoload": {
     "psr-4": {
       "Monwoo\\": "Monwoo/"
-    }
+    },
+    "files": [
+      "vendorFixies/zend-validator/EmailAddress.php"
+    ]
   },
   "config": {
     "sort-packages": true
