@@ -29,7 +29,7 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
       // Do something with the error
       log.error('Request error', response);
     }
-    let e = new InterceptedError('Request error : ' + response.type.toString, response);
+    let e = new InterceptedError('Request error : ' + (response.type || '??').toString(), response);
     throw e;
   }
 }

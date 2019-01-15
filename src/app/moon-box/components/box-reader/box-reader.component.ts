@@ -36,6 +36,7 @@ import * as moment from 'moment';
 import { Logger } from '@app/core/logger.service';
 import { BoxesComponent } from '../boxes/boxes.component';
 const logReview = new Logger('MonwooReview');
+declare var YAML: any;
 
 @Component({
   selector: 'moon-box-reader',
@@ -396,17 +397,18 @@ export class BoxReaderComponent implements OnInit {
   };
   knownRegExErr = [{ testor: /Http failure response/, err: extract('mb.err.BackendNotReachable') }];
   normalizeErr(e: any) {
-    if (this.knownErr[e.message]) {
-      return this.i18nService.get(this.knownErr[e.message]);
+    const msg = e.response || e.message;
+    if (this.knownErr[msg]) {
+      return this.i18nService.get(this.knownErr[msg]);
     }
     // this.knownRegExErr.forEach(e => { });
     for (let i = 0; i < this.knownRegExErr.length; i++) {
       const re = this.knownRegExErr[i];
-      if (re.testor.test(e.message)) {
+      if (re.testor.test(msg)) {
         return this.i18nService.get(re.err);
       }
     }
-    return of(e.message);
+    return of(YAML.stringify(msg));
   }
 
   saveLoginForm() {
