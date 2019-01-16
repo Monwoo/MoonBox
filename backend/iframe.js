@@ -2,10 +2,16 @@
 
 // $(document).ready(function() {
 // console.log('IFrame ready');
+
 window.addEventListener('message', authListener);
 function authListener(e) {
-  // console.log('Having msg ', e);
+  var iframeId = $('#iframe-loader', document).data('id');
   var data = e.data;
+  if (iframeId !== data.index) {
+    // Only keep messages sent to handled iframe, so exit if not for targeted iframe
+    return;
+  }
+  // console.log('Having msg ', e);
   var endpoint = data.endpoint;
   var credentials = data.credentials;
   var mimeType = e.MIME || 'text/html'; // 'text/plain';
@@ -39,7 +45,7 @@ function authListener(e) {
         if (newSize !== lastSize) {
           window.parent.postMessage(
             {
-              from: 'IFrameLoading', // TODO : better id system, ok since no // loads....
+              from: 'IFrameLoading',
               to: data.index,
               height: newSize
               // height: document.body.scrollHeight

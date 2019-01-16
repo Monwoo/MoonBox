@@ -1238,35 +1238,36 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy, AfterConten
     }
   }
 
-  frameIdx = 0;
-  isProcessingIFrames = false;
+  frameIdx = 1;
+  // isProcessingIFrames = false;
   allIFrames = {};
   public updateIFrames() {
-    if (this.isProcessingIFrames) {
-      // logReview.debug('Frame updates already in process, postponing action');
-      of(() => {
-        this.updateIFrames();
-      })
-        .pipe(delay(500))
-        .subscribe((callback: any) => callback());
-      return;
-    }
-    this.isProcessingIFrames = true;
-    of(() => {
-      this.allIFrames = {};
+    // if (this.isProcessingIFrames) {
+    //   // logReview.debug('Frame updates already in process, postponing action');
+    //   of(() => {
+    //     logReview.debug('Postponing IFrames updates');
+    //     this.updateIFrames();
+    //   })
+    //     .pipe(delay(500))
+    //     .subscribe((callback: any) => callback());
+    //   return;
+    // }
+    // this.isProcessingIFrames = true;
+    // TODO : refactor good RxJs ways instead of hacky callback...
+    let mainSubscriber = of(() => {
+      // this.allIFrames = {};
       let iframes = document.querySelectorAll('iframe[data-didload="0"]');
       if (!iframes.length) {
-        this.isProcessingIFrames = false;
-        return;
+        return; // nothing to proceed
       }
-      from(iframes) // TODO : refactor and bundle down in backend.service => Async Worker Stack design pattern
+      let workerSubscriber = from(iframes) // TODO : refactor and bundle down in backend.service => Async Worker Stack design pattern
         .pipe(
-          delay(1000),
+          // delay(100),
           tap((f: HTMLIFrameElement) => {
             this.frameIdx++;
             this.allIFrames[this.frameIdx] = f;
             // this.renderer.setAttribute(f, 'src', f.getAttribute('data-src'));
-            const target = environment.moonBoxBackendUrl + '/api/iframe';
+            const target = environment.moonBoxBackendUrl + '/api/iframe/' + this.frameIdx;
             if (!parseInt(f.getAttribute('data-didLoad'))) {
               // https://stackoverflow.com/questions/22194409/failed-to-execute-postmessage-on-domwindow-the-target-origin-provided-does/40000073
               f.setAttribute('src', target);
@@ -1301,18 +1302,23 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy, AfterConten
                   );
                 })();
               };
-              f.setAttribute('data-didLoad', '1');
+              f.setAttribute('data-didLoad', this.frameIdx.toString());
             }
           }),
           last(() => {
-            this.isProcessingIFrames = false;
+            // this.isProcessingIFrames = false;
             logReview.debug('IFrame updates OK');
             return true;
           })
         )
-        .subscribe(() => {});
+        .subscribe(() => {
+          workerSubscriber.unsubscribe();
+        });
     })
-      .pipe(delay(200))
-      .subscribe((callback: any) => callback());
+      .pipe(delay(200)) // wait for iframe to render (TODO : more Angular way ? -> Render2 etc...)
+      .subscribe((callback: any) => {
+        callback();
+        mainSubscriber.unsubscribe();
+      });
   }
 }

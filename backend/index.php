@@ -662,13 +662,13 @@ $ctlrs->match('/api/messages', function(Request $request) use ($app){
 })->bind('api.messages')->method('OPTIONS|POST|GET');;
 
 
-$ctlrs->match('/api/iframe', function(Request $request) use ($app){
+$ctlrs->match('/api/iframe/{id}', function(Request $request, $id) use ($app){
     // https://stackoverflow.com/questions/26621679/web-api-cors-basic-ntlm-401-with-firefox-chrome
     // https://dzone.com/articles/sending-data-to-another-domain-using-postmessage
     $body = "<html>
     <head>
     <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
-    <script type='text/javascript'>
+    <script type='text/javascript' id='iframe-loader' data-id='$id'>
     " . file_get_contents(__DIR__ . '/iframe.js') . "
     </script>
     </head>
