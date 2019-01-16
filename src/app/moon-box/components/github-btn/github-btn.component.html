@@ -1,5 +1,5 @@
 <div [class.gh-large]="this.size === 'large'">
-  <a [href]="buttonHref" class="gh-btn" target="_blank" [attr.aria-label]="text + ' on GitHub'">
+  <a [href]="buttonHref" class="gh-btn" target="_blank" [attr.aria-label]="'mb.param.gitHubStar.aria' | translate">
     <svg
       version="1.1"
       [attr.width]="svg.width"
@@ -10,7 +10,7 @@
     >
       <path fill-rule="evenodd" [attr.d]="svg.path"></path>
     </svg>
-    <span> {{ text }}</span>
+    <span> {{ 'mb.param.gitHubStar.lbl' | translate }}</span>
   </a>
   <moon-box-github-counter
     *ngIf="count && loaded"
