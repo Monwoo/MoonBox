@@ -193,7 +193,7 @@
   >
     <mat-expansion-panel-header>
       <mat-panel-title>
-        <button class="" mat-button color="secondary" type="button" (click)="addBox()">
+        <button class="" mat-button color="secondary" type="button" (click)="preventDefault($event); addBox()">
           {{ 'Ajouter une boite' | translate }}
         </button>
       </mat-panel-title>

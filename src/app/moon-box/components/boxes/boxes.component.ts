@@ -857,17 +857,23 @@ export class BoxesComponent implements OnInit, OnChanges, OnDestroy, AfterConten
     // juste that the store is locked
     // Do it in if case :
     if (!this.storage.isLocked) {
+      if (!this.expandBoxesConfigs) {
+        this.toggleBoxesConfigs(null);
+      }
       const boxId = this.newRandomIndex();
-      this.boxesIdxs.push(boxId);
+      // this.boxesIdxs.push(boxId);
+      this.boxesIdxs.unshift(boxId);
       this.updateBoxesLookup();
       of(() => {
         const targetBox = this.boxViews.find((item, index, src) => {
           return boxId === item.id;
         });
-        targetBox.toggleConfigs(); // auto expand freshly added box
+        if (targetBox.isCondensed) {
+          targetBox.toggleConfigs(); // auto expand freshly added box
+        }
       })
         .pipe(delay(200))
-        .subscribe((callback: any) => callback());
+        .subscribe((callback: any) => callback()); // TODO : pending un-subscribe ?
 
       this.storage.setItem('boxesIdxs', this.boxesIdxs).subscribe((bIdxs: string[]) => {}, this.errorHandler);
     }

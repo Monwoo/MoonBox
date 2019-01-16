@@ -417,7 +417,7 @@ export class BoxReaderComponent implements OnInit {
         '*' + '#__hash' + (Math.random().toString(36) + '777777777').slice(2, 9) + btoa(this.loginData._password);
     }
 
-    let storeData = this.loginData;
+    let storeData = { ...this.loginData };
     if (!this.loginData.keepPasswordsInMemory) {
       // storeData = <FormType>shallowMerge(1, this.loginData, {
       //   _password: ''
