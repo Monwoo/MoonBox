@@ -162,6 +162,7 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
             '.htaccess',
             'iframe.js',
             'index.php',
+            'vendorFixies',
             // 'config.php',
             $self->isDev ? ( // TODO : factorize, 2 place to setup dev status : inside php file + as param... 
                 $self->env ==='preprod' ? 'config.preprod.php' : 'config.dev.php') : 'config.prod.php',
@@ -234,6 +235,7 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
 
             $srcDirs = [
                 $installFolder . '/vendor',
+                $installFolder . '/vendorFixies',
                 $installFolder . '/Monwoo',
             ];
             $srcFiles = [
@@ -310,6 +312,7 @@ class MoonBoxInstallCommand extends ContainerAwareCommand
             $fs->remove([
                 "$installFolder/Monwoo",
                 "$installFolder/vendor",
+                "$installFolder/vendorFixies",
                 "$installFolder/config.dev.php",
                 "$installFolder/config.php",
                 "$installFolder/config.preprod.php",
